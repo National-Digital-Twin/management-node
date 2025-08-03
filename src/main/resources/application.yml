@@ -1,0 +1,60 @@
+spring:
+  application:
+    name: management-node
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://localhost:8443/realms/management-node
+          jwk-set-uri: https://localhost:8443/realms/management-node/protocol/openid-connect/certs
+          audiences: management-node
+          authorities-claim-name: resource_access
+        opaquetoken:
+          introspection-uri: https://localhost:8443/realms/management-node/protocol/openid-connect/token/introspect
+          client-secret:
+          client-id:
+  flyway:
+    create-schemas: on
+    default-schema: mn
+    locations: classpath:db/migration,classpath:db/samples
+    enabled: true
+    baseline-on-migrate: true
+  datasource:
+    url: jdbc:postgresql://localhost:5433/postgres
+    username: keycloak_db_user
+    password:
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        show_sql: true
+        default_schema: mn
+
+# Server configuration
+server:
+  port: 8090
+  ssl:
+    key-alias: localhost
+    key-store: keystore.jks
+    key-store-type: JKS
+    key-store-password:
+    trust-store: truststore.jks
+    trust-store-password:
+    trust-store-type: JKS
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+# Logging Configuration
+logging:
+  level:
+    org.springframework.security: DEBUG
+    uk.gov.dbt.ndtp.ia.node.management: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X{clientId}] - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X{clientId}] - %msg%n"

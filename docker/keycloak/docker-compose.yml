@@ -1,0 +1,70 @@
+
+services:
+  postgres:
+    image: postgres:16.2
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    networks:
+      - keycloak_network
+    ports:
+      - "5433:5432"
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.3.2
+    command: start --verbose
+    hostname: localhost
+    container_name: keycloak
+    environment:
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: ${KC_HOSTNAME_PORT}
+      KC_HOSTNAME_STRICT_BACKCHANNEL: ${KC_HOSTNAME_STRICT_BACKCHANNEL}
+      KC_HTTP_ENABLED: ${KC_HTTP_ENABLED}
+      KC_HOSTNAME_STRICT_HTTPS: ${KC_HOSTNAME_STRICT_HTTPS}
+      KC_HEALTH_ENABLED: ${KC_HEALTH_ENABLED}
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: ${KC_DB}
+      KC_DB_URL: jdbc:postgresql://postgres/${POSTGRES_DB}
+      KC_DB_USERNAME: ${POSTGRES_USER}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      ##################################
+      KC_HTTPS_CLIENT_AUTH: ${KC_HTTPS_CLIENT_AUTH}
+      KC_HTTPS_ENABLED: ${KC_HTTPS_ENABLED}
+      KC_HTTPS_PORT: ${KC_HTTPS_PORT}
+      KC_HTTPS_KEY_STORE_FILE: /cert/keystore.jks
+      KC_HTTPS_KEY_STORE_PASSWORD: ${KC_HTTPS_KEY_STORE_PASSWORD}
+      KC_HTTPS_CERTIFICATE_FILE: /cert/localhost.crt
+      KC_HTTPS_CERTIFICATE_KEY_FILE: /key/localhost.key
+      KC_HTTPS_TRUST_STORE_FILE: /keystores/localhost.p12
+      KC_HTTPS_TRUST_STORE_PASSWORD: ${KC_HTTPS_TRUST_STORE_PASSWORD}
+      KC_SPI_TRUSTSTORE_FILE_FILE: /cert/truststore.jks
+      KC_SPI_TRUSTSTORE_FILE_PASSWORD: ${KC_SPI_TRUSTSTORE_FILE_PASSWORD}
+      #############################
+      KC_LOG_LEVEL: ${KC_LOG_LEVEL}
+
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+      - "9000:9000"
+    restart: always
+    depends_on:
+      - postgres
+    networks:
+      - keycloak_network
+    volumes:
+      - ./localhost.p12:/keystores/localhost.p12
+      - ./localhost.crt:/cert/localhost.crt
+      - ./localhost.key:/key/localhost.key
+      - ./keystore.jks:/cert/keystore.jks
+      - ./truststore.jks:/cert/truststore.jks
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  keycloak_network:
+    driver: bridge
