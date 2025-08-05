@@ -120,61 +120,108 @@ For development purposes, follow these steps to generate certificates for mTLS. 
 
 1. **Generate a Root CA certificate**:
    ```bash
-   openssl req -x509 -sha256 -days 3650 -newkey rsa:4096 -keyout rootCA.key -out rootCA.crt
+      export CA_ROOT_PASSWORD=changeit
+      openssl req -x509 -sha256 -days 3650 -newkey rsa:4096 \
+      -keyout rootCA.key -out rootCA.crt \
+      -subj "/C=GB/ST=England/L=London/O=Informed/OU=IT Department/CN=informed.com/emailAddress=admin@informed.com" \
+      -passout env:ROOT_PASSWORD
    ```
+   | File          | Description                                                          |
+   |---------------|----------------------------------------------------------------------|
+   | `rootCA.key`  | Encrypted private key (RSA 4096-bit). Protected by `$ROOT_PASSWORD`. |
+   | `rootCA.crt`  | Self-signed X.509 certificate (valid for 10 years).                  |
    This creates a Root Certificate Authority (CA) that will be used to sign other certificates. The certificate is valid for 10 years (3650 days).
+
 
 2. **Generate a host certificate**:
    ```bash
-   openssl req -new -newkey rsa:4096 -keyout localhost.key -out localhost.csr -nodes
+   openssl req -new -newkey rsa:4096 -nodes \
+   -keyout localhost.key -out localhost.csr \
+   -subj "/C=GB/ST=England/L=London/O=Informed/OU=IT Department/CN=localhost/emailAddress=admin@informed.com"
    ```
-   This creates a private key and certificate signing request (CSR) for the host.
+   This creates a private key and certificate signing request (CSR) for the host. The private key will **not** be password protected (`-nodes`).
+
+   | File Name        | Description                                                                 |
+   |------------------|-----------------------------------------------------------------------------|
+   | `localhost.key`  | **Private key** (RSA 4096-bit), unencrypted due to the `-nodes` option.     |
+   | `localhost.csr`  | **Certificate Signing Request** — includes public key and subject details.  |
 
 3. **Sign the host certificate with the Root CA**:
    ```bash
-   openssl x509 -req -CA rootCA.crt -CAkey rootCA.key -in localhost.csr -out localhost.crt -days 365 -CAcreateserial -extfile localhost.ext
-   ```
-   This signs the host CSR with the Root CA, creating a certificate valid for 365 days.
-   
-   The content of the `localhost.ext` file should be:
-   ```
+   ( cat <<EOF > localhost.ext
    authorityKeyIdentifier=keyid,issuer
    basicConstraints=CA:FALSE
    subjectAltName = @alt_names
+   
    [alt_names]
    DNS.1 = localhost
    DNS.2 = keycloak
+   EOF
+   ) && openssl x509 -req \
+   -in localhost.csr -CA rootCA.crt -CAkey rootCA.key \
+   -CAcreateserial -out localhost.crt -days 365 \
+   -extfile localhost.ext && rm localhost.ext
    ```
-   This configuration specifies that the certificate is valid for both `localhost` and `keycloak` hostnames.
+   When running the command that creates `localhost.ext` temporarily and signs the CSR, the following files are created:
+
+   | File Name       | Description                                                                                                                                  |
+   |-----------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+   | `localhost.ext` | Temporary extension file specifying certificate extensions and Subject Alternative Names (SANs). Created at start and deleted after signing. |
+   | `localhost.crt` | The signed certificate generated from `localhost.csr` using the Root CA, valid for 365 days. This certificate is valid for the hostnames `localhost` and `keycloak`.    |                                                |
+   
+
 
 4. **Create a PKCS12 keystore for the server**:
    ```bash
-   openssl pkcs12 -export -out localhost.p12 -name "localhost" -inkey localhost.key -in localhost.crt
+   export P12_PASSWORD="changeit"
+   openssl pkcs12 -export -out localhost.p12 -name "localhost" -inkey localhost.key -in localhost.crt -passout env:P12_PASSWORD
    ```
-   This bundles the host certificate and private key into a PKCS12 format.
+   When running following files are created
+
+   | File Name     | Description                                                        |
+   |---------------|--------------------------------------------------------------------|
+   | `localhost.p12` | Password-protected PKCS#12 archive containing both the private key (`localhost.key`) and the signed certificate (`localhost.crt`). Used for importing into browsers, servers, or other systems that require combined key and certificate. |
+
 
 5. **Create a PEM file for Linux keystore**:
    ```bash
-   openssl pkcs12 -in localhost.p12 -clcerts -nokeys -out localhost.pem
+    openssl pkcs12 -in localhost.p12 -clcerts -nokeys -out localhost.pem
    ```
-   This extracts the certificate (without the private key) in PEM format.
+   When running following files are created
+
+   | File Name      | Description                                                          |
+   |----------------|----------------------------------------------------------------------|
+   | `localhost.pem` | PEM-format file containing only the client certificate extracted from the PKCS#12 archive (`localhost.p12`). This file does **not** include the private key. It is commonly used for systems that require the certificate in PEM format without the key. |
 
 6. **Add the Root CA to the Trust Store**:
    ```bash
    keytool -importcert -file rootCA.crt -alias clientca -keystore localhost.p12 -storetype PKCS12 -storepass changeit
    ```
-   This adds the Root CA to the trust store so that clients signed by this CA will be trusted.
+   Adds the Root CA certificate as a trusted certificate entry in the PKCS#12 keystore `localhost.p12`.
+This can be useful for trusting the CA in applications that read this keystore.
 
 7. **Generate a client certificate**:
    ```bash
-   openssl req -new -newkey rsa:4096 -nodes -keyout client.key -out client.csr
+   openssl req -new -newkey rsa:4096 -nodes -keyout client.key -out client.csr \
+   -subj "/C=GB/ST=England/L=London/O=Informed/OU=IT Department/CN=client.informed.com/emailAddress=admin@informed.com"
+
    ```
    This creates a private key and CSR for the client.
+
+   | File Name   | Description                                              |
+   |-------------|----------------------------------------------------------|
+   | `client.key` | Private RSA key (4096-bit) generated for the client.    |
+   | `client.csr` | Certificate Signing Request containing client details, used to request a signed certificate from a CA. |
 
 8. **Sign the client certificate with the Root CA**:
    ```bash
    openssl x509 -req -CA rootCA.crt -CAkey rootCA.key -in client.csr -out client.crt -days 365 -CAcreateserial
+   
    ```
+   | File Name       | Description                                                                                       |
+   |-----------------|-------------------------------------------------------------------------------------------------|
+   | `client.crt`    | Signed client certificate, valid for 365 days, issued by the Root CA based on the CSR (`client.csr`). |
+
    This signs the client CSR with the Root CA, creating a certificate valid for 365 days.
 
 9. **Create a PKCS12 keystore for the client**:
@@ -183,11 +230,21 @@ For development purposes, follow these steps to generate certificates for mTLS. 
    ```
    This bundles the client certificate and private key into a PKCS12 format for use in browsers or client applications.
 
+   | File Name    | Description                                                                                       |
+   |--------------|--------------------------------------------------------------------------------------------------|
+   | `client.p12` | A PKCS#12 archive containing the client's private key (`client.key`) and X.509 certificate (`client.crt`). This file is password-protected and is commonly used for client authentication in browsers, APIs, and applications. |
+
+
 10. **Create a Java keystore using keytool**:
     ```bash
     keytool -importkeystore -destkeystore keystore.jks -srckeystore localhost.p12 -srcstoretype PKCS12 -alias "localhost"
     ```
     This converts the PKCS12 keystore to a Java KeyStore (JKS) format used by Java applications.
+
+    | File Name       | Description                                                                 |
+    |------------------|-----------------------------------------------------------------------------|
+    | `keystore.jks`   | A Java KeyStore (JKS) containing the key and certificate originally in `localhost.p12`. This is used in Java-based applications such as Tomcat, Spring Boot, or Keycloak for SSL/TLS. |
+
 
 11. **Create a Java truststore using keytool**:
     ```bash
@@ -200,6 +257,11 @@ For development purposes, follow these steps to generate certificates for mTLS. 
     keytool -importcert -file rootCA.crt -alias rootCA -keystore truststore.jks -storetype JKS
     ```
     This ensures the Root CA is properly imported into the Java truststore.
+
+    | File Name        | Description                                                                                     |
+    |------------------|-------------------------------------------------------------------------------------------------|
+    | `truststore.jks` | Java TrustStore containing the imported Root CA certificate (`rootCA.crt`) under the alias `ca`. Trusted by Java applications for verifying certificates signed by this CA. |
+
 
 13. **Test mTLS connectivity**:
     ```bash
