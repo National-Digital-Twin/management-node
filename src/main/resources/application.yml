@@ -22,7 +22,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5433/postgres
     username: keycloak_db_user
-    password:
+    password: keycloak_db_user_password
   jpa:
     properties:
       hibernate:
@@ -35,11 +35,11 @@ server:
   port: 8090
   ssl:
     key-alias: localhost
-    key-store: keystore.jks
+    key-store: classpath:keystore.jks
     key-store-type: JKS
-    key-store-password:
-    trust-store: truststore.jks
-    trust-store-password:
+    key-store-password: changeit
+    trust-store: classpath:truststore.jks
+    trust-store-password: changeit
     trust-store-type: JKS
 # Actuator Configuration
 management:

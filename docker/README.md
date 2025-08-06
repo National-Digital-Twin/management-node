@@ -71,10 +71,10 @@ Import client key and crt in keystore to create the "certificate" to be used in 
 ## To Test MTLS:
 
     curl --location 'https://localhost:8443/realms/management-node/protocol/openid-connect/token' \
---cert client.crt --key client.key \
---header 'Content-Type: application/x-www-form-urlencoded' \
---data-urlencode 'client_id=ztf-client' \
---data-urlencode 'grant_type=client_credentials'
+    --cert client.crt --key client.key \
+    --header 'Content-Type: application/x-www-form-urlencoded' \
+    --data-urlencode 'client_id=ztf-client' \
+    --data-urlencode 'grant_type=client_credentials'
 
 ---
 
@@ -96,6 +96,8 @@ mvn clean package
 1. Set up environment variables in a `.env` file in the docker directory:
 
 ```
+cd docker
+cat <<EOF > .env
 # Database configuration
 POSTGRES_DB=keycloak_db
 POSTGRES_USER=keycloak_db_user
@@ -124,13 +126,14 @@ KC_HTTPS_CLIENT_AUTH=required
 KC_HTTPS_ENABLED=true
 KC_HTTPS_PORT=8443
 KC_LOG_LEVEL=INFO
+EOF
 ```
 
 2. Start all services using Docker Compose:
 
 ```bash
 cd docker
-docker-compose up -d
+docker compose up -d
 ```
 
 This will start:
@@ -144,7 +147,7 @@ This will start:
 
 ```bash
 cd docker
-docker-compose down
+docker compose down
 ```
 
 To remove volumes as well:
