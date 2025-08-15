@@ -286,7 +286,7 @@ If you prefer to set up the realm manually:
 
 ### Testing mTLS connectivity:
 
-   Once KeyCloak is running and configured, you can test mTLS connectivity using the below command:
+Once KeyCloak is running and configured, you can test mTLS connectivity using the below command:
 
     ```bash
     curl --location 'https://localhost:8443/realms/management-node/protocol/openid-connect/token' \
@@ -295,7 +295,8 @@ If you prefer to set up the realm manually:
     --data-urlencode 'client_id=ztf-client' \
     --data-urlencode 'grant_type=client_credentials'
     ```
-    This tests the mTLS setup by attempting to obtain a token from Keycloak using client certificate authentication.
+
+This tests the mTLS setup by attempting to obtain a token from Keycloak using client certificate authentication.
 
 ## Building and Running with Maven
 
