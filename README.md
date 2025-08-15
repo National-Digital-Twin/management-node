@@ -20,7 +20,7 @@ The application uses Keycloak for authentication and authorization. Follow these
    cd docker
    ```
 
-2. Make sure you have the required certificates in place in the `docker` directory:
+2. Make sure you have the required certificates in the `docker` directory:
    - `keystore.jks` - Java keystore containing the server certificate
    - `truststore.jks` - Java truststore containing trusted certificates
    - `localhost.p12` - PKCS12 keystore for client authentication
