@@ -40,3 +40,6 @@ build/
 *.jks
 *.ext
 *.pem
+
+### Env files ###
+.env
