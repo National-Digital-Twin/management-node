@@ -116,7 +116,7 @@ The system requires several certificate files:
 
 ### Step-by-Step Certificate Generation
 
-For development purposes, follow these steps to generate certificates for mTLS. All passwords used are `changeit`.
+For development purposes, follow these steps to generate certificates for mTLS. All passwords used are `changeit`. When generating these certficates, for the `Country Name`, you can use the value of 'UK'. All remaining certificate fields can be left to their default values.
 
 1. **Generate a Root CA certificate**:
    ```bash
