@@ -20,7 +20,7 @@ The application uses Keycloak for authentication and authorization. Follow these
    cd docker
    ```
 
-2. Make sure you have the required certificates in place:
+2. Make sure you have the required certificates in the `docker` directory:
    - `keystore.jks` - Java keystore containing the server certificate
    - `truststore.jks` - Java truststore containing trusted certificates
    - `localhost.p12` - PKCS12 keystore for client authentication
@@ -31,7 +31,7 @@ The application uses Keycloak for authentication and authorization. Follow these
 
 3. Start Keycloak and PostgreSQL using Docker Compose:
    ```bash
-   docker-compose up -d
+   docker compose -f keycloak/docker-compose.yml up -d
    ```
 
 4. Verify that Keycloak is running:
@@ -116,7 +116,7 @@ The system requires several certificate files:
 
 ### Step-by-Step Certificate Generation
 
-For development purposes, follow these steps to generate certificates for mTLS. All passwords used are `changeit`.
+For development purposes, follow these steps to generate certificates for mTLS. All passwords used are `changeit`. When generating these certficates, for the `Country Name`, you can use the value of 'UK'. All remaining certificate fields can be left to their default values.
 
 1. **Generate a Root CA certificate**:
    ```bash
@@ -201,16 +201,6 @@ For development purposes, follow these steps to generate certificates for mTLS. 
     ```
     This ensures the Root CA is properly imported into the Java truststore.
 
-13. **Test mTLS connectivity**:
-    ```bash
-    curl --location 'https://localhost:8443/realms/management-node/protocol/openid-connect/token' \
-    --cert client.crt --key client.key \
-    --header 'Content-Type: application/x-www-form-urlencoded' \
-    --data-urlencode 'client_id=ztf-client' \
-    --data-urlencode 'grant_type=client_credentials'
-    ```
-    This tests the mTLS setup by attempting to obtain a token from Keycloak using client certificate authentication.
-
 ### Certificate Placement and Configuration
 
 After generating the certificates, place them in the appropriate locations:
@@ -267,7 +257,7 @@ For production environments, use strong, unique passwords and secure storage sol
 
 ## Keycloak Realm Setup
 
-After starting Keycloak, you need to set up a realm for the Management Node. You can either import the pre-configured realm or create it manually.
+After starting Keycloak, you need to set up a realm for the Management Node. You can either import the pre-configured realm or create it manually. To access the administrative interface at https://localhost:8443/admin, you will need to first import your client.p12 digital certificate file into your local browser, else the request will be rejected.
 
 ### Option 1: Import the Realm Configuration (Recommended)
 
@@ -293,6 +283,20 @@ If you prefer to set up the realm manually:
    - Valid Redirect URIs: `https://localhost:8090/*`
    - Web Origins: `+`
 4. Note the client secret from the Credentials tab and update it in your application.yml if needed
+
+### Testing mTLS connectivity:
+
+Once KeyCloak is running and configured, you can test mTLS connectivity using the below command:
+
+    ```bash
+    curl --location 'https://localhost:8443/realms/management-node/protocol/openid-connect/token' \
+    --cert client.crt --key client.key \
+    --header 'Content-Type: application/x-www-form-urlencoded' \
+    --data-urlencode 'client_id=ztf-client' \
+    --data-urlencode 'grant_type=client_credentials'
+    ```
+
+This tests the mTLS setup by attempting to obtain a token from Keycloak using client certificate authentication.
 
 ## Building and Running with Maven
 

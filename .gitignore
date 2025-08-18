@@ -31,3 +31,15 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Development certificates ###
+*.key
+*.csr
+*.crt
+*.p12
+*.jks
+*.ext
+*.pem
+
+### Env files ###
+.env

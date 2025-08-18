@@ -55,11 +55,11 @@ services:
     networks:
       - keycloak_network
     volumes:
-      - ./localhost.p12:/keystores/localhost.p12
-      - ./localhost.crt:/cert/localhost.crt
-      - ./localhost.key:/key/localhost.key
-      - ./keystore.jks:/cert/keystore.jks
-      - ./truststore.jks:/cert/truststore.jks
+      - ../localhost.p12:/keystores/localhost.p12
+      - ../localhost.crt:/cert/localhost.crt
+      - ../localhost.key:/key/localhost.key
+      - ../keystore.jks:/cert/keystore.jks
+      - ../truststore.jks:/cert/truststore.jks
 
 volumes:
   postgres_data:
