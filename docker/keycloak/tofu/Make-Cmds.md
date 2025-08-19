@@ -1,4 +1,4 @@
-# 🚀 Keycloak OpenTofu Make Commands
+# Keycloak OpenTofu Make Commands
 
 This document describes how to use the Makefile in this folder to manage Keycloak resources (realm, clients, client scopes) with OpenTofu.
 
@@ -9,7 +9,7 @@ Important notes:
 
 ---
 
-## 🔹 Quick start
+## Quick start
 
 Initialize OpenTofu, select/create the workspace, and configure the S3 backend:
 
@@ -21,7 +21,7 @@ If your backend file is custom, make sure it matches backends/<workspace>-backen
 
 ---
 
-## 🔹 Plan and apply
+## Plan and apply
 
 Plan changes (loads terraform.tfvars automatically and tfvars/<workspace>.tfvars if present):
 
@@ -43,7 +43,7 @@ make apply-auto-approve WORKSPACE=dev DIR=.
 
 ---
 
-## 🔹 Destroy
+## Destroy
 
 Create a destroy plan and destroy resources for the selected workspace:
 
@@ -54,7 +54,7 @@ make destroy WORKSPACE=dev DIR=.
 
 ---
 
-## 🔹 Validation and formatting
+## Validation and formatting
 
 Format all files and validate configuration:
 
@@ -77,7 +77,7 @@ make pre-commit WORKSPACE=dev DIR=.
 
 ---
 
-## 🔹 Upgrade and re-init
+## Upgrade and re-init
 
 If providers/modules were updated or you need a clean init:
 
@@ -87,7 +87,7 @@ make init-upgrade WORKSPACE=dev DIR=.
 
 ---
 
-## 🔹 Variables and files
+## Variables and files
 
 - Backend config: backends/<workspace>-backend.tfvars (e.g., backends/dev-backend.tfvars)
 - Per-workspace variables: tfvars/<workspace>.tfvars (e.g., tfvars/dev.tfvars)
@@ -100,7 +100,7 @@ Key variables (see variables.tf and terraform.tfvars):
 
 ---
 
-## 🔹 Example workflow
+## Example workflow
 
 ```sh
 # From docker/keycloak/tofu
@@ -109,6 +109,6 @@ make plan WORKSPACE=dev DIR=.
 make apply WORKSPACE=dev DIR=.
 ```
 
-That’s it — no AWS regional/global directories are needed here. This Makefile and commands are scoped to the Keycloak OpenTofu configuration in this folder.
+That's it - no AWS regional/global directories are needed here. This Makefile and commands are scoped to the Keycloak OpenTofu configuration in this folder.
 
 

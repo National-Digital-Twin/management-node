@@ -7,7 +7,6 @@ keycloak_client_timeout = 30
 
 management_realm_name = "mng-node"
 
-
 # JWT access token lifespan for clients (in seconds). Default is 1800 (30 minutes)
 client_access_token_lifespan_seconds = 1800
 

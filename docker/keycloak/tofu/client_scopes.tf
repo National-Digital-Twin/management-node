@@ -22,9 +22,9 @@ resource "keycloak_openid_client_scope" "management_node_access" {
 
 # Add audience mapper to include management-node in the 'aud' claim for tokens using this scope
 resource "keycloak_openid_audience_protocol_mapper" "management_node_aud" {
-  realm_id         = keycloak_realm.management-node.id
-  client_scope_id  = keycloak_openid_client_scope.management_node_access.id
-  name             = "aud-management-node"
+  realm_id        = keycloak_realm.management-node.id
+  client_scope_id = keycloak_openid_client_scope.management_node_access.id
+  name            = "aud-management-node"
 
   included_client_audience = "management-node"
 
@@ -39,8 +39,8 @@ resource "keycloak_openid_user_client_role_protocol_mapper" "management_node_rol
   name            = "roles-management-node"
 
   # client whose roles will be added to the token
-  
-  claim_name        = "resource_access.management-node.roles"
+
+  claim_name          = "resource_access.management-node.roles"
   add_to_access_token = true
   add_to_id_token     = false
   multivalued         = true

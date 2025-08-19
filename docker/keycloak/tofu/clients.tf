@@ -10,7 +10,7 @@ resource "keycloak_openid_client" "management_node" {
   service_accounts_enabled     = true # allow use of client credentials
 
   # Per-client JWT access token lifespan (seconds)
-  access_token_lifespan        = var.client_access_token_lifespan_seconds
+  access_token_lifespan = var.client_access_token_lifespan_seconds
 }
 
 
@@ -29,9 +29,7 @@ resource "keycloak_role" "access_producer_configurations" {
   description = "Allows access to producer configuration resources"
 }
 
-
-
-# New: Configure clients from federator_clients variable
+# Configure clients from federator_clients variable
 module "federator_client" {
   source = "./modules/federator_client"
 

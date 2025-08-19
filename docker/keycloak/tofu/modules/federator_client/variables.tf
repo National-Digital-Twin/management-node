@@ -18,6 +18,7 @@ variable "description" {
   type    = string
   default = null
 }
+
 variable "enabled" {
   type    = bool
   default = true
@@ -34,15 +35,18 @@ variable "standard_flow_enabled" {
   type    = bool
   default = false
 }
+
 variable "implicit_flow_enabled" {
   type    = bool
   default = false
 }
+
 variable "direct_access_grants_enabled" {
   # ROPC
   type    = bool
   default = false
 }
+
 variable "service_accounts_enabled" {
   type    = bool
   default = true

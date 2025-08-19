@@ -40,8 +40,6 @@ variable "client_access_token_lifespan_seconds" {
   default     = 1800
 }
 
-
-
 variable "federator_clients" {
   description = "List of federator clients to create with their own roles and mapped roles from other clients"
   type = list(object({

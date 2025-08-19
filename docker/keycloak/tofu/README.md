@@ -15,17 +15,17 @@ The configuration uses the Keycloak provider and an S3 backend for state (config
 
 ## Directory Layout
 
-- backend.tf           — Declares the S3 backend and required providers
-- providers.tf         — Configures the Keycloak provider using variables
-- variables.tf         — Input variables used across the configuration
-- realm.tf             — Realm creation and base configuration
-- clients.tf           — Clients and role definitions
-- client_scopes.tf     — Client scopes and mappers
-- terraform.tfvars     — Default variable values for local/dev usage
-- backends/            — Backend config files (e.g., dev-backend.tfvars)
-- tfvars/              — Optional per-workspace tfvars files (e.g., dev.tfvars)
-- modules/             — Reusable modules (e.g., federator_client)
-- Makefile             — Helper targets to init/plan/apply/destroy/validate
+- backend.tf           - Declares the S3 backend and required providers
+- providers.tf         - Configures the Keycloak provider using variables
+- variables.tf         - Input variables used across the configuration
+- realm.tf             - Realm creation and base configuration
+- clients.tf           - Clients and role definitions
+- client_scopes.tf     - Client scopes and mappers
+- terraform.tfvars     - Default variable values for local/dev usage
+- backends/            - Backend config files (e.g., dev-backend.tfvars)
+- tfvars/              - Optional per-workspace tfvars files (e.g., dev.tfvars)
+- modules/             - Reusable modules (e.g., federator_client)
+- Makefile             - Helper targets to init/plan/apply/destroy/validate
 
 Tip: The Makefile expects to run commands from this tofu folder and supports a WORKSPACE and DIR variable. For this repository, DIR should be set to the current directory (.).
 
