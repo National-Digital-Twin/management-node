@@ -45,6 +45,7 @@ build/
 .env
 
 #### States
+.terraform/
 *.tfstate
 *.tfstate.backup
 *.hcl
