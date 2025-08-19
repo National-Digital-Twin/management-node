@@ -1,0 +1,4 @@
+bucket  = "5371-2494-4113-state"
+key     = "keycloak/01-base/dev/terraform.tfstate"
+region  = "eu-west-2"
+encrypt = true
