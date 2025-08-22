@@ -44,7 +44,7 @@ For general issues, please **open a GitHub issue** rather than contacting mainta
 If you need to escalate an issue that has not been addressed within a reasonable time:  
 
 1. **Security vulnerabilities** – Follow the responsible disclosure process in [SECURITY.md](./SECURITY.md).  
-2. **Governance and policy queries** – Contact NDTP at **[ndtp@businessandtrade.gov.uk]**.  
+2. **Governance and policy queries** – Contact NDTP at **ndtp@businessandtrade.gov.uk**.  
 3. **Urgent operational issues** – If an issue affects critical systems, contact the **Lead Maintainer** listed above.  
 
 ---
