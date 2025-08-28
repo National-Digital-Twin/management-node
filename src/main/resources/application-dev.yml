@@ -1,0 +1,56 @@
+spring:
+  application:
+    name: management-node
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://ia-idp.dev.ndtp.co.uk/realms/mng-node
+          jwk-set-uri: https://ia-idp.dev.ndtp.co.uk/realms/mng-node/protocol/openid-connect/certs
+          audiences: management-node
+          authorities-claim-name: resource_access
+        opaquetoken:
+          introspection-uri: https://ia-idp.dev.ndtp.co.uk/realms/mng-node/protocol/openid-connect/token/introspect
+          client-secret: ANY
+          client-id: MANAGEMENT_NODE_CLIENT
+  flyway:
+    create-schemas: on
+    default-schema: mn
+    locations: classpath:db/migration
+    enabled: true
+    baseline-on-migrate: true
+  datasource:
+    url: jdbc:postgresql://localhost:5433/postgres
+    username: keycloak_db_user
+    password: keycloak_db_user_password
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        show_sql: true
+        default_schema: mn
+
+# Server configuration
+server:
+  port: 8090
+  ssl:
+    key-alias: dev-ndtp
+    key-store: /home/developer/IdeaProjects/ndtp-application-continuous-delivery/applications/environments/dev/ia-node/workload/core/5-idp/certs/ndtp-keystore.jks
+    key-store-type: JKS
+    key-store-password: R7jd0Khx8pkd8!H
+    trust-store: /home/developer/IdeaProjects/ndtp-application-continuous-delivery/applications/environments/dev/ia-node/workload/core/5-idp/certs/keycloak.truststore.jks
+    trust-store-password: R7jd0Khx8pkd8!H
+    trust-store-type: JKS
+    client-auth: need
+    enabled: false
+application:
+    client:
+      key-store: /home/developer/IdeaProjects/ndtp-application-continuous-delivery/applications/environments/dev/ia-node/workload/core/5-idp/certs/client-org1-keystore.jks
+      keyStorePassword: changeit
+
+
+# Logging Configuration
+logging:
+  level:
+    org.springframework.security: DEBUG
+    uk.gov.dbt.ndtp.ia.node.management: DEBUG

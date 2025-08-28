@@ -1,5 +1,6 @@
 package uk.gov.dbt.ndtp.ia.node.management.model.jwt;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,6 +22,7 @@ public class JwtToken {
     private Long iat;
     private String jti;
     private String iss;
+    @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
     private List<String> aud;
     private String sub;
     private String typ;
