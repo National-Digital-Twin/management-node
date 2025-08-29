@@ -7,13 +7,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class SslPropertyInitializer {
 
-    @Value("${server.ssl.key-store}")
+    @Value("${application.client.key-store}")
     private String keyStore;
 
-    @Value("${server.ssl.key-store-password}")
+    @Value("${application.client.key-store-password}")
     private String keyStorePassword;
 
-    @Value("${server.ssl.key-store-type:JKS}")
+    @Value("${application.client.keyStoreType:JKS}")
     private String keyStoreType;
 
     @Value("${server.ssl.trust-store}")
@@ -28,7 +28,7 @@ public class SslPropertyInitializer {
     @PostConstruct
     public void init() {
         System.setProperty("javax.net.ssl.keyStore", keyStore);
-        System.setProperty("javax.net.ssl.keyStorePassword", keyStorePassword);
+        System.setProperty("javax.net.ssl.keyStorePassword",keyStorePassword);
         System.setProperty("javax.net.ssl.keyStoreType", keyStoreType);
 
         System.setProperty("javax.net.ssl.trustStore", trustStore);

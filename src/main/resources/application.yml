@@ -32,7 +32,7 @@ spring:
 
 # Server configuration
 server:
-  port: 8090
+  port: 8443
   ssl:
     key-alias: localhost
     key-store: keystore.jks
@@ -41,8 +41,20 @@ server:
     trust-store: truststore.jks
     trust-store-password:
     trust-store-type: JKS
+    client-auth: need
+    enabled: true
+application:
+  client:
+    key-store: client-keystore.jks
+    keyStorePassword:
+    keyStoreType: JKS
+
 # Actuator Configuration
 management:
+  server:
+    port: 8081
+    ssl:
+      enabled: false
   endpoints:
     web:
       exposure:

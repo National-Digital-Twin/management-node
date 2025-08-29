@@ -1,5 +1,6 @@
 package uk.gov.dbt.ndtp.ia.node.management.model.jwt;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
