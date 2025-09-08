@@ -6,5 +6,8 @@ terraform {
       version = "~> 5.4"
     }
   }
-  backend "s3" {}
+
+   backend "s3" {}
+  #backend "local" {}
+
 }

@@ -52,7 +52,7 @@ module "federator_client" {
   default_client_scopes = [
     "FEDERATOR_CONSUMER",
     "FEDERATOR_PRODUCER",
-    "MANAGEMENT_NODE_ACCESS",
+    "MANAGEMENT_NODE_ACCESS"
   ]
 
   # Create roles under this client

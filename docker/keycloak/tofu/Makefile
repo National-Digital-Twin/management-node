@@ -16,10 +16,10 @@ apply-auto-approve:
 	@cd $(DIR) && tofu apply -auto-approve
 
 destroy-plan:
-	@cd $(DIR) && tofu plan -destroy -var-file=tfvars/$(WORKSPACE).tfvars 
+	@cd $(DIR) && tofu plan -destroy -var-file=tfvars/$(WORKSPACE).tfvars
 
 destroy:
-	@cd $(DIR) && tofu destroy -var-file=tfvars/$(WORKSPACE).tfvars 
+	@cd $(DIR) && tofu destroy -var-file=tfvars/$(WORKSPACE).tfvars
 
 format:
 	tofu fmt --recursive
