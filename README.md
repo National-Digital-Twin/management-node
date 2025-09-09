@@ -10,10 +10,6 @@
 
 This repository is part of the **National Digital Twin Programme (NDTP)**. It supports the development of secure, modular, and standards-based components for internal use across NDTP projects.
 
-> **This repository is private and governed by the NDTP InnerSource Licence – Version 1.0.**  
-> It is intended solely for collaboration among NDTP teams and authorised suppliers.  
-> It is **not open source** and must not be disclosed, redistributed, or published externally.
-
 --- 
 
 ## Prerequisites
