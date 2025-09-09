@@ -1,3 +1,9 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ * © Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally
+ * attributed to the Department for Business and Trade (UK) as the governing entity.
+ */
+
 package uk.gov.dbt.ndtp.ia.node.management.converter;
 
 import java.util.List;
@@ -37,9 +43,7 @@ public interface EntityDtoConverter<E, D> {
         if (entities == null) {
             return List.of();
         }
-        return entities.stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
+        return entities.stream().map(this::toDto).collect(Collectors.toList());
     }
 
     /**
@@ -52,8 +56,6 @@ public interface EntityDtoConverter<E, D> {
         if (dtos == null) {
             return List.of();
         }
-        return dtos.stream()
-                .map(this::toEntity)
-                .collect(Collectors.toList());
+        return dtos.stream().map(this::toEntity).collect(Collectors.toList());
     }
 }

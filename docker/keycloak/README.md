@@ -1,7 +1,11 @@
+**Repository:** `management-node`  
+**Description:** `The Management Node Module is a Spring Boot application that provides APIs to be accessed by Consumer and Producer Federators. It implements a secure communication architecture using Mutual TLS (MTLS) connectivity between Federator instances and itself, as well as establishing zero trust connectivity with Keycloak for authentication and authorization.`  
+**SPDX-License-Identifier:** `Apache-2.0 AND OGL-UK-3.0 `
+
+
 # mTLS with KeyCloak
 
 ## Create X.509 certificates
-
 
 
 All passwords: _changeit_

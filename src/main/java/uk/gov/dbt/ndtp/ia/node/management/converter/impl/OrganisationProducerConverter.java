@@ -1,15 +1,20 @@
-package uk.gov.dbt.ndtp.ia.node.management.converter.impl;
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ * © Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally
+ * attributed to the Department for Business and Trade (UK) as the governing entity.
+ */
 
-import org.springframework.stereotype.Component;
-import uk.gov.dbt.ndtp.ia.node.management.converter.EntityDtoConverter;
-import uk.gov.dbt.ndtp.ia.node.management.model.dto.ProducerDTO;
-import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Product;
-import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Organisation;
-import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Producer;
-import uk.gov.dbt.ndtp.ia.node.management.persistency.repository.OrganisationRepository;
+package uk.gov.dbt.ndtp.ia.node.management.converter.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.stereotype.Component;
+import uk.gov.dbt.ndtp.ia.node.management.converter.EntityDtoConverter;
+import uk.gov.dbt.ndtp.ia.node.management.model.dto.ProducerDTO;
+import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Organisation;
+import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Producer;
+import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Product;
+import uk.gov.dbt.ndtp.ia.node.management.persistency.repository.OrganisationRepository;
 
 /**
  * Converter for OrganisationProducer entity and OrganisationProducerDTO.
@@ -24,10 +29,10 @@ public class OrganisationProducerConverter implements EntityDtoConverter<Produce
      * Constructor-based dependency injection.
      *
      * @param organisationRepository the organisation repository
-     * @param productConverter the data provider converter
+     * @param productConverter       the data provider converter
      */
-    public OrganisationProducerConverter(OrganisationRepository organisationRepository,
-                                         ProductConverter productConverter) {
+    public OrganisationProducerConverter(
+            OrganisationRepository organisationRepository, ProductConverter productConverter) {
         this.organisationRepository = organisationRepository;
         this.productConverter = productConverter;
     }
@@ -55,13 +60,13 @@ public class OrganisationProducerConverter implements EntityDtoConverter<Produce
                 .tls(entity.getTls())
                 .idpClientId(entity.getIdpClientId())
                 .build();
-                
+
         // Map dataProviders if they exist
         if (entity.getProducts() != null && !entity.getProducts().isEmpty()) {
-            entity.getProducts().forEach(dataProvider ->
-                dto.getDataProviders().add(productConverter.toDto(dataProvider)));
+            entity.getProducts()
+                    .forEach(dataProvider -> dto.getDataProviders().add(productConverter.toDto(dataProvider)));
         }
-        
+
         return dto;
     }
 
@@ -89,11 +94,11 @@ public class OrganisationProducerConverter implements EntityDtoConverter<Produce
 
         // Set the organisation if orgId is provided
         if (dto.getOrgId() != null) {
-            Organisation organisation = organisationRepository.findById(dto.getOrgId())
-                    .orElse(null);
+            Organisation organisation =
+                    organisationRepository.findById(dto.getOrgId()).orElse(null);
             entity.setOrg(organisation);
         }
-        
+
         // Map dataProviders if they exist
         if (dto.getDataProviders() != null && !dto.getDataProviders().isEmpty()) {
             List<Product> dataProviders = new ArrayList<>();

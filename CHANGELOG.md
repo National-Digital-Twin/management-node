@@ -30,6 +30,23 @@ This project follows **Semantic Versioning (SemVer)** ([semver.org](https://semv
 
 ---
 
+## [0.90.0] - 2025-09-09
+
+### Initial release
+- This is the first initial changelog entry for the management-node. It introduces the baseline feature set and establishes the changelog structure following Semantic Versioning.
+
+### Added
+- Core domain and persistence for producers and consumers (JPA entities, repositories, and services).
+- REST APIs for managing producers/consumers and related configurations (v1 controllers and DTOs).
+- Configuration management provider for node settings and environment-driven overrides.
+- Security integration with Keycloak (realm configuration and OAuth2/OIDC resource server setup).
+- TLS/Mutual‑TLS support and related documentation (see docs/MTLS_CONFIGURATION.md).
+- Health, readiness, and metrics endpoints (Spring Boot Actuator defaults where applicable).
+- Test coverage setup and guidance (Mockito usage and JaCoCo reporting docs).
+- Docker and local development assets (compose files, Keycloak realm, publish script, local certs/truststore).
+
+---
+
 ## Future Roadmap to `1.0.0` 
 
 The `0.90.x` series is part of NDTP’s **pre-stable development cycle**, meaning: 

@@ -1,5 +1,13 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ * © Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally
+ * attributed to the Department for Business and Trade (UK) as the governing entity.
+ */
+
 package uk.gov.dbt.ndtp.ia.node.management.config;
 
+import java.util.*;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.converter.Converter;
@@ -21,29 +29,26 @@ import uk.gov.dbt.ndtp.ia.node.management.exception.TokenIntrospectionException;
 import uk.gov.dbt.ndtp.ia.node.management.model.jwt.EnhancedPrincipal;
 import uk.gov.dbt.ndtp.ia.node.management.model.jwt.JwtToken;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
 /**
  * The KeycloakJwtAuthenticationConverter class is responsible for converting a JWT token
  * into an authentication token by integrating with Keycloak-specific token introspection
  * and resource access information. This class ensures that roles, client ID, and other
  * relevant token claims are parsed accurately to produce an appropriate authentication
  * object.
- *
+ * <p>
  * This class implements the {@link Converter} interface to provide conversion functionality
  * between a {@link Jwt} and an instance of {@link AbstractAuthenticationToken}.
- *
+ * <p>
  * Key responsibilities include:
  * - Performing token introspection via the configured Keycloak introspection endpoint.
  * - Extracting authorities, roles, and resource access data from the token.
  * - Handling potential fallback scenarios when introspection fails.
  * - Processing key JWT claims such as "azp", "client_id", "sub", and resource-access roles.
- *
+ * <p>
  * Introspection is handled through HTTP calls using {@link RestTemplate} to ensure that
  * the token's validity and associated claims are verified against the configured Keycloak
  * server.
- *
+ * <p>
  * Thread Safety:
  * This class is designed to be thread-safe as it does not maintain mutable state at
  * the instance level. Configuration properties are injected as immutable fields and are
@@ -51,7 +56,6 @@ import java.util.stream.Collectors;
  */
 @Component
 @Slf4j
-
 public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, AbstractAuthenticationToken> {
     // Constants for claim names
     private static final String CLAIM_AZP = "azp";
@@ -72,7 +76,8 @@ public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, Abstra
     private static final String FORM_CLIENT_SECRET = "client_secret";
     private static final String FORM_TOKEN = "token";
 
-    private final JwtGrantedAuthoritiesConverter defaultGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
+    private final JwtGrantedAuthoritiesConverter defaultGrantedAuthoritiesConverter =
+            new JwtGrantedAuthoritiesConverter();
     private final RestTemplate restTemplate = new RestTemplate();
 
     @Value("${spring.security.oauth2.resourceserver.opaquetoken.introspection-uri}")
@@ -109,7 +114,8 @@ public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, Abstra
             log.debug("Performing token introspection for client ID: {}", clientId);
 
             // Make the introspection request
-            ResponseEntity<JwtToken> response = restTemplate.postForEntity(introspectionUri, requestEntity, JwtToken.class);
+            ResponseEntity<JwtToken> response =
+                    restTemplate.postForEntity(introspectionUri, requestEntity, JwtToken.class);
 
             // Parse the response
             JwtToken introspectionData = response.getBody();
@@ -160,7 +166,10 @@ public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, Abstra
         } catch (TokenIntrospectionException e) {
             // If introspection fails, log the error and fall back to JWT parsing
             String tokenClientId = extractClientId(jwt);
-            log.warn("Token introspection failed for client ID: {}. Falling back to JWT parsing. Error: {}", tokenClientId, e.getMessage());
+            log.warn(
+                    "Token introspection failed for client ID: {}. Falling back to JWT parsing. Error: {}",
+                    tokenClientId,
+                    e.getMessage());
 
             Collection<GrantedAuthority> authorities = extractAuthorities(jwt);
             EnhancedPrincipal principal = new EnhancedPrincipal(jwt.getSubject(), tokenClientId);
@@ -168,7 +177,10 @@ public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, Abstra
         } catch (ResourceAccessParsingException e) {
             // If resource access parsing fails, log the error and fall back to JWT parsing
             String tokenClientId = extractClientId(jwt);
-            log.warn("Resource access parsing failed for client ID: {}. Falling back to JWT parsing. Error: {}", tokenClientId, e.getMessage());
+            log.warn(
+                    "Resource access parsing failed for client ID: {}. Falling back to JWT parsing. Error: {}",
+                    tokenClientId,
+                    e.getMessage());
 
             Collection<GrantedAuthority> authorities = extractAuthorities(jwt);
             EnhancedPrincipal principal = new EnhancedPrincipal(jwt.getSubject(), tokenClientId);
@@ -233,7 +245,8 @@ public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, Abstra
                 jwtToken.getResourceAccess().forEach((resource, resourceAccess) -> {
                     if (resourceAccess != null && resourceAccess.getRoles() != null) {
                         resourceAccess.getRoles().forEach(role -> {
-                            authorities.add(new SimpleGrantedAuthority(ROLE_PREFIX + resource + RESOURCE_ROLE_SEPARATOR + role));
+                            authorities.add(new SimpleGrantedAuthority(
+                                    ROLE_PREFIX + resource + RESOURCE_ROLE_SEPARATOR + role));
                         });
                     }
                 });
@@ -242,7 +255,8 @@ public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, Abstra
             log.trace("Successfully extracted {} authorities for client ID: {}", authorities.size(), clientId);
         } catch (Exception e) {
             log.error("Error extracting authorities from introspection data for client ID: {}", clientId, e);
-            throw new ResourceAccessParsingException("Failed to parse resource access from introspection data", e, clientId);
+            throw new ResourceAccessParsingException(
+                    "Failed to parse resource access from introspection data", e, clientId);
         }
 
         return authorities;
@@ -303,15 +317,21 @@ public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, Abstra
             return Collections.emptyList();
         }
 
-        return extractStringCollection(resourceData.get(CLAIM_ROLES)).map(roles -> roles.stream().map(role -> {
-            if (resourceName != null) {
-                // Resource-specific role (format: ROLE_<resource>:<role>)
-                return new SimpleGrantedAuthority(ROLE_PREFIX + resourceName + RESOURCE_ROLE_SEPARATOR + role);
-            } else {
-                // Realm role (format: ROLE_<role>)
-                return new SimpleGrantedAuthority(ROLE_PREFIX + role);
-            }
-        }).<GrantedAuthority>map(authority -> authority).collect(Collectors.toList())).orElse(Collections.emptyList());
+        return extractStringCollection(resourceData.get(CLAIM_ROLES))
+                .map(roles -> roles.stream()
+                        .map(role -> {
+                            if (resourceName != null) {
+                                // Resource-specific role (format: ROLE_<resource>:<role>)
+                                return new SimpleGrantedAuthority(
+                                        ROLE_PREFIX + resourceName + RESOURCE_ROLE_SEPARATOR + role);
+                            } else {
+                                // Realm role (format: ROLE_<role>)
+                                return new SimpleGrantedAuthority(ROLE_PREFIX + role);
+                            }
+                        })
+                        .<GrantedAuthority>map(authority -> authority)
+                        .collect(Collectors.toList()))
+                .orElse(Collections.emptyList());
     }
 
     private Collection<GrantedAuthority> extractAuthorities(Jwt jwt) {
@@ -323,7 +343,11 @@ public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, Abstra
             log.trace("Extracting authorities from JWT for client ID: {}", clientId);
 
             // Extract and process resource_access claim
-            extractMap(jwt.getClaim(CLAIM_RESOURCE_ACCESS)).ifPresent(resourceAccess -> resourceAccess.forEach((resource, resourceDataObj) -> extractMap(resourceDataObj).ifPresent(resourceData -> authorities.addAll(processResourceRoles(resource, resourceData)))));
+            extractMap(jwt.getClaim(CLAIM_RESOURCE_ACCESS))
+                    .ifPresent(resourceAccess ->
+                            resourceAccess.forEach((resource, resourceDataObj) -> extractMap(resourceDataObj)
+                                    .ifPresent(resourceData ->
+                                            authorities.addAll(processResourceRoles(resource, resourceData)))));
 
             log.trace("Successfully extracted {} authorities from JWT for client ID: {}", authorities.size(), clientId);
         } catch (Exception e) {

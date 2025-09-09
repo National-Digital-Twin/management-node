@@ -5,12 +5,12 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://localhost:8443/realms/management-node
-          jwk-set-uri: https://localhost:8443/realms/management-node/protocol/openid-connect/certs
+          issuer-uri: https://localhost:8443/realms/mng-node
+          jwk-set-uri: https://localhost:8443/realms/mng-node/protocol/openid-connect/certs
           audiences: management-node
           authorities-claim-name: resource_access
         opaquetoken:
-          introspection-uri: https://localhost:8443/realms/management-node/protocol/openid-connect/token/introspect
+          introspection-uri: https://localhost:8443/realms/mng-node/protocol/openid-connect/token/introspect
           client-secret:
           client-id:
   flyway:
@@ -22,7 +22,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5433/postgres
     username: keycloak_db_user
-    password:
+    password: keycloak_db_user_password
   jpa:
     properties:
       hibernate:
@@ -32,21 +32,21 @@ spring:
 
 # Server configuration
 server:
-  port: 8443
+  port: 8090
   ssl:
     key-alias: localhost
-    key-store: keystore.jks
+    key-store: /home/developer/Downloads/managementNode/docker/keystore.jks
     key-store-type: JKS
-    key-store-password:
-    trust-store: truststore.jks
-    trust-store-password:
+    key-store-password: changeit
+    trust-store: /home/developer/Downloads/managementNode/docker/truststore.jks
+    trust-store-password: changeit
     trust-store-type: JKS
     client-auth: need
     enabled: true
 application:
   client:
-    key-store: client-keystore.jks
-    keyStorePassword:
+    key-store: /home/developer/Downloads/managementNode/docker/keystore.jks
+    keyStorePassword: changeit
     keyStoreType: JKS
 
 # Actuator Configuration

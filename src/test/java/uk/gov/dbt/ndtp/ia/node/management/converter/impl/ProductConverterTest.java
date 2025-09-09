@@ -1,5 +1,15 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ * © Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally
+ * attributed to the Department for Business and Trade (UK) as the governing entity.
+ */
+
 package uk.gov.dbt.ndtp.ia.node.management.converter.impl;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -7,14 +17,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.ProductDTO;
-import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Product;
 import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Producer;
+import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Product;
 import uk.gov.dbt.ndtp.ia.node.management.persistency.repository.ProducerRepository;
-
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ProductConverterTest {
@@ -28,7 +33,7 @@ class ProductConverterTest {
     private Product entity;
     private ProductDTO dto;
     private Producer producer;
-    
+
     private final Long dataProviderId = 1L;
     private final String dataProviderName = "Test Data Provider";
     private final String topic = "test-topic";
@@ -41,7 +46,7 @@ class ProductConverterTest {
         producer = new Producer();
         producer.setId(producerId);
         producer.setName(producerName);
-        
+
         // Create test entity
         entity = new Product();
         entity.setId(dataProviderId);
@@ -83,7 +88,7 @@ class ProductConverterTest {
     void toDto_withNullProducer_shouldReturnDTOWithNullProducerId() {
         // Arrange
         entity.setProducer(null);
-        
+
         // Act
         ProductDTO result = converter.toDto(entity);
 
@@ -108,7 +113,7 @@ class ProductConverterTest {
     void toEntity_withValidDTO_shouldReturnCorrectEntity() {
         // Arrange
         when(producerRepository.findById(producerId)).thenReturn(Optional.of(producer));
-        
+
         // Act
         Product result = converter.toEntity(dto);
 
@@ -120,7 +125,7 @@ class ProductConverterTest {
         assertNotNull(result.getProducer());
         assertEquals(producerId, result.getProducer().getId());
         assertEquals(producerName, result.getProducer().getName());
-        
+
         // Verify
         verify(producerRepository, times(1)).findById(producerId);
     }
@@ -129,7 +134,7 @@ class ProductConverterTest {
     void toEntity_withNullProducerId_shouldReturnEntityWithNullProducer() {
         // Arrange
         dto.setProducerId(null);
-        
+
         // Act
         Product result = converter.toEntity(dto);
 
@@ -139,7 +144,7 @@ class ProductConverterTest {
         assertEquals(dataProviderName, result.getName());
         assertEquals(topic, result.getTopic());
         assertNull(result.getProducer());
-        
+
         // Verify
         verify(producerRepository, never()).findById(any());
     }
@@ -148,7 +153,7 @@ class ProductConverterTest {
     void toEntity_withNonExistentProducerId_shouldReturnEntityWithNullProducer() {
         // Arrange
         when(producerRepository.findById(producerId)).thenReturn(Optional.empty());
-        
+
         // Act
         Product result = converter.toEntity(dto);
 
@@ -158,7 +163,7 @@ class ProductConverterTest {
         assertEquals(dataProviderName, result.getName());
         assertEquals(topic, result.getTopic());
         assertNull(result.getProducer());
-        
+
         // Verify
         verify(producerRepository, times(1)).findById(producerId);
     }

@@ -1,32 +1,37 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ * © Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally
+ * attributed to the Department for Business and Trade (UK) as the governing entity.
+ */
+
 package uk.gov.dbt.ndtp.ia.node.management.converter.impl;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.dbt.ndtp.ia.node.management.model.dto.ProductDTO;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.ProducerDTO;
-import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Product;
+import uk.gov.dbt.ndtp.ia.node.management.model.dto.ProductDTO;
 import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Organisation;
 import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Producer;
+import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Product;
 import uk.gov.dbt.ndtp.ia.node.management.persistency.repository.OrganisationRepository;
-
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ProducerConverterTest {
 
     @Mock
     private OrganisationRepository organisationRepository;
-    
+
     @Mock
     private ProductConverter productConverter;
 
@@ -38,7 +43,7 @@ class ProducerConverterTest {
     private Organisation organisation;
     private List<Product> dataProviders;
     private List<ProductDTO> dataProviderDTOs;
-    
+
     private final Long producerId = 1L;
     private final String producerName = "Test Producer";
     private final String description = "Test Description";
@@ -49,11 +54,11 @@ class ProducerConverterTest {
     private final String idpClientId = "test-client-id";
     private final Long orgId = 101L;
     private final String orgName = "Test Organisation";
-    
+
     private final Long dataProviderId1 = 201L;
     private final String dataProviderName1 = "Test Data Provider 1";
     private final String topic1 = "test-topic-1";
-    
+
     private final Long dataProviderId2 = 202L;
     private final String dataProviderName2 = "Test Data Provider 2";
     private final String topic2 = "test-topic-2";
@@ -64,23 +69,23 @@ class ProducerConverterTest {
         organisation = new Organisation();
         organisation.setId(orgId);
         organisation.setName(orgName);
-        
+
         // Create test data providers
         dataProviders = new ArrayList<>();
-        
+
         Product dataProvider1 = new Product();
         dataProvider1.setId(dataProviderId1);
         dataProvider1.setName(dataProviderName1);
         dataProvider1.setTopic(topic1);
-        
+
         Product dataProvider2 = new Product();
         dataProvider2.setId(dataProviderId2);
         dataProvider2.setName(dataProviderName2);
         dataProvider2.setTopic(topic2);
-        
+
         dataProviders.add(dataProvider1);
         dataProviders.add(dataProvider2);
-        
+
         // Create test entity
         entity = new Producer();
         entity.setId(producerId);
@@ -93,28 +98,28 @@ class ProducerConverterTest {
         entity.setIdpClientId(idpClientId);
         entity.setOrg(organisation);
         entity.setProducts(dataProviders);
-        
+
         // Set producer reference in data providers
         dataProvider1.setProducer(entity);
         dataProvider2.setProducer(entity);
 
         // Create test data provider DTOs
         dataProviderDTOs = new ArrayList<>();
-        
+
         ProductDTO dataProviderDTO1 = ProductDTO.builder()
                 .id(dataProviderId1)
                 .name(dataProviderName1)
                 .topic(topic1)
                 .producerId(producerId)
                 .build();
-                
+
         ProductDTO dataProviderDTO2 = ProductDTO.builder()
                 .id(dataProviderId2)
                 .name(dataProviderName2)
                 .topic(topic2)
                 .producerId(producerId)
                 .build();
-                
+
         dataProviderDTOs.add(dataProviderDTO1);
         dataProviderDTOs.add(dataProviderDTO2);
 
@@ -129,10 +134,10 @@ class ProducerConverterTest {
         dto.setTls(tls);
         dto.setIdpClientId(idpClientId);
         dto.setOrgId(orgId);
-        
+
         // Add data provider DTOs to the producer DTO
         dto.getDataProviders().addAll(dataProviderDTOs);
-        
+
         // Set up mock behavior for productConverter
         lenient().when(productConverter.toDto(dataProvider1)).thenReturn(dataProviderDTO1);
         lenient().when(productConverter.toDto(dataProvider2)).thenReturn(dataProviderDTO2);
@@ -165,25 +170,25 @@ class ProducerConverterTest {
         assertEquals(tls, result.getTls());
         assertEquals(idpClientId, result.getIdpClientId());
         assertEquals(orgId, result.getOrgId());
-        
+
         // Verify dataProviders mapping
         assertNotNull(result.getDataProviders());
         assertEquals(2, result.getDataProviders().size());
-        
+
         // Verify first data provider
         ProductDTO productDTO1 = result.getDataProviders().get(0);
         assertEquals(dataProviderId1, productDTO1.getId());
         assertEquals(dataProviderName1, productDTO1.getName());
         assertEquals(topic1, productDTO1.getTopic());
         assertEquals(producerId, productDTO1.getProducerId());
-        
+
         // Verify second data provider
         ProductDTO dataProviderDTO2 = result.getDataProviders().get(1);
         assertEquals(dataProviderId2, dataProviderDTO2.getId());
         assertEquals(dataProviderName2, dataProviderDTO2.getName());
         assertEquals(topic2, dataProviderDTO2.getTopic());
         assertEquals(producerId, dataProviderDTO2.getProducerId());
-        
+
         // Verify productConverter was called for each data provider
         verify(productConverter, times(1)).toDto(dataProviders.get(0));
         verify(productConverter, times(1)).toDto(dataProviders.get(1));
@@ -193,7 +198,7 @@ class ProducerConverterTest {
     void toDto_withNullOrg_shouldReturnDTOWithNullOrgId() {
         // Arrange
         entity.setOrg(null);
-        
+
         // Act
         ProducerDTO result = converter.toDto(entity);
 
@@ -209,12 +214,12 @@ class ProducerConverterTest {
         assertEquals(idpClientId, result.getIdpClientId());
         assertNull(result.getOrgId());
     }
-    
+
     @Test
     void toDto_withNullProducts_shouldReturnDTOWithEmptyDataProviders() {
         // Arrange
         entity.setProducts(null);
-        
+
         // Act
         ProducerDTO result = converter.toDto(entity);
 
@@ -222,16 +227,16 @@ class ProducerConverterTest {
         assertNotNull(result);
         assertNotNull(result.getDataProviders());
         assertTrue(result.getDataProviders().isEmpty());
-        
+
         // Verify productConverter was not called
         verify(productConverter, never()).toDto(any());
     }
-    
+
     @Test
     void toDto_withEmptyProducts_shouldReturnDTOWithEmptyDataProviders() {
         // Arrange
         entity.setProducts(new ArrayList<>());
-        
+
         // Act
         ProducerDTO result = converter.toDto(entity);
 
@@ -239,7 +244,7 @@ class ProducerConverterTest {
         assertNotNull(result);
         assertNotNull(result.getDataProviders());
         assertTrue(result.getDataProviders().isEmpty());
-        
+
         // Verify productConverter was not called
         verify(productConverter, never()).toDto(any());
     }
@@ -257,7 +262,7 @@ class ProducerConverterTest {
     void toEntity_withValidDTO_shouldReturnCorrectEntity() {
         // Arrange
         when(organisationRepository.findById(orgId)).thenReturn(Optional.of(organisation));
-        
+
         // Act
         Producer result = converter.toEntity(dto);
 
@@ -274,11 +279,11 @@ class ProducerConverterTest {
         assertNotNull(result.getOrg());
         assertEquals(orgId, result.getOrg().getId());
         assertEquals(orgName, result.getOrg().getName());
-        
+
         // Verify dataProviders mapping
         assertNotNull(result.getProducts());
         assertEquals(2, result.getProducts().size());
-        
+
         // Verify first data provider
         Product dataProvider1 = result.getProducts().get(0);
         assertEquals(dataProviderId1, dataProvider1.getId());
@@ -286,7 +291,7 @@ class ProducerConverterTest {
         assertEquals(topic1, dataProvider1.getTopic());
         assertNotNull(dataProvider1.getProducer());
         assertEquals(result, dataProvider1.getProducer());
-        
+
         // Verify second data provider
         Product dataProvider2 = result.getProducts().get(1);
         assertEquals(dataProviderId2, dataProvider2.getId());
@@ -294,11 +299,11 @@ class ProducerConverterTest {
         assertEquals(topic2, dataProvider2.getTopic());
         assertNotNull(dataProvider2.getProducer());
         assertEquals(result, dataProvider2.getProducer());
-        
+
         // Verify productConverter was called for each data provider DTO
         verify(productConverter, times(1)).toEntity(dataProviderDTOs.get(0));
         verify(productConverter, times(1)).toEntity(dataProviderDTOs.get(1));
-        
+
         // Verify organisation repository was called
         verify(organisationRepository, times(1)).findById(orgId);
     }
@@ -307,7 +312,7 @@ class ProducerConverterTest {
     void toEntity_withNullOrgId_shouldReturnEntityWithNullOrg() {
         // Arrange
         dto.setOrgId(null);
-        
+
         // Act
         Producer result = converter.toEntity(dto);
 
@@ -322,7 +327,7 @@ class ProducerConverterTest {
         assertEquals(tls, result.getTls());
         assertEquals(idpClientId, result.getIdpClientId());
         assertNull(result.getOrg());
-        
+
         // Verify
         verify(organisationRepository, never()).findById(any());
     }
@@ -331,7 +336,7 @@ class ProducerConverterTest {
     void toEntity_withNonExistentOrgId_shouldReturnEntityWithNullOrg() {
         // Arrange
         when(organisationRepository.findById(orgId)).thenReturn(Optional.empty());
-        
+
         // Act
         Producer result = converter.toEntity(dto);
 
@@ -346,36 +351,36 @@ class ProducerConverterTest {
         assertEquals(tls, result.getTls());
         assertEquals(idpClientId, result.getIdpClientId());
         assertNull(result.getOrg());
-        
+
         // Verify
         verify(organisationRepository, times(1)).findById(orgId);
     }
-    
+
     @Test
     void toEntity_withEmptyDataProviders_shouldReturnEntityWithEmptyProducts() {
         // Arrange
         dto.getDataProviders().clear();
-        
+
         // Act
         Producer result = converter.toEntity(dto);
 
         // Assert
         assertNotNull(result);
         assertNull(result.getProducts());
-        
+
         // Verify productConverter was not called
         verify(productConverter, never()).toEntity(any());
     }
-    
+
     @Test
     void toEntity_withNullProducerId_shouldSetProducerIdInDataProviderDTO() {
         // Arrange
         when(organisationRepository.findById(orgId)).thenReturn(Optional.of(organisation));
-        
+
         // Set producerId to null in data provider DTOs
         dataProviderDTOs.get(0).setProducerId(null);
         dataProviderDTOs.get(1).setProducerId(null);
-        
+
         // Act
         Producer result = converter.toEntity(dto);
 
@@ -383,22 +388,22 @@ class ProducerConverterTest {
         assertNotNull(result);
         assertNotNull(result.getProducts());
         assertEquals(2, result.getProducts().size());
-        
+
         // Verify producerId was set in data provider DTOs
         verify(productConverter, times(1)).toEntity(dataProviderDTOs.get(0));
         verify(productConverter, times(1)).toEntity(dataProviderDTOs.get(1));
-        
+
         // Verify producerId was set in data provider DTOs
         assertEquals(producerId, dataProviderDTOs.get(0).getProducerId());
         assertEquals(producerId, dataProviderDTOs.get(1).getProducerId());
     }
-    
+
     @Test
     void toEntity_withNullDataProviderFromConverter_shouldNotAddToProducts() {
         // Arrange
         when(organisationRepository.findById(orgId)).thenReturn(Optional.of(organisation));
         when(productConverter.toEntity(dataProviderDTOs.get(1))).thenReturn(null);
-        
+
         // Act
         Producer result = converter.toEntity(dto);
 
@@ -406,7 +411,7 @@ class ProducerConverterTest {
         assertNotNull(result);
         assertNotNull(result.getProducts());
         assertEquals(1, result.getProducts().size());
-        
+
         // Verify only one data provider was added
         assertEquals(dataProviderId1, result.getProducts().get(0).getId());
     }

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# © Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally attributed to the Department for Business and Trade (UK) as the governing entity.resource "keycloak_openid_client" "management_node" {
+
 variable "realm_id" {
   description = "Target realm where the client will be created"
   type        = string
@@ -117,8 +120,8 @@ variable "optional_client_scopes" {
 variable "service_account_role_ids" {
   description = "List of roles to assign to the client's service account. Each item must contain the role name and the source client identifier (client_id string) that owns the role. The module will resolve it to a UUID."
   type = list(object({
-    name        = string     # role NAME
-    from_client = string     # source client_id (string, e.g., 'management-node' or another client_id)
+    name        = string # role NAME
+    from_client = string # source client_id (string, e.g., 'management-node' or another client_id)
   }))
   default = []
 }

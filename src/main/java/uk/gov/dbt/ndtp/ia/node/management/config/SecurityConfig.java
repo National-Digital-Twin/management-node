@@ -1,3 +1,9 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ * © Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally
+ * attributed to the Department for Business and Trade (UK) as the governing entity.
+ */
+
 package uk.gov.dbt.ndtp.ia.node.management.config;
 
 import org.springframework.context.annotation.Bean;
@@ -7,7 +13,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -15,32 +20,30 @@ public class SecurityConfig {
 
     private final KeycloakJwtAuthenticationConverter keycloakJwtAuthenticationConverter;
     private final ClientIdMdcFilter clientIdMdcFilter;
-    
-    public SecurityConfig(KeycloakJwtAuthenticationConverter keycloakJwtAuthenticationConverter,
-                          ClientIdMdcFilter clientIdMdcFilter) {
+
+    public SecurityConfig(
+            KeycloakJwtAuthenticationConverter keycloakJwtAuthenticationConverter,
+            ClientIdMdcFilter clientIdMdcFilter) {
         this.keycloakJwtAuthenticationConverter = keycloakJwtAuthenticationConverter;
         this.clientIdMdcFilter = clientIdMdcFilter;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/actuator/**").permitAll()
-                //.requestMatchers("/api/v1/configuration/**").permitAll()
-                .anyRequest().authenticated()
-            )
-            .oauth2ResourceServer(oauth2 -> oauth2
-                .jwt(jwt -> jwt.jwtAuthenticationConverter(keycloakJwtAuthenticationConverter))
-            )
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            // Add ClientIdMdcFilter after the BearerTokenAuthenticationFilter
-            // This ensures the Authentication object is already set in the SecurityContext
-            .addFilterAfter(clientIdMdcFilter, BearerTokenAuthenticationFilter.class);
-        
+        http.csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/actuator/**")
+                        .permitAll()
+                        // .requestMatchers("/api/v1/configuration/**").permitAll()
+                        .anyRequest()
+                        .authenticated())
+                .oauth2ResourceServer(
+                        oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(keycloakJwtAuthenticationConverter)))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // Add ClientIdMdcFilter after the BearerTokenAuthenticationFilter
+                // This ensures the Authentication object is already set in the SecurityContext
+                .addFilterAfter(clientIdMdcFilter, BearerTokenAuthenticationFilter.class);
+
         return http.build();
     }
 }

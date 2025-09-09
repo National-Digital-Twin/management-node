@@ -1,3 +1,9 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ * © Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally
+ * attributed to the Department for Business and Trade (UK) as the governing entity.
+ */
+
 package uk.gov.dbt.ndtp.ia.node.management.service.providers.configuration;
 
 import java.math.BigDecimal;
@@ -8,222 +14,216 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.*;
-import uk.gov.dbt.ndtp.ia.node.management.service.data.ProductConsumerService;
 import uk.gov.dbt.ndtp.ia.node.management.service.data.ConsumerService;
-import uk.gov.dbt.ndtp.ia.node.management.service.data.ProductService;
 import uk.gov.dbt.ndtp.ia.node.management.service.data.ProducerService;
+import uk.gov.dbt.ndtp.ia.node.management.service.data.ProductConsumerService;
+import uk.gov.dbt.ndtp.ia.node.management.service.data.ProductService;
 
 @Service
 public class ConfigurationProviderImpl implements ConfigurationProvider {
 
-  private final ConsumerService consumerService;
+    private final ConsumerService consumerService;
 
-  private final ProductConsumerService consumerAllowedDataProvidersService;
+    private final ProductConsumerService consumerAllowedDataProvidersService;
 
-  private final ProductService dataProviderService;
+    private final ProductService dataProviderService;
 
-  private final ProducerService producerService;
+    private final ProducerService producerService;
 
-  public ConfigurationProviderImpl(
-      ConsumerService consumerService,
-      ProductConsumerService consumerAllowedDataProviders,
-      ProductService dataProviderService,
-      ProducerService producerService) {
+    public ConfigurationProviderImpl(
+            ConsumerService consumerService,
+            ProductConsumerService consumerAllowedDataProviders,
+            ProductService dataProviderService,
+            ProducerService producerService) {
 
-    this.consumerService = consumerService;
-    this.consumerAllowedDataProvidersService = consumerAllowedDataProviders;
-    this.dataProviderService = dataProviderService;
-    this.producerService = producerService;
-  }
-
-
-
-  @Override
-  public ConsumerConfigDTO getConsumerConfigByClientId(String clientId, Optional<Long> consumerId) {
-    List<ConsumerDTO> consumers = getFilteredConsumers(clientId, consumerId);
-    List<ProductConsumerDTO> consumerAllowedDataProviders = getValidDataProviders(consumers);
-    List<ProductDTO> dataProviders = getDataProvidersForConsumers(consumerAllowedDataProviders);
-    List<ProducerDTO> producers = getActiveProducersForDataProviders(dataProviders);
-    
-    return ConsumerConfigDTO.builder().clientId(clientId).producers(producers).build();
-  }
-
-  @Override
-  public ProducerConfigDTO getProducerConfigByClientId(String clientId, Optional<Long> producerId) {
-    List<ProducerDTO> producers = getFilteredActiveProducers(clientId, producerId);
-    List<Long> dataProviderIds = collectDataProviderIds(producers);
-
-    // Get allowed consumers (not directly used but might be needed for side effects)
-    consumerService.getConsumersOfProviders(dataProviderIds);
-
-    // Process consumers for each provider
-    processConsumersForProducers(producers);
-
-    return ProducerConfigDTO.builder().clientId(clientId).producers(producers).build();
-  }
-  
-  /**
-   * Filters consumers by client ID and optional consumer ID.
-   *
-   * @param clientId the client ID to filter by
-   * @param consumerId optional consumer ID for additional filtering
-   * @return filtered list of consumers
-   */
-  private List<ConsumerDTO> getFilteredConsumers(String clientId, Optional<Long> consumerId) {
-    List<ConsumerDTO> consumers = consumerService.findByIdpClientId(clientId);
-    
-    if (consumerId.isPresent()) {
-      consumers = consumers.stream()
-          .filter(consumer -> consumer.getId().equals(consumerId.get()))
-          .toList();
+        this.consumerService = consumerService;
+        this.consumerAllowedDataProvidersService = consumerAllowedDataProviders;
+        this.dataProviderService = dataProviderService;
+        this.producerService = producerService;
     }
-    
-    return consumers;
-  }
-  
-  /**
-   * Retrieves data providers for the given consumer-product relationships.
-   *
-   * @param consumerAllowedDataProviders list of consumer-product relationships
-   * @return list of data providers
-   */
-  private List<ProductDTO> getDataProvidersForConsumers(List<ProductConsumerDTO> consumerAllowedDataProviders) {
-    List<Long> dataProviderIds = consumerAllowedDataProviders.stream()
-        .map(ProductConsumerDTO::getProductId)
-        .toList();
-        
-    return dataProviderService.getProductsByIds(dataProviderIds);
-  }
-  
-  /**
-   * Retrieves and filters active producers for the given data providers.
-   *
-   * @param dataProviders list of data providers
-   * @return list of active producers
-   */
-  private List<ProducerDTO> getActiveProducersForDataProviders(List<ProductDTO> dataProviders) {
-    List<Long> producerIds = dataProviders.stream()
-        .map(ProductDTO::getProducerId)
-        .toList();
-        
-    return producerService.getProducersByIds(producerIds).stream()
-        .filter(ProducerDTO::getActive)
-        .toList();
-  }
 
+    private static boolean isValidGrantedTs(Timestamp grantedTs, BigDecimal validity) {
+        return grantedTs != null
+                && grantedTs
+                        .toInstant()
+                        .plus(java.time.Duration.ofDays(validity.longValue()))
+                        .isAfter(Instant.now());
+    }
 
+    @Override
+    public ConsumerConfigDTO getConsumerConfigByClientId(String clientId, Optional<Long> consumerId) {
+        List<ConsumerDTO> consumers = getFilteredConsumers(clientId, consumerId);
+        List<ProductConsumerDTO> consumerAllowedDataProviders = getValidDataProviders(consumers);
+        List<ProductDTO> dataProviders = getDataProvidersForConsumers(consumerAllowedDataProviders);
+        List<ProducerDTO> producers = getActiveProducersForDataProviders(dataProviders);
 
-  private List<ProductConsumerDTO> getValidDataProviders(List<ConsumerDTO> consumers) {
-    return consumers.stream()
-        .map(consumer -> consumerAllowedDataProvidersService.findByConsumerId(consumer.getId()))
-        .flatMap(List::stream)
-        .filter(this::isValidProvider)
-        .toList();
-  }
+        return ConsumerConfigDTO.builder()
+                .clientId(clientId)
+                .producers(producers)
+                .build();
+    }
 
-  /**
-   * Filters active producers by client ID and optional producer ID.
-   *
-   * @param clientId the client ID to filter by
-   * @param producerId optional producer ID for additional filtering
-   * @return filtered list of active producers
-   */
-  private List<ProducerDTO> getFilteredActiveProducers(String clientId, Optional<Long> producerId) {
-    List<ProducerDTO> producers = producerService.getProducersByClientId(clientId).stream()
-        .filter(ProducerDTO::getActive)
-        .toList();
-        
-    if (producerId.isPresent()) {
-      producers = producers.stream()
-          .filter(producer -> producerId.get().equals(producer.getId()))
-          .toList();
+    @Override
+    public ProducerConfigDTO getProducerConfigByClientId(String clientId, Optional<Long> producerId) {
+        List<ProducerDTO> producers = getFilteredActiveProducers(clientId, producerId);
+        List<Long> dataProviderIds = collectDataProviderIds(producers);
+
+        // Get allowed consumers (not directly used but might be needed for side effects)
+        consumerService.getConsumersOfProviders(dataProviderIds);
+
+        // Process consumers for each provider
+        processConsumersForProducers(producers);
+
+        return ProducerConfigDTO.builder()
+                .clientId(clientId)
+                .producers(producers)
+                .build();
     }
-    
-    return producers;
-  }
-  
-  /**
-   * Collects all data provider IDs from the given producers.
-   *
-   * @param producers list of producers
-   * @return list of data provider IDs
-   */
-  private List<Long> collectDataProviderIds(List<ProducerDTO> producers) {
-    List<Long> dataProviderIds = new ArrayList<>();
-    
-    for (ProducerDTO producer : producers) {
-      List<Long> ids = producer.getDataProviders().stream()
-          .map(ProductDTO::getId)
-          .toList();
-      dataProviderIds.addAll(ids);
+
+    /**
+     * Filters consumers by client ID and optional consumer ID.
+     *
+     * @param clientId   the client ID to filter by
+     * @param consumerId optional consumer ID for additional filtering
+     * @return filtered list of consumers
+     */
+    private List<ConsumerDTO> getFilteredConsumers(String clientId, Optional<Long> consumerId) {
+        List<ConsumerDTO> consumers = consumerService.findByIdpClientId(clientId);
+
+        if (consumerId.isPresent()) {
+            consumers = consumers.stream()
+                    .filter(consumer -> consumer.getId().equals(consumerId.get()))
+                    .toList();
+        }
+
+        return consumers;
     }
-    
-    return dataProviderIds;
-  }
-  
-  /**
-   * Processes consumers for each provider in the given producers.
-   *
-   * @param producers list of producers to process
-   */
-  private void processConsumersForProducers(List<ProducerDTO> producers) {
-    for (ProducerDTO producer : producers) {
-      for (ProductDTO provider : producer.getDataProviders()) {
-        processConsumersForProvider(provider);
-      }
+
+    /**
+     * Retrieves data providers for the given consumer-product relationships.
+     *
+     * @param consumerAllowedDataProviders list of consumer-product relationships
+     * @return list of data providers
+     */
+    private List<ProductDTO> getDataProvidersForConsumers(List<ProductConsumerDTO> consumerAllowedDataProviders) {
+        List<Long> dataProviderIds = consumerAllowedDataProviders.stream()
+                .map(ProductConsumerDTO::getProductId)
+                .toList();
+
+        return dataProviderService.getProductsByIds(dataProviderIds);
     }
-  }
-  
-  /**
-   * Processes consumers for a specific provider.
-   *
-   * @param provider the provider to process consumers for
-   */
-  private void processConsumersForProvider(ProductDTO provider) {
-    // Initialize consumers list if null
-    if (provider.getConsumers() == null) {
-      provider.setConsumers(new ArrayList<>());
+
+    /**
+     * Retrieves and filters active producers for the given data providers.
+     *
+     * @param dataProviders list of data providers
+     * @return list of active producers
+     */
+    private List<ProducerDTO> getActiveProducersForDataProviders(List<ProductDTO> dataProviders) {
+        List<Long> producerIds =
+                dataProviders.stream().map(ProductDTO::getProducerId).toList();
+
+        return producerService.getProducersByIds(producerIds).stream()
+                .filter(ProducerDTO::getActive)
+                .toList();
     }
-    
-    // Get consumer providers for this data provider
-    List<ProductConsumerDTO> consumerProviders = 
-        consumerAllowedDataProvidersService.findByDataProviderId(provider.getId());
-    
-    // Filter valid providers and add their consumers
-    addValidConsumersToProvider(consumerProviders, provider);
-  }
-  
-  /**
-   * Adds valid consumers to the given provider.
-   *
-   * @param consumerProviders list of consumer-provider relationships
-   * @param provider the provider to add consumers to
-   */
-  private void addValidConsumersToProvider(List<ProductConsumerDTO> consumerProviders, ProductDTO provider) {
-    consumerProviders.stream()
-        .filter(this::isValidProvider)
-        .forEach(consumerProvider -> {
-          Optional<ConsumerDTO> consumer = consumerService.findById(consumerProvider.getConsumerId());
-          consumer.ifPresent(provider.getConsumers()::add);
+
+    private List<ProductConsumerDTO> getValidDataProviders(List<ConsumerDTO> consumers) {
+        return consumers.stream()
+                .map(consumer -> consumerAllowedDataProvidersService.findByConsumerId(consumer.getId()))
+                .flatMap(List::stream)
+                .filter(this::isValidProvider)
+                .toList();
+    }
+
+    /**
+     * Filters active producers by client ID and optional producer ID.
+     *
+     * @param clientId   the client ID to filter by
+     * @param producerId optional producer ID for additional filtering
+     * @return filtered list of active producers
+     */
+    private List<ProducerDTO> getFilteredActiveProducers(String clientId, Optional<Long> producerId) {
+        List<ProducerDTO> producers = producerService.getProducersByClientId(clientId).stream()
+                .filter(ProducerDTO::getActive)
+                .toList();
+
+        if (producerId.isPresent()) {
+            producers = producers.stream()
+                    .filter(producer -> producerId.get().equals(producer.getId()))
+                    .toList();
+        }
+
+        return producers;
+    }
+
+    /**
+     * Collects all data provider IDs from the given producers.
+     *
+     * @param producers list of producers
+     * @return list of data provider IDs
+     */
+    private List<Long> collectDataProviderIds(List<ProducerDTO> producers) {
+        List<Long> dataProviderIds = new ArrayList<>();
+
+        for (ProducerDTO producer : producers) {
+            List<Long> ids =
+                    producer.getDataProviders().stream().map(ProductDTO::getId).toList();
+            dataProviderIds.addAll(ids);
+        }
+
+        return dataProviderIds;
+    }
+
+    /**
+     * Processes consumers for each provider in the given producers.
+     *
+     * @param producers list of producers to process
+     */
+    private void processConsumersForProducers(List<ProducerDTO> producers) {
+        for (ProducerDTO producer : producers) {
+            for (ProductDTO provider : producer.getDataProviders()) {
+                processConsumersForProvider(provider);
+            }
+        }
+    }
+
+    /**
+     * Processes consumers for a specific provider.
+     *
+     * @param provider the provider to process consumers for
+     */
+    private void processConsumersForProvider(ProductDTO provider) {
+        // Initialize consumers list if null
+        if (provider.getConsumers() == null) {
+            provider.setConsumers(new ArrayList<>());
+        }
+
+        // Get consumer providers for this data provider
+        List<ProductConsumerDTO> consumerProviders =
+                consumerAllowedDataProvidersService.findByDataProviderId(provider.getId());
+
+        // Filter valid providers and add their consumers
+        addValidConsumersToProvider(consumerProviders, provider);
+    }
+
+    /**
+     * Adds valid consumers to the given provider.
+     *
+     * @param consumerProviders list of consumer-provider relationships
+     * @param provider          the provider to add consumers to
+     */
+    private void addValidConsumersToProvider(List<ProductConsumerDTO> consumerProviders, ProductDTO provider) {
+        consumerProviders.stream().filter(this::isValidProvider).forEach(consumerProvider -> {
+            Optional<ConsumerDTO> consumer = consumerService.findById(consumerProvider.getConsumerId());
+            consumer.ifPresent(provider.getConsumers()::add);
         });
-  }
+    }
 
+    private boolean isValidProvider(ProductConsumerDTO provider) {
 
+        if (provider.getValidity() == null || provider.getValidity().equals(BigDecimal.ZERO)) return true;
 
-
-  private boolean isValidProvider(ProductConsumerDTO provider) {
-
-    if (provider.getValidity() == null || provider.getValidity().equals(BigDecimal.ZERO))
-      return true;
-
-    return isValidGrantedTs(provider.getGrantedTs(), provider.getValidity());
-  }
-
-  private static boolean isValidGrantedTs(Timestamp grantedTs, BigDecimal validity) {
-    return grantedTs != null
-            && grantedTs
-            .toInstant()
-            .plus(java.time.Duration.ofDays(validity.longValue()))
-            .isAfter(Instant.now());
-  }
+        return isValidGrantedTs(provider.getGrantedTs(), provider.getValidity());
+    }
 }

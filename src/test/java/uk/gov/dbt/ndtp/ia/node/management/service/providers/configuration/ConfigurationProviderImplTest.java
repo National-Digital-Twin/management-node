@@ -1,16 +1,13 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ * © Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally
+ * attributed to the Department for Business and Trade (UK) as the governing entity.
+ */
+
 package uk.gov.dbt.ndtp.ia.node.management.service.providers.configuration;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.dbt.ndtp.ia.node.management.model.dto.*;
-import uk.gov.dbt.ndtp.ia.node.management.service.data.ConsumerService;
-import uk.gov.dbt.ndtp.ia.node.management.service.data.ProductConsumerService;
-import uk.gov.dbt.ndtp.ia.node.management.service.data.ProductService;
-import uk.gov.dbt.ndtp.ia.node.management.service.data.ProducerService;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -22,9 +19,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.dbt.ndtp.ia.node.management.model.dto.*;
+import uk.gov.dbt.ndtp.ia.node.management.service.data.ConsumerService;
+import uk.gov.dbt.ndtp.ia.node.management.service.data.ProducerService;
+import uk.gov.dbt.ndtp.ia.node.management.service.data.ProductConsumerService;
+import uk.gov.dbt.ndtp.ia.node.management.service.data.ProductService;
 
 @ExtendWith(MockitoExtension.class)
 class ConfigurationProviderImplTest {
@@ -172,10 +177,8 @@ class ConfigurationProviderImplTest {
     @Test
     void getConsumerConfigByClientId_withNoMatchingConsumerForSpecificId_shouldReturnEmptyConfig() {
         // Arrange
-        ConsumerDTO differentConsumer = ConsumerDTO.builder()
-                .id(999L)
-                .idpClientId(clientId)
-                .build();
+        ConsumerDTO differentConsumer =
+                ConsumerDTO.builder().id(999L).idpClientId(clientId).build();
 
         when(consumerService.findByIdpClientId(clientId)).thenReturn(List.of(differentConsumer));
         when(dataProviderService.getProductsByIds(Collections.emptyList())).thenReturn(Collections.emptyList());
@@ -200,7 +203,7 @@ class ConfigurationProviderImplTest {
     void getConsumerConfigByClientId_withNoValidDataProviders_shouldReturnEmptyConfig() {
         // Arrange
         List<ConsumerDTO> consumers = List.of(consumerDTO);
-        
+
         when(consumerService.findByIdpClientId(clientId)).thenReturn(consumers);
         when(consumerAllowedDataProvidersService.findByConsumerId(consumerId)).thenReturn(Collections.emptyList());
         when(dataProviderService.getProductsByIds(Collections.emptyList())).thenReturn(Collections.emptyList());
@@ -225,7 +228,7 @@ class ConfigurationProviderImplTest {
     void getConsumerConfigByClientId_withExpiredValidity_shouldReturnEmptyConfig() {
         // Arrange
         List<ConsumerDTO> consumers = List.of(consumerDTO);
-        
+
         // Create expired product consumer relationship
         ProductConsumerDTO expiredProductConsumer = ProductConsumerDTO.builder()
                 .consumerId(consumerId)
@@ -233,9 +236,10 @@ class ConfigurationProviderImplTest {
                 .validity(BigDecimal.valueOf(30)) // 30 days validity
                 .grantedTs(Timestamp.from(Instant.now().minus(60, ChronoUnit.DAYS))) // 60 days ago
                 .build();
-        
+
         when(consumerService.findByIdpClientId(clientId)).thenReturn(consumers);
-        when(consumerAllowedDataProvidersService.findByConsumerId(consumerId)).thenReturn(List.of(expiredProductConsumer));
+        when(consumerAllowedDataProvidersService.findByConsumerId(consumerId))
+                .thenReturn(List.of(expiredProductConsumer));
         when(dataProviderService.getProductsByIds(Collections.emptyList())).thenReturn(Collections.emptyList());
         when(producerService.getProducersByIds(Collections.emptyList())).thenReturn(Collections.emptyList());
 
@@ -258,7 +262,7 @@ class ConfigurationProviderImplTest {
     void getConsumerConfigByClientId_withValidityButNoGrantedTs_shouldReturnEmptyConfig() {
         // Arrange
         List<ConsumerDTO> consumers = List.of(consumerDTO);
-        
+
         // Create product consumer relationship with validity but no grantedTs
         ProductConsumerDTO invalidProductConsumer = ProductConsumerDTO.builder()
                 .consumerId(consumerId)
@@ -266,9 +270,10 @@ class ConfigurationProviderImplTest {
                 .validity(BigDecimal.valueOf(30)) // 30 days validity
                 .grantedTs(null) // No granted timestamp
                 .build();
-        
+
         when(consumerService.findByIdpClientId(clientId)).thenReturn(consumers);
-        when(consumerAllowedDataProvidersService.findByConsumerId(consumerId)).thenReturn(List.of(invalidProductConsumer));
+        when(consumerAllowedDataProvidersService.findByConsumerId(consumerId))
+                .thenReturn(List.of(invalidProductConsumer));
         when(dataProviderService.getProductsByIds(Collections.emptyList())).thenReturn(Collections.emptyList());
         when(producerService.getProducersByIds(Collections.emptyList())).thenReturn(Collections.emptyList());
 
@@ -291,19 +296,20 @@ class ConfigurationProviderImplTest {
     void getConsumerConfigByClientId_withValidityZero_shouldReturnConfig() {
         // Arrange
         List<ConsumerDTO> consumers = List.of(consumerDTO);
-        
+
         // Create product consumer relationship with zero validity
         ProductConsumerDTO zeroValidityProductConsumer = ProductConsumerDTO.builder()
                 .consumerId(consumerId)
                 .productId(productId)
                 .validity(BigDecimal.ZERO) // Zero validity means no expiration
                 .build();
-        
+
         List<ProductDTO> products = List.of(productDTO);
         List<ProducerDTO> producers = List.of(producerDTO);
 
         when(consumerService.findByIdpClientId(clientId)).thenReturn(consumers);
-        when(consumerAllowedDataProvidersService.findByConsumerId(consumerId)).thenReturn(List.of(zeroValidityProductConsumer));
+        when(consumerAllowedDataProvidersService.findByConsumerId(consumerId))
+                .thenReturn(List.of(zeroValidityProductConsumer));
         when(dataProviderService.getProductsByIds(List.of(productId))).thenReturn(products);
         when(producerService.getProducersByIds(List.of(producerId))).thenReturn(producers);
 
@@ -328,12 +334,10 @@ class ConfigurationProviderImplTest {
         List<ConsumerDTO> consumers = List.of(consumerDTO);
         List<ProductConsumerDTO> productConsumers = List.of(productConsumerDTO);
         List<ProductDTO> products = List.of(productDTO);
-        
+
         // Create inactive producer
-        ProducerDTO inactiveProducer = ProducerDTO.builder()
-                .id(producerId)
-                .active(false)
-                .build();
+        ProducerDTO inactiveProducer =
+                ProducerDTO.builder().id(producerId).active(false).build();
 
         when(consumerService.findByIdpClientId(clientId)).thenReturn(consumers);
         when(consumerAllowedDataProvidersService.findByConsumerId(consumerId)).thenReturn(productConsumers);
@@ -363,13 +367,14 @@ class ConfigurationProviderImplTest {
         List<ProducerDTO> producers = List.of(producerDTO);
         // Add product to producer's dataProviders list
         producerDTO.getDataProviders().add(productDTO);
-        
+
         Map<String, List<ConsumerDTO>> consumersMap = new HashMap<>();
         consumersMap.put(productId.toString(), List.of(consumerDTO));
-        
+
         when(producerService.getProducersByClientId(clientId)).thenReturn(producers);
         when(consumerService.getConsumersOfProviders(List.of(productId))).thenReturn(consumersMap);
-        when(consumerAllowedDataProvidersService.findByDataProviderId(productId)).thenReturn(List.of(productConsumerDTO));
+        when(consumerAllowedDataProvidersService.findByDataProviderId(productId))
+                .thenReturn(List.of(productConsumerDTO));
         when(consumerService.findById(consumerId)).thenReturn(Optional.of(consumerDTO));
 
         // Act
@@ -381,7 +386,7 @@ class ConfigurationProviderImplTest {
         assertEquals(1, result.getProducers().size());
         assertEquals(producerId, result.getProducers().get(0).getId());
         assertEquals(1, result.getProducers().get(0).getDataProviders().size());
-        
+
         // Verify
         verify(producerService).getProducersByClientId(clientId);
         verify(consumerService).getConsumersOfProviders(List.of(productId));
@@ -395,13 +400,14 @@ class ConfigurationProviderImplTest {
         List<ProducerDTO> allProducers = List.of(producerDTO);
         // Add product to producer's dataProviders list
         producerDTO.getDataProviders().add(productDTO);
-        
+
         Map<String, List<ConsumerDTO>> consumersMap = new HashMap<>();
         consumersMap.put(productId.toString(), List.of(consumerDTO));
-        
+
         when(producerService.getProducersByClientId(clientId)).thenReturn(allProducers);
         when(consumerService.getConsumersOfProviders(List.of(productId))).thenReturn(consumersMap);
-        when(consumerAllowedDataProvidersService.findByDataProviderId(productId)).thenReturn(List.of(productConsumerDTO));
+        when(consumerAllowedDataProvidersService.findByDataProviderId(productId))
+                .thenReturn(List.of(productConsumerDTO));
         when(consumerService.findById(consumerId)).thenReturn(Optional.of(consumerDTO));
 
         // Act
@@ -496,13 +502,14 @@ class ConfigurationProviderImplTest {
         // Add product to producer's dataProviders list with null consumers
         productDTO.setConsumers(null); // Null consumers list
         producerDTO.getDataProviders().add(productDTO);
-        
+
         Map<String, List<ConsumerDTO>> consumersMap = new HashMap<>();
         consumersMap.put(productId.toString(), List.of(consumerDTO));
-        
+
         when(producerService.getProducersByClientId(clientId)).thenReturn(producers);
         when(consumerService.getConsumersOfProviders(List.of(productId))).thenReturn(consumersMap);
-        when(consumerAllowedDataProvidersService.findByDataProviderId(productId)).thenReturn(List.of(productConsumerDTO));
+        when(consumerAllowedDataProvidersService.findByDataProviderId(productId))
+                .thenReturn(List.of(productConsumerDTO));
         when(consumerService.findById(consumerId)).thenReturn(Optional.of(consumerDTO));
 
         // Act
@@ -513,7 +520,7 @@ class ConfigurationProviderImplTest {
         assertEquals(clientId, result.getClientId());
         assertEquals(1, result.getProducers().size());
         assertNotNull(result.getProducers().get(0).getDataProviders().get(0).getConsumers());
-        
+
         // Verify
         verify(producerService).getProducersByClientId(clientId);
         verify(consumerService).getConsumersOfProviders(List.of(productId));
@@ -527,7 +534,7 @@ class ConfigurationProviderImplTest {
         List<ProducerDTO> producers = List.of(producerDTO);
         // Add product to producer's dataProviders list
         producerDTO.getDataProviders().add(productDTO);
-        
+
         // Create expired product consumer relationship
         ProductConsumerDTO expiredProductConsumer = ProductConsumerDTO.builder()
                 .consumerId(consumerId)
@@ -535,13 +542,14 @@ class ConfigurationProviderImplTest {
                 .validity(BigDecimal.valueOf(30)) // 30 days validity
                 .grantedTs(Timestamp.from(Instant.now().minus(60, ChronoUnit.DAYS))) // 60 days ago
                 .build();
-        
+
         Map<String, List<ConsumerDTO>> consumersMap = new HashMap<>();
         consumersMap.put(productId.toString(), List.of(consumerDTO));
-        
+
         when(producerService.getProducersByClientId(clientId)).thenReturn(producers);
         when(consumerService.getConsumersOfProviders(List.of(productId))).thenReturn(consumersMap);
-        when(consumerAllowedDataProvidersService.findByDataProviderId(productId)).thenReturn(List.of(expiredProductConsumer));
+        when(consumerAllowedDataProvidersService.findByDataProviderId(productId))
+                .thenReturn(List.of(expiredProductConsumer));
 
         // Act
         ProducerConfigDTO result = configurationProvider.getProducerConfigByClientId(clientId, Optional.empty());
@@ -550,7 +558,12 @@ class ConfigurationProviderImplTest {
         assertNotNull(result);
         assertEquals(clientId, result.getClientId());
         assertEquals(1, result.getProducers().size());
-        assertTrue(result.getProducers().get(0).getDataProviders().get(0).getConsumers().isEmpty());
+        assertTrue(result.getProducers()
+                .get(0)
+                .getDataProviders()
+                .get(0)
+                .getConsumers()
+                .isEmpty());
 
         // Verify
         verify(producerService).getProducersByClientId(clientId);
@@ -565,7 +578,7 @@ class ConfigurationProviderImplTest {
         List<ProducerDTO> producers = List.of(producerDTO);
         // Add product to producer's dataProviders list
         producerDTO.getDataProviders().add(productDTO);
-        
+
         // Create product consumer relationship with validity but no grantedTs
         ProductConsumerDTO invalidProductConsumer = ProductConsumerDTO.builder()
                 .consumerId(consumerId)
@@ -573,13 +586,14 @@ class ConfigurationProviderImplTest {
                 .validity(BigDecimal.valueOf(30)) // 30 days validity
                 .grantedTs(null) // No granted timestamp
                 .build();
-        
+
         Map<String, List<ConsumerDTO>> consumersMap = new HashMap<>();
         consumersMap.put(productId.toString(), List.of(consumerDTO));
-        
+
         when(producerService.getProducersByClientId(clientId)).thenReturn(producers);
         when(consumerService.getConsumersOfProviders(List.of(productId))).thenReturn(consumersMap);
-        when(consumerAllowedDataProvidersService.findByDataProviderId(productId)).thenReturn(List.of(invalidProductConsumer));
+        when(consumerAllowedDataProvidersService.findByDataProviderId(productId))
+                .thenReturn(List.of(invalidProductConsumer));
 
         // Act
         ProducerConfigDTO result = configurationProvider.getProducerConfigByClientId(clientId, Optional.empty());
@@ -588,7 +602,12 @@ class ConfigurationProviderImplTest {
         assertNotNull(result);
         assertEquals(clientId, result.getClientId());
         assertEquals(1, result.getProducers().size());
-        assertTrue(result.getProducers().get(0).getDataProviders().get(0).getConsumers().isEmpty());
+        assertTrue(result.getProducers()
+                .get(0)
+                .getDataProviders()
+                .get(0)
+                .getConsumers()
+                .isEmpty());
 
         // Verify
         verify(producerService).getProducersByClientId(clientId);
@@ -603,13 +622,14 @@ class ConfigurationProviderImplTest {
         List<ProducerDTO> producers = List.of(producerDTO);
         // Add product to producer's dataProviders list
         producerDTO.getDataProviders().add(productDTO);
-        
+
         Map<String, List<ConsumerDTO>> consumersMap = new HashMap<>();
         consumersMap.put(productId.toString(), List.of(consumerDTO));
-        
+
         when(producerService.getProducersByClientId(clientId)).thenReturn(producers);
         when(consumerService.getConsumersOfProviders(List.of(productId))).thenReturn(consumersMap);
-        when(consumerAllowedDataProvidersService.findByDataProviderId(productId)).thenReturn(List.of(productConsumerDTO));
+        when(consumerAllowedDataProvidersService.findByDataProviderId(productId))
+                .thenReturn(List.of(productConsumerDTO));
         when(consumerService.findById(consumerId)).thenReturn(Optional.empty());
 
         // Act
@@ -619,7 +639,12 @@ class ConfigurationProviderImplTest {
         assertNotNull(result);
         assertEquals(clientId, result.getClientId());
         assertEquals(1, result.getProducers().size());
-        assertTrue(result.getProducers().get(0).getDataProviders().get(0).getConsumers().isEmpty());
+        assertTrue(result.getProducers()
+                .get(0)
+                .getDataProviders()
+                .get(0)
+                .getConsumers()
+                .isEmpty());
 
         // Verify
         verify(producerService).getProducersByClientId(clientId);
@@ -627,9 +652,9 @@ class ConfigurationProviderImplTest {
         verify(consumerAllowedDataProvidersService).findByDataProviderId(productId);
         verify(consumerService).findById(consumerId);
     }
-    
+
     // Tests for isValidProvider method through public methods
-    
+
     @Test
     void isValidProvider_withValidityNullShouldBeValid() {
         // Arrange
@@ -639,12 +664,13 @@ class ConfigurationProviderImplTest {
                 .productId(productId)
                 .validity(null) // Null validity means no expiration
                 .build();
-        
+
         List<ProductDTO> products = List.of(productDTO);
         List<ProducerDTO> producers = List.of(producerDTO);
 
         when(consumerService.findByIdpClientId(clientId)).thenReturn(consumers);
-        when(consumerAllowedDataProvidersService.findByConsumerId(consumerId)).thenReturn(List.of(validProductConsumer));
+        when(consumerAllowedDataProvidersService.findByConsumerId(consumerId))
+                .thenReturn(List.of(validProductConsumer));
         when(dataProviderService.getProductsByIds(List.of(productId))).thenReturn(products);
         when(producerService.getProducersByIds(List.of(producerId))).thenReturn(producers);
 
@@ -655,7 +681,7 @@ class ConfigurationProviderImplTest {
         assertNotNull(result);
         assertEquals(1, result.getProducers().size());
     }
-    
+
     @Test
     void isValidProvider_withValidGrantedTsAndValidity_shouldBeValid() {
         // Arrange
@@ -666,12 +692,13 @@ class ConfigurationProviderImplTest {
                 .validity(BigDecimal.valueOf(30)) // 30 days validity
                 .grantedTs(Timestamp.from(Instant.now().minus(15, ChronoUnit.DAYS))) // 15 days ago, still valid
                 .build();
-        
+
         List<ProductDTO> products = List.of(productDTO);
         List<ProducerDTO> producers = List.of(producerDTO);
 
         when(consumerService.findByIdpClientId(clientId)).thenReturn(consumers);
-        when(consumerAllowedDataProvidersService.findByConsumerId(consumerId)).thenReturn(List.of(validProductConsumer));
+        when(consumerAllowedDataProvidersService.findByConsumerId(consumerId))
+                .thenReturn(List.of(validProductConsumer));
         when(dataProviderService.getProductsByIds(List.of(productId))).thenReturn(products);
         when(producerService.getProducersByIds(List.of(producerId))).thenReturn(producers);
 
@@ -682,9 +709,9 @@ class ConfigurationProviderImplTest {
         assertNotNull(result);
         assertEquals(1, result.getProducers().size());
     }
-    
+
     // Test for isValidGrantedTs method through isValidProvider
-    
+
     @Test
     void isValidGrantedTs_withFutureDate_shouldBeValid() {
         // Arrange
@@ -695,12 +722,13 @@ class ConfigurationProviderImplTest {
                 .validity(BigDecimal.valueOf(30)) // 30 days validity
                 .grantedTs(Timestamp.from(Instant.now().plus(1, ChronoUnit.DAYS))) // Future date
                 .build();
-        
+
         List<ProductDTO> products = List.of(productDTO);
         List<ProducerDTO> producers = List.of(producerDTO);
 
         when(consumerService.findByIdpClientId(clientId)).thenReturn(consumers);
-        when(consumerAllowedDataProvidersService.findByConsumerId(consumerId)).thenReturn(List.of(validProductConsumer));
+        when(consumerAllowedDataProvidersService.findByConsumerId(consumerId))
+                .thenReturn(List.of(validProductConsumer));
         when(dataProviderService.getProductsByIds(List.of(productId))).thenReturn(products);
         when(producerService.getProducersByIds(List.of(producerId))).thenReturn(producers);
 

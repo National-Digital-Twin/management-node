@@ -1,9 +1,15 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ * © Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally
+ * attributed to the Department for Business and Trade (UK) as the governing entity.
+ */
+
 create table organisation
 (
-    id     bigserial
+    id   bigserial
         constraint pk_organisation
             primary key,
-    name   varchar(150) not null
+    name varchar(150) not null
 );
 
 
@@ -43,12 +49,12 @@ create table consumer
 
 create table product
 (
-    id          bigserial not null
+    id          bigserial    not null
         constraint pk_3
             primary key,
-    name        varchar(50)                                                                not null,
-    topic       varchar(150)                                                               not null,
-    producer_id bigint                                                                     not null
+    name        varchar(50)  not null,
+    topic       varchar(150) not null,
+    producer_id bigint       not null
         constraint fk_2
             references producer
 );

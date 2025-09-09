@@ -1,3 +1,9 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ * © Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally
+ * attributed to the Department for Business and Trade (UK) as the governing entity.
+ */
+
 package uk.gov.dbt.ndtp.ia.node.management.converter.impl;
 
 import org.springframework.stereotype.Component;
@@ -45,16 +51,16 @@ public class ProductConsumerConverter implements EntityDtoConverter<ProductConsu
         }
 
         ProductConsumer entity = new ProductConsumer();
-        
+
         // Create and set the embedded ID
         ProductConsumerId id = new ProductConsumerId();
         id.setProductId(dto.getProductId());
         id.setConsumerId(dto.getConsumerId());
         entity.setId(id);
-        
+
         entity.setGrantedTs(dto.getGrantedTs());
         entity.setValidity(dto.getValidity());
-        
+
         return entity;
     }
 }

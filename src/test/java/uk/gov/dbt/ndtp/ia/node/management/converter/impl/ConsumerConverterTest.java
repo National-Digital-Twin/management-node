@@ -1,5 +1,15 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ * © Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally
+ * attributed to the Department for Business and Trade (UK) as the governing entity.
+ */
+
 package uk.gov.dbt.ndtp.ia.node.management.converter.impl;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -7,14 +17,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.ConsumerDTO;
-import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Organisation;
 import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Consumer;
+import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Organisation;
 import uk.gov.dbt.ndtp.ia.node.management.persistency.repository.OrganisationRepository;
-
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ConsumerConverterTest {
@@ -28,7 +33,7 @@ class ConsumerConverterTest {
     private Consumer entity;
     private ConsumerDTO dto;
     private Organisation organisation;
-    
+
     private final Long consumerId = 1L;
     private final String consumerName = "Test Consumer";
     private final String idpClientId = "test-client-id";
@@ -41,7 +46,7 @@ class ConsumerConverterTest {
         organisation = new Organisation();
         organisation.setId(orgId);
         organisation.setName(orgName);
-        
+
         // Create test entity
         entity = new Consumer();
         entity.setId(consumerId);
@@ -83,7 +88,7 @@ class ConsumerConverterTest {
     void toDto_withNullOrg_shouldReturnDTOWithNullOrgId() {
         // Arrange
         entity.setOrg(null);
-        
+
         // Act
         ConsumerDTO result = converter.toDto(entity);
 
@@ -108,7 +113,7 @@ class ConsumerConverterTest {
     void toEntity_withValidDTO_shouldReturnCorrectEntity() {
         // Arrange
         when(organisationRepository.findById(orgId)).thenReturn(Optional.of(organisation));
-        
+
         // Act
         Consumer result = converter.toEntity(dto);
 
@@ -120,7 +125,7 @@ class ConsumerConverterTest {
         assertNotNull(result.getOrg());
         assertEquals(orgId, result.getOrg().getId());
         assertEquals(orgName, result.getOrg().getName());
-        
+
         // Verify
         verify(organisationRepository, times(1)).findById(orgId);
     }
@@ -129,7 +134,7 @@ class ConsumerConverterTest {
     void toEntity_withNullOrgId_shouldReturnEntityWithNullOrg() {
         // Arrange
         dto.setOrgId(null);
-        
+
         // Act
         Consumer result = converter.toEntity(dto);
 
@@ -139,7 +144,7 @@ class ConsumerConverterTest {
         assertEquals(consumerName, result.getName());
         assertEquals(idpClientId, result.getIdpClientId());
         assertNull(result.getOrg());
-        
+
         // Verify
         verify(organisationRepository, never()).findById(any());
     }
@@ -148,7 +153,7 @@ class ConsumerConverterTest {
     void toEntity_withNonExistentOrgId_shouldReturnEntityWithNullOrg() {
         // Arrange
         when(organisationRepository.findById(orgId)).thenReturn(Optional.empty());
-        
+
         // Act
         Consumer result = converter.toEntity(dto);
 
@@ -158,7 +163,7 @@ class ConsumerConverterTest {
         assertEquals(consumerName, result.getName());
         assertEquals(idpClientId, result.getIdpClientId());
         assertNull(result.getOrg());
-        
+
         // Verify
         verify(organisationRepository, times(1)).findById(orgId);
     }

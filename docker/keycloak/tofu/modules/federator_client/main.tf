@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# © Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally attributed to the Department for Business and Trade (UK) as the governing entity.resource "keycloak_openid_client" "management_node" {
+
 resource "keycloak_openid_client" "this" {
   realm_id                     = var.realm_id
   client_id                    = var.client_id
@@ -11,7 +14,7 @@ resource "keycloak_openid_client" "this" {
   service_accounts_enabled     = var.service_accounts_enabled
 
   # Per-client JWT access token lifespan (seconds)
-  access_token_lifespan        = var.client_access_token_lifespan_seconds
+  access_token_lifespan = var.client_access_token_lifespan_seconds
 
   # Optional toggles most people like off in machine clients
   consent_required                    = var.consent_required
@@ -28,17 +31,17 @@ resource "keycloak_openid_client" "this" {
 
 # Attach default client scopes if provided
 resource "keycloak_openid_client_default_scopes" "this" {
-  count       = length(var.default_client_scopes) > 0 ? 1 : 0
-  realm_id    = var.realm_id
-  client_id   = keycloak_openid_client.this.id
+  count          = length(var.default_client_scopes) > 0 ? 1 : 0
+  realm_id       = var.realm_id
+  client_id      = keycloak_openid_client.this.id
   default_scopes = var.default_client_scopes
 }
 
 # Attach optional client scopes if provided
 resource "keycloak_openid_client_optional_scopes" "this" {
-  count       = length(var.optional_client_scopes) > 0 ? 1 : 0
-  realm_id    = var.realm_id
-  client_id   = keycloak_openid_client.this.id
+  count           = length(var.optional_client_scopes) > 0 ? 1 : 0
+  realm_id        = var.realm_id
+  client_id       = keycloak_openid_client.this.id
   optional_scopes = var.optional_client_scopes
 }
 
@@ -68,7 +71,7 @@ resource "keycloak_openid_client_service_account_role" "service_account_roles" {
   # Use only input-derived, stable keys for for_each to avoid plan-time unknowns
   for_each = { for r in var.service_account_role_ids : "${r.from_client}:${r.name}" => r }
 
-  realm_id                = var.realm_id
+  realm_id = var.realm_id
   # IMPORTANT: this client_id must be the container (owner) of the role)
   # Resolve the container client's UUID here (arguments may be unknown at plan time, which is OK)
   client_id               = data.keycloak_openid_client.role_containers[each.value.from_client].id
