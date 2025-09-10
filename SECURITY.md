@@ -55,7 +55,7 @@ To help maintain security across NDTP repositories, we follow these principles:
 - Dependencies are **scanned and updated regularly** (e.g., using automated tools like Dependabot).
 - Sensitive credentials **must not be included** in public repositories.
 - Security patches are applied in a timely manner, with priority given to critical vulnerabilities.  
-  For more details, refer to our **Secure Development Guidelines** [Link to internal security policy, if available].
+
 ---
 
 **Maintained by the National Digital Twin Programme (NDTP).**

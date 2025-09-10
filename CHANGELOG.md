@@ -2,6 +2,8 @@
 
 **Repository:** `management-node`  
 **Description:** `Tracks all notable changes, version history, and roadmap toward 1.0.0 following Semantic Versioning.`  
+**SPDX-License-Identifier:** OGL-UK-3.0 
+
 
 All notable changes to this repository will be documented in this file.
 
@@ -58,14 +60,13 @@ Once `1.0.0` is reached, future versions will follow **strict SemVer rules**.
 
 ---
 
-## Versioning Policy 
-
-1. **MAJOR updates (`X.0.0`)** – Typically introduce breaking changes that require users to modify their code or configurations. 
-- **Breaking changes (default rule)**: Any backward-incompatible modifications require a major version bump. 
-- **Non-breaking major updates (exceptional cases)**: A major version may also be incremented if the update represents a significant milestone, such as a shift in governance, a long-term stability commitment, or substantial new functionality that redefines the project’s scope. 
-2. **MINOR updates (`0.X.0`)** – New functionality that is backward-compatible. 
-3. **PATCH updates (`0.0.X`)** – Bug fixes, performance improvements, or security patches. 
-4. **Dependency updates** – A **major dependency upgrade** that introduces breaking changes should trigger a **MAJOR** version bump (once at `1.0.0`). 
+## Versioning Policy
+1. **MAJOR updates (`X.0.0`)** – Typically introduce breaking changes that require users to modify their code or configurations.
+    - **Breaking changes (default rule)**: Any backward-incompatible modifications require a major version bump.
+    - **Non-breaking major updates (exceptional cases)**: A major version may also be incremented if the update represents a significant milestone, such as a shift in governance, a long-term stability commitment, or substantial new functionality that redefines the project’s scope.
+2. **MINOR updates (`0.X.0`)** – New functionality that is backward-compatible.
+3. **PATCH updates (`0.0.X`)** – Bug fixes, performance improvements, or security patches.
+4. **Dependency updates** – A **major dependency upgrade** that introduces breaking changes should trigger a **MAJOR** version bump (once at `1.0.0`).
 
 ---
 

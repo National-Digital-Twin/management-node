@@ -2,12 +2,15 @@
 
 **Repository:** `management-node`  
 **Description:** `Defines expected behaviors, rules, and the enforcement process to ensure professional engagement.`   
-**SPDX-License-Identifier:** OGL-UK-3.0
+**SPDX-License-Identifier:** OGL-UK-3.0 
+
 ## Introduction
 The National Digital Twin Programme (NDTP) is committed to fostering an open, inclusive, and professional environment in all its public repositories.
 This Code of Conduct outlines the expectations for behaviour when engaging with NDTP repositories, including issue reporting, documentation feedback,
 and discussions with repository maintainers.  
+
 By participating in this repository, you agree to follow this Code of Conduct.
+
 ---
 ## Expected Behaviour
 All contributors, maintainers, and public users are expected to:

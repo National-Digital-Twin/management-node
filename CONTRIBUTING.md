@@ -2,7 +2,9 @@
 
 **Repository:** `management-node`  
 **Description:** `Guidelines for issue reporting, documentation suggestions, and NDTP’s controlled contribution model.`  
-**SPDX-License-Identifier:** `OGL-UK-3.0`
+**SPDX-License-Identifier:** `OGL-UK-3.0`   
+
+
 Thank you for your interest in this repository.  
 The National Digital Twin Programme (NDTP) develops and maintains this repository in collaboration with suppliers and partner organisations, including other parts of
 government and their suppliers.  
@@ -40,7 +42,7 @@ If you find an error in the documentation, need more clarity, or have suggestion
 - **All NDTP code is publicly available under open-source licences.**
 - **Development is led by approved suppliers and partners** who have been engaged through a formal process.
 - **We welcome feedback and ideas**, but implementation is subject to programme priorities.  
-  To see what we’re working on, check out our [Project Roadmap](https://github.com/National-Digital-Twin/your-repo/projects). If no roadmap is currently available,
+  To see what we’re working on, check out our [Project Roadmap](https://github.com/National-Digital-Twin/management-node/projects). If no roadmap is currently available,
   please note that it is being actively developed and will be published in due course.
 ---
 ## Branching Strategy
@@ -74,9 +76,11 @@ as this repository:
   For supplier-contracted development, NDTP ensures that all contributions align with Crown Copyright and public sector open-source standards.
 ---
 ## Repository Maintainers
-For details on who maintains this repository and how to contact them, refer to [MAINTAINERS.md](MAINTAINERS.md).  
+For details on who maintains this repository and how to contact them, refer to [MAINTAINERS.md](MAINTAINERS.md).    
+
 NDTP repository maintainers review reported issues, evaluate documentation suggestions, and oversee ongoing development.
----
+
+--- 
 Maintained by the National Digital Twin Programme (NDTP).  
 © Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally attributed to the Department for Business and Trade (UK)
 as the governing entity.  

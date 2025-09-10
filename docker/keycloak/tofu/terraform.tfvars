@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# © Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally attributed to the Department for Business and Trade (UK) as the governing entity.resource "keycloak_openid_client" "management_node" {
+# © Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally attributed to the Department for Business and Trade (UK) as the governing entity.
 
 keycloak_url            = "http://localhost:8080"
 keycloak_realm          = "master"
