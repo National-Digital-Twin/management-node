@@ -13,7 +13,9 @@ NDTP follows an **open-source governance model** where all code is **publicly av
 partners**. Contributions from the general public are not currently accepted, but **feedback, issue reporting, and documentation suggestions are encouraged**.  
 If you want to see which suppliers and organisations have contributed to this repository in the past, refer to [ACKNOWLEDGEMENTS.md](ACKNOWLEDGEMENTS.md) and the GitHub
 contributor insights page at [Contributors](https://github.com/National-Digital-Twin/your-repo/graphs/contributors).
+
 ---
+
 ## How You Can Contribute
 Public users and NDTP partners are encouraged to engage in the following ways:
 - **Reporting bugs and issues** – If you find a problem, please open a GitHub issue.
