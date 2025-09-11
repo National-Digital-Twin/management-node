@@ -1,14 +1,14 @@
 # README
 
 **Repository:** `management-node`  
-**Description:** `The Management Node Module is a Spring Boot application that provides APIs to be accessed by Consumer and Producer Federators. It implements a secure communication architecture using Mutual TLS (MTLS) connectivity between Federator instances and itself, as well as establishing zero trust connectivity with Keycloak for authentication and authorization.`  
+**Description:** `Provides APIs to be accessed by Consumer and Producer Federators for the purpose of dynamic configuration management `  
 **SPDX-License-Identifier:** `Apache-2.0 AND OGL-UK-3.0 `
 
 ---
 
 ## Overview
 
-This repository is part of the **National Digital Twin Programme (NDTP)**. It supports the development of secure, modular, and standards-based components for internal use across NDTP projects.
+The Management Node Module is a Spring Boot application that provides APIs to be accessed by Consumer and Producer Federators. It implements a secure communication architecture using Mutual TLS (MTLS) connectivity between Federator instances and itself, as well as establishing zero trust connectivity with Keycloak for authentication and authorization.   
 
 --- 
 
