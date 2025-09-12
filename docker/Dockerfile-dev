@@ -1,3 +1,10 @@
+
+#
+# SPDX-License-Identifier: Apache-2.0
+# © Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally
+# attributed to the Department for Business and Trade (UK) as the governing entity.
+#
+
 # Build stage
 FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
 WORKDIR /build
@@ -10,7 +17,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Runtime stage
-FROM eclipse-temurin:21-jdk-alpine
+FROM eclipse-temurin:23-jdk-alpine
 
 WORKDIR /app
 
@@ -18,7 +25,7 @@ WORKDIR /app
 RUN mkdir -p /app/docker
 
 # Copy application jar from build stage and certificates
-COPY --from=build /build/target/management-node-0.0.1.jar /app/app.jar
+COPY --from=build /build/target/management-node-0.90.0.jar /app/app.jar
 COPY docker/keystore.jks /app/docker/keystore.jks
 COPY docker/truststore.jks /app/docker/truststore.jks
 

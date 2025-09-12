@@ -1,3 +1,10 @@
+
+#
+# SPDX-License-Identifier: Apache-2.0
+# © Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally
+# attributed to the Department for Business and Trade (UK) as the governing entity.
+#
+
 # Build stage
 FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
 WORKDIR /build
@@ -21,7 +28,7 @@ WORKDIR /app
 RUN mkdir -p /app/docker /app/logs /app/tmp && chown -R app:app /app
 
 # Copy application jar from build stage
-COPY --from=build /build/target/management-node-0.0.1.jar /app/app.jar
+COPY --from=build /build/target/management-node-0.90.0.jar /app/app.jar
 RUN chown app:app /app/app.jar
 
 # Use non-root user from here on

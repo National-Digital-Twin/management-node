@@ -1,14 +1,18 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ * © Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally
+ * attributed to the Department for Business and Trade (UK) as the governing entity.
+ */
+
 package uk.gov.dbt.ndtp.ia.node.management.model.jwt;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import java.util.List;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import com.fasterxml.jackson.annotation.JsonFormat;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * Represents the structure of a JWT token.
@@ -23,8 +27,10 @@ public class JwtToken {
     private Long iat;
     private String jti;
     private String iss;
+
     @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
     private List<String> aud;
+
     private String sub;
     private String typ;
     private String azp;

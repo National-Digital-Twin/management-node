@@ -1,5 +1,20 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ * © Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally
+ * attributed to the Department for Business and Trade (UK) as the governing entity.
+ */
+
 package uk.gov.dbt.ndtp.ia.node.management.service.data.impl;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.when;
+
+import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,16 +26,6 @@ import uk.gov.dbt.ndtp.ia.node.management.model.dto.ProductConsumerDTO;
 import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.ProductConsumer;
 import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.ProductConsumerId;
 import uk.gov.dbt.ndtp.ia.node.management.persistency.repository.ConsumerProviderRepository;
-
-import java.math.BigDecimal;
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class ConsumerProviderOrganisationServiceImplTest {
@@ -48,10 +53,10 @@ public class ConsumerProviderOrganisationServiceImplTest {
         id1.setConsumerId(consumerId);
         id1.setProductId(101L);
         entity1.setId(id1);
-    entity1.setGrantedTs(Timestamp.from(Instant.now()));
-    entity1.setValidity(new BigDecimal("365"));
+        entity1.setGrantedTs(Timestamp.from(Instant.now()));
+        entity1.setValidity(new BigDecimal("365"));
 
-    entity2 = new ProductConsumer();
+        entity2 = new ProductConsumer();
         ProductConsumerId id2 = new ProductConsumerId();
         id2.setConsumerId(consumerId);
         id2.setProductId(102L);
@@ -91,7 +96,7 @@ public class ConsumerProviderOrganisationServiceImplTest {
         assertEquals(dto1.getProductId(), result.get(0).getProductId());
         assertEquals(dto1.getGrantedTs(), result.get(0).getGrantedTs());
         assertEquals(dto1.getValidity(), result.get(0).getValidity());
-        
+
         assertEquals(dto2.getConsumerId(), result.get(1).getConsumerId());
         assertEquals(dto2.getProductId(), result.get(1).getProductId());
         assertEquals(dto2.getGrantedTs(), result.get(1).getGrantedTs());

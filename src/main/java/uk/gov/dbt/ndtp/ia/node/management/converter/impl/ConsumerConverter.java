@@ -1,10 +1,16 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ * © Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally
+ * attributed to the Department for Business and Trade (UK) as the governing entity.
+ */
+
 package uk.gov.dbt.ndtp.ia.node.management.converter.impl;
 
 import org.springframework.stereotype.Component;
 import uk.gov.dbt.ndtp.ia.node.management.converter.EntityDtoConverter;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.ConsumerDTO;
-import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Organisation;
 import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Consumer;
+import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Organisation;
 import uk.gov.dbt.ndtp.ia.node.management.persistency.repository.OrganisationRepository;
 
 /**
@@ -63,8 +69,8 @@ public class ConsumerConverter implements EntityDtoConverter<Consumer, ConsumerD
 
         // Set the organisation if orgId is provided
         if (dto.getOrgId() != null) {
-            Organisation organisation = organisationRepository.findById(dto.getOrgId())
-                    .orElse(null);
+            Organisation organisation =
+                    organisationRepository.findById(dto.getOrgId()).orElse(null);
             entity.setOrg(organisation);
         }
 

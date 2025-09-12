@@ -1,42 +1,28 @@
-package uk.gov.dbt.ndtp.ia.node.management.model.jwt;
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ * © Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally
+ * attributed to the Department for Business and Trade (UK) as the governing entity.
+ */
 
-import lombok.Getter;
+package uk.gov.dbt.ndtp.ia.node.management.model.jwt;
 
 import java.io.Serial;
 import java.io.Serializable;
 
 /**
  * Custom Principal object that includes clientId information from the JWT.
+ *
+ * @param subject  -- GETTER --
+ *                 Get the subject (user identifier)
+ * @param clientId -- GETTER --
+ *                 Get the client ID
  */
-@Getter
-public class EnhancedPrincipal implements Serializable {
+public record EnhancedPrincipal(String subject, String clientId) implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    /**
-     * -- GETTER --
-     *  Get the subject (user identifier)
-     *
-     */
-    private final String subject;
-    /**
-     * -- GETTER --
-     *  Get the client ID
-     *
-     */
-    private final String clientId;
-    
-    public EnhancedPrincipal(String subject, String clientId) {
-        this.subject = subject;
-        this.clientId = clientId;
-    }
-
-
     @Override
     public String toString() {
-        return "CustomPrincipal{" +
-                "subject='" + subject + '\'' +
-                ", clientId='" + clientId + '\'' +
-                '}';
+        return "CustomPrincipal{" + "subject='" + subject + '\'' + ", clientId='" + clientId + '\'' + '}';
     }
 }

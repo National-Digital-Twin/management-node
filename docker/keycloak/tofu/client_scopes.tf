@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# © Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally attributed to the Department for Business and Trade (UK) as the governing entity.
+
 # Defines custom OpenID client scopes for the Management Node realm
 # These scopes are referenced by modules/clients via their names
 
@@ -7,10 +10,38 @@ resource "keycloak_openid_client_scope" "federator_consumer" {
   description = "Client scope for Federator consumer"
 }
 
+# Ensure Federator Consumer scope resolves audience dynamically (provider v5.4 compatible)
+resource "keycloak_generic_protocol_mapper" "federator_consumer_audience_resolve" {
+  realm_id        = keycloak_realm.management-node.id
+  client_scope_id = keycloak_openid_client_scope.federator_consumer.id
+  name            = "audience resolve"
+  protocol        = "openid-connect"
+  protocol_mapper = "oidc-audience-resolve-mapper"
+
+  config = {
+    "access.token.claim" = "true"
+    "id.token.claim"     = "false"
+  }
+}
+
 resource "keycloak_openid_client_scope" "federator_producer" {
   realm_id    = keycloak_realm.management-node.id
   name        = "FEDERATOR_PRODUCER"
   description = "Client scope for Federator producer"
+}
+
+# Ensure Federator Producer scope resolves audience dynamically (provider v5.4 compatible)
+resource "keycloak_generic_protocol_mapper" "federator_producer_audience_resolve" {
+  realm_id        = keycloak_realm.management-node.id
+  client_scope_id = keycloak_openid_client_scope.federator_producer.id
+  name            = "audience resolve"
+  protocol        = "openid-connect"
+  protocol_mapper = "oidc-audience-resolve-mapper"
+
+  config = {
+    "access.token.claim" = "true"
+    "id.token.claim"     = "false"
+  }
 }
 
 # Scope that adds management-node audience and exposes its client roles in tokens

@@ -1,5 +1,6 @@
-**Repository:** `management-node`
-**Description:** `OpenTofu configuration for managing Keycloak (realm, clients, client scopes) used by the Management Node.`
+**Repository:** `management-node`  
+**Description:** `The Management Node Module is a Spring Boot application that provides APIs to be accessed by Consumer and Producer Federators. It implements a secure communication architecture using Mutual TLS (MTLS) connectivity between Federator instances and itself, as well as establishing zero trust connectivity with Keycloak for authentication and authorization.`  
+**SPDX-License-Identifier:** `Apache-2.0 AND OGL-UK-3.0 `
 
 # Overview
 
@@ -10,6 +11,40 @@ This directory contains OpenTofu code to provision and manage Keycloak resources
 - Optional federator clients via a module (modules/federator_client)
 
 The configuration uses the Keycloak provider and an S3 backend for state (configured via backend tfvars).
+
+Important: Backend selection
+- Local runs: set a local backend.
+- AWS runs: use the S3 backend as shown in backend.tf.
+
+Examples:
+
+Local backend (for running on your machine):
+```hcl
+terraform {
+  required_version = ">= 1.6.0"
+  required_providers {
+    keycloak = {
+      source  = "keycloak/keycloak"
+      version = "~> 5.4"
+    }
+  }
+  backend "local" {}
+}
+```
+
+AWS S3 backend (for running in AWS):
+```hcl
+terraform {
+  required_version = ">= 1.6.0"
+  required_providers {
+    keycloak = {
+      source  = "keycloak/keycloak"
+      version = "~> 5.4"
+    }
+  }
+  backend "s3" {}
+}
+```
 
 ---
 
@@ -141,17 +176,15 @@ terraform {
 }
 ```
 
-Then run OpenTofu directly (skip the Makefile init which assumes S3):
+Then use the Makefile targets (recommended):
 
 ```sh
 cd docker/keycloak/tofu
 # Initialize with local backend (no -backend-config needed)
-tofu init
-# Create/select your workspace
-tofu workspace select dev || tofu workspace new dev
-# Plan and apply
-tofu plan -var-file=tfvars/dev.tfvars -out=tfplan
-tofu apply tfplan
+make init WORKSPACE=dev DIR=.
+# Plan and apply using Makefile targets
+make plan WORKSPACE=dev DIR=.
+make apply WORKSPACE=dev DIR=.
 ```
 
 ### Option B: Comment out the S3 backend
@@ -185,32 +218,28 @@ terraform {
 }
 ```
 
-Then initialize and apply as in Option A:
+Then initialize and apply as in Option A using the Makefile:
 
 ```sh
 cd docker/keycloak/tofu
-tofu init
-tofu workspace select dev || tofu workspace new dev
-tofu plan -var-file=tfvars/dev.tfvars -out=tfplan
-tofu apply tfplan
+make init WORKSPACE=dev DIR=.
+make plan WORKSPACE=dev DIR=.
+make apply WORKSPACE=dev DIR=.
 ```
 
 Notes for local usage:
 - The state file terraform.tfstate will be created next to backend.tf (and is already ignored by .gitignore).
-- If you want to keep using the Makefile for plan/apply, you can:
-  - Run tofu init manually as shown above (so it uses local backend), and then
-  - Use the Makefile for subsequent targets, skipping make init, e.g.:
-    ```sh
-    cd docker/keycloak/tofu
-    tofu init
-    tofu workspace select dev || tofu workspace new dev
-    make plan WORKSPACE=dev DIR=.
-    make apply WORKSPACE=dev DIR=.
-    ```
+- Use the Makefile for all operations; after switching to local backend in backend.tf, simply run:
+  ```sh
+  cd docker/keycloak/tofu
+  make init WORKSPACE=dev DIR=.
+  make plan WORKSPACE=dev DIR=.
+  make apply WORKSPACE=dev DIR=.
+  ```
 - To switch back to S3 later, restore the backend "s3" {} block and run:
   ```sh
   cd docker/keycloak/tofu
-  tofu init -reconfigure -backend-config=backends/dev-backend.tfvars
+  make init WORKSPACE=dev DIR=.
   ```
 
 ---

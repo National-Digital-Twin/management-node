@@ -1,5 +1,18 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ * © Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally
+ * attributed to the Department for Business and Trade (UK) as the governing entity.
+ */
+
 package uk.gov.dbt.ndtp.ia.node.management.config;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+
+import java.time.Instant;
+import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,14 +29,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.dbt.ndtp.ia.node.management.model.jwt.EnhancedPrincipal;
-
-import java.time.Instant;
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 
 /**
  * Tests specifically for exception handling in KeycloakJwtAuthenticationConverter.
@@ -42,10 +47,13 @@ class KeycloakJwtAuthenticationConverterExceptionTest {
     @BeforeEach
     void setUp() {
         // Set up configuration properties
-        ReflectionTestUtils.setField(converter, "introspectionUri", "http://localhost:8080/realms/management-node/protocol/openid-connect/token/introspect");
+        ReflectionTestUtils.setField(
+                converter,
+                "introspectionUri",
+                "http://localhost:8080/realms/management-node/protocol/openid-connect/token/introspect");
         ReflectionTestUtils.setField(converter, "clientId", "management-node");
         ReflectionTestUtils.setField(converter, "clientSecret", "0T5S4wNAPaaOUzFVFQyenorSEC6zxcb0");
-        
+
         // Create a mock JWT with the sample token data
         Map<String, Object> headers = new HashMap<>();
         headers.put("alg", "RS256");
@@ -60,11 +68,11 @@ class KeycloakJwtAuthenticationConverterExceptionTest {
         claims.put("typ", "Bearer");
         claims.put("azp", "management-node");
         claims.put("client_id", "management-node");
-        
+
         // Set up the aud claim as a list
         List<String> audiences = Arrays.asList("F1", "F2");
         claims.put("aud", audiences);
-        
+
         // Set up resource_access claim with nested roles
         Map<String, Object> resourceAccess = new HashMap<>();
         Map<String, Object> f1Resource = new HashMap<>();
@@ -72,16 +80,11 @@ class KeycloakJwtAuthenticationConverterExceptionTest {
         f1Resource.put("roles", f1Roles);
         resourceAccess.put("F1", f1Resource);
         claims.put("resource_access", resourceAccess);
-        
+
         // Create the JWT with the headers and claims
         mockJwt = new Jwt(
-            "token-value", 
-            Instant.ofEpochSecond(1753575765), 
-            Instant.ofEpochSecond(1753576065), 
-            headers, 
-            claims
-        );
-        
+                "token-value", Instant.ofEpochSecond(1753575765), Instant.ofEpochSecond(1753576065), headers, claims);
+
         // Inject mock RestTemplate
         ReflectionTestUtils.setField(converter, "restTemplate", restTemplate);
     }
@@ -90,25 +93,22 @@ class KeycloakJwtAuthenticationConverterExceptionTest {
     void convert_withRestClientException_shouldFallbackToJwtParsing() {
         // Arrange
         // Configure RestTemplate to throw a RestClientException
-        when(restTemplate.postForEntity(
-            anyString(),
-            any(HttpEntity.class),
-            Mockito.<Class<Map>>any()
-        )).thenThrow(new RestClientException("Connection refused"));
-        
+        when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), Mockito.<Class<Map>>any()))
+                .thenThrow(new RestClientException("Connection refused"));
+
         // Act
         AbstractAuthenticationToken token = converter.convert(mockJwt);
-        
+
         // Assert
         assertNotNull(token);
         assertTrue(token instanceof CustomJwtAuthenticationToken);
-        
+
         // Verify the token has the correct principal
         EnhancedPrincipal principal = ((CustomJwtAuthenticationToken) token).getPrincipal();
-        assertEquals("86a41a8a-ab2e-465e-8b48-a09d3275f842", principal.getSubject());
-        assertEquals("management-node", principal.getClientId());
+        assertEquals("86a41a8a-ab2e-465e-8b48-a09d3275f842", principal.subject());
+        assertEquals("management-node", principal.clientId());
     }
-    
+
     @Test
     void convert_withMalformedIntrospectionResponse_shouldFallbackToJwtParsing() {
         // Arrange
@@ -117,80 +117,71 @@ class KeycloakJwtAuthenticationConverterExceptionTest {
         malformedResponse.put("active", true);
         malformedResponse.put("sub", "86a41a8a-ab2e-465e-8b48-a09d3275f842");
         malformedResponse.put("client_id", "management-node");
-        
+
         // Add malformed resource_access (not a map but a string)
         malformedResponse.put("resource_access", "not-a-map");
-        
+
         // Configure RestTemplate to return the malformed response
         ResponseEntity<Map> responseEntity = new ResponseEntity<>(malformedResponse, HttpStatus.OK);
-        when(restTemplate.postForEntity(
-            anyString(),
-            any(HttpEntity.class),
-            Mockito.<Class<Map>>any()
-        )).thenReturn(responseEntity);
-        
+        when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), Mockito.<Class<Map>>any()))
+                .thenReturn(responseEntity);
+
         // Act
         AbstractAuthenticationToken token = converter.convert(mockJwt);
-        
+
         // Assert
         assertNotNull(token);
         assertTrue(token instanceof CustomJwtAuthenticationToken);
-        
+
         // Verify the token has the correct principal
         EnhancedPrincipal principal = ((CustomJwtAuthenticationToken) token).getPrincipal();
-        assertEquals("86a41a8a-ab2e-465e-8b48-a09d3275f842", principal.getSubject());
-        assertEquals("management-node", principal.getClientId());
+        assertEquals("86a41a8a-ab2e-465e-8b48-a09d3275f842", principal.subject());
+        assertEquals("management-node", principal.clientId());
     }
-    
+
     @Test
     void convert_withInactiveToken_shouldFallbackToJwtParsing() {
         // Arrange
         // Create an introspection response with inactive token
         Map<String, Object> inactiveTokenResponse = new HashMap<>();
         inactiveTokenResponse.put("active", false);
-        
+
         // Configure RestTemplate to return the inactive token response
         ResponseEntity<Map> responseEntity = new ResponseEntity<>(inactiveTokenResponse, HttpStatus.OK);
-        when(restTemplate.postForEntity(
-            anyString(),
-            any(HttpEntity.class),
-            Mockito.<Class<Map>>any()
-        )).thenReturn(responseEntity);
-        
+        when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), Mockito.<Class<Map>>any()))
+                .thenReturn(responseEntity);
+
         // Act
         AbstractAuthenticationToken token = converter.convert(mockJwt);
-        
+
         // Assert
         assertNotNull(token);
         assertTrue(token instanceof CustomJwtAuthenticationToken);
-        
+
         // Verify the token has the correct principal
         EnhancedPrincipal principal = ((CustomJwtAuthenticationToken) token).getPrincipal();
-        assertEquals("86a41a8a-ab2e-465e-8b48-a09d3275f842", principal.getSubject());
-        assertEquals("management-node", principal.getClientId());
+        assertEquals("86a41a8a-ab2e-465e-8b48-a09d3275f842", principal.subject());
+        assertEquals("management-node", principal.clientId());
     }
-    
+
     @Test
     void convert_withNullIntrospectionResponse_shouldFallbackToJwtParsing() {
         // Arrange
         // Configure RestTemplate to return null response body
         ResponseEntity<Map> responseEntity = new ResponseEntity<>(null, HttpStatus.OK);
-        when(restTemplate.postForEntity(
-            anyString(),
-            any(HttpEntity.class),
-            Mockito.<Class<Map>>any()
-        )).thenReturn(responseEntity);
-        
+        when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), Mockito.<Class<Map>>any()))
+                .thenReturn(responseEntity);
+
         // Act
         AbstractAuthenticationToken token = converter.convert(mockJwt);
-        
+
         // Assert
         assertNotNull(token);
         assertTrue(token instanceof CustomJwtAuthenticationToken);
-        
+
         // Verify the token has the correct principal
         EnhancedPrincipal principal = ((CustomJwtAuthenticationToken) token).getPrincipal();
-        assertEquals("86a41a8a-ab2e-465e-8b48-a09d3275f842", principal.getSubject());
-        assertEquals("management-node", principal.getClientId());
+        assertEquals("86a41a8a-ab2e-465e-8b48-a09d3275f842", principal.subject());
+        assertEquals("management-node", principal.clientId());
     }
 }
