@@ -470,6 +470,50 @@ For production deployments, consider:
 - Implementing network segmentation
 - Regularly rotating secrets and certificates
 - Setting up monitoring and alerting for security events
+## API Documentation
+
+The project includes interactive API documentation powered by Springdoc OpenAPI (OAS 3.1). This exposes both a human-friendly Swagger UI and machine-readable OpenAPI definitions.
+
+How to access locally (default settings):
+- Swagger UI: https://localhost:8090/swagger-ui.html 
+- OpenAPI JSON: https://localhost:8090/v3/api-docs
+
+
+Notes
+- HTTPS: The application serves over HTTPS by default (see server.ssl in application.yml). If you use development certificates, your browser may warn about trust; proceed after trusting the dev CA as described in Certificate Setup.
+- Security: The security configuration explicitly permits unauthenticated access to the documentation endpoints (/v3/api-docs/**, /swagger-ui/**, /swagger-ui.html) while keeping all other endpoints protected via OAuth2 Resource Server (JWT). See src/main/java/.../config/SecurityConfig.java for details.
+- Port/environment: If you run on a different port or behind a reverse proxy, adjust the base URL accordingly.
+
+How Springdoc OpenAPI works in this project
+- Auto-scanning: The springdoc-openapi-starter-webmvc-ui dependency scans Spring MVC controllers at startup and automatically builds an OpenAPI 3.1 specification from your request mappings, parameters, request/response bodies, and status codes.
+- Annotations (optional but recommended):
+  - @Operation(summary = "...", description = "...") adds summaries, descriptions, and operation-level metadata.
+  - @Tag(name = "...") groups endpoints in the UI.
+  - @Parameter, @Schema, @ApiResponse add fine-grained control over params, models, and responses.
+- Security schema: Because this app is an OAuth2 Resource Server (JWT), you can declare a bearerAuth security scheme to document Authorization: Bearer <token>. Example:
+  
+  @io.swagger.v3.oas.annotations.security.SecurityScheme(
+      name = "bearerAuth",
+      type = io.swagger.v3.oas.annotations.enums.SecuritySchemeType.HTTP,
+      scheme = "bearer",
+      bearerFormat = "JWT"
+  )
+  
+  Then add @SecurityRequirement(name = "bearerAuth") on secured controllers or operations.
+- Global metadata: You can set title, version, and contact details using @OpenAPIDefinition on a @Configuration class if desired.
+
+
+## Authentication Requirements
+
+All protected endpoints require JWT bearer tokens. Tokens must:
+- Include the audience (aud) "management-node".
+- Contain a `resource_access` claim with client roles used for authorization.
+
+Role-specific access:
+- Producer Federator: must have role `access_producer_configurations` to access `/api/v1/configuration/producer`.
+- Consumer Federator: must have role `access_consumer_configurations` to access `/api/v1/configuration/consumer`.
+
+Read the full details, examples, and Keycloak mapping guidance in [AUTHENTICATIONS](docs/AUTHENTICATION_REQUIREMENTS.md).
 
 ## Public Funding Acknowledgment
 This repository has been developed with public funding as part of the National Digital Twin Programme (NDTP), a UK Government initiative. NDTP, alongside its partners, has invested in this work to advance open, secure, and reusable digital twin technologies for any organisation, whether from the public or private sector, irrespective of size.
