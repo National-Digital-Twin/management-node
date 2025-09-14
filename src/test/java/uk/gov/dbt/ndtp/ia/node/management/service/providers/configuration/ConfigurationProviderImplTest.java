@@ -366,7 +366,7 @@ class ConfigurationProviderImplTest {
         // Arrange
         List<ProducerDTO> producers = List.of(producerDTO);
         // Add product to producer's dataProviders list
-        producerDTO.getDataProviders().add(productDTO);
+        producerDTO.getProducts().add(productDTO);
 
         Map<String, List<ConsumerDTO>> consumersMap = new HashMap<>();
         consumersMap.put(productId.toString(), List.of(consumerDTO));
@@ -385,7 +385,7 @@ class ConfigurationProviderImplTest {
         assertEquals(clientId, result.getClientId());
         assertEquals(1, result.getProducers().size());
         assertEquals(producerId, result.getProducers().get(0).getId());
-        assertEquals(1, result.getProducers().get(0).getDataProviders().size());
+        assertEquals(1, result.getProducers().get(0).getProducts().size());
 
         // Verify
         verify(producerService).getProducersByClientId(clientId);
@@ -399,7 +399,7 @@ class ConfigurationProviderImplTest {
         // Arrange
         List<ProducerDTO> allProducers = List.of(producerDTO);
         // Add product to producer's dataProviders list
-        producerDTO.getDataProviders().add(productDTO);
+        producerDTO.getProducts().add(productDTO);
 
         Map<String, List<ConsumerDTO>> consumersMap = new HashMap<>();
         consumersMap.put(productId.toString(), List.of(consumerDTO));
@@ -501,7 +501,7 @@ class ConfigurationProviderImplTest {
         List<ProducerDTO> producers = List.of(producerDTO);
         // Add product to producer's dataProviders list with null consumers
         productDTO.setConsumers(null); // Null consumers list
-        producerDTO.getDataProviders().add(productDTO);
+        producerDTO.getProducts().add(productDTO);
 
         Map<String, List<ConsumerDTO>> consumersMap = new HashMap<>();
         consumersMap.put(productId.toString(), List.of(consumerDTO));
@@ -519,7 +519,7 @@ class ConfigurationProviderImplTest {
         assertNotNull(result);
         assertEquals(clientId, result.getClientId());
         assertEquals(1, result.getProducers().size());
-        assertNotNull(result.getProducers().get(0).getDataProviders().get(0).getConsumers());
+        assertNotNull(result.getProducers().get(0).getProducts().get(0).getConsumers());
 
         // Verify
         verify(producerService).getProducersByClientId(clientId);
@@ -533,7 +533,7 @@ class ConfigurationProviderImplTest {
         // Arrange
         List<ProducerDTO> producers = List.of(producerDTO);
         // Add product to producer's dataProviders list
-        producerDTO.getDataProviders().add(productDTO);
+        producerDTO.getProducts().add(productDTO);
 
         // Create expired product consumer relationship
         ProductConsumerDTO expiredProductConsumer = ProductConsumerDTO.builder()
@@ -558,12 +558,8 @@ class ConfigurationProviderImplTest {
         assertNotNull(result);
         assertEquals(clientId, result.getClientId());
         assertEquals(1, result.getProducers().size());
-        assertTrue(result.getProducers()
-                .get(0)
-                .getDataProviders()
-                .get(0)
-                .getConsumers()
-                .isEmpty());
+        assertTrue(
+                result.getProducers().get(0).getProducts().get(0).getConsumers().isEmpty());
 
         // Verify
         verify(producerService).getProducersByClientId(clientId);
@@ -577,7 +573,7 @@ class ConfigurationProviderImplTest {
         // Arrange
         List<ProducerDTO> producers = List.of(producerDTO);
         // Add product to producer's dataProviders list
-        producerDTO.getDataProviders().add(productDTO);
+        producerDTO.getProducts().add(productDTO);
 
         // Create product consumer relationship with validity but no grantedTs
         ProductConsumerDTO invalidProductConsumer = ProductConsumerDTO.builder()
@@ -602,12 +598,8 @@ class ConfigurationProviderImplTest {
         assertNotNull(result);
         assertEquals(clientId, result.getClientId());
         assertEquals(1, result.getProducers().size());
-        assertTrue(result.getProducers()
-                .get(0)
-                .getDataProviders()
-                .get(0)
-                .getConsumers()
-                .isEmpty());
+        assertTrue(
+                result.getProducers().get(0).getProducts().get(0).getConsumers().isEmpty());
 
         // Verify
         verify(producerService).getProducersByClientId(clientId);
@@ -621,7 +613,7 @@ class ConfigurationProviderImplTest {
         // Arrange
         List<ProducerDTO> producers = List.of(producerDTO);
         // Add product to producer's dataProviders list
-        producerDTO.getDataProviders().add(productDTO);
+        producerDTO.getProducts().add(productDTO);
 
         Map<String, List<ConsumerDTO>> consumersMap = new HashMap<>();
         consumersMap.put(productId.toString(), List.of(consumerDTO));
@@ -639,12 +631,8 @@ class ConfigurationProviderImplTest {
         assertNotNull(result);
         assertEquals(clientId, result.getClientId());
         assertEquals(1, result.getProducers().size());
-        assertTrue(result.getProducers()
-                .get(0)
-                .getDataProviders()
-                .get(0)
-                .getConsumers()
-                .isEmpty());
+        assertTrue(
+                result.getProducers().get(0).getProducts().get(0).getConsumers().isEmpty());
 
         // Verify
         verify(producerService).getProducersByClientId(clientId);

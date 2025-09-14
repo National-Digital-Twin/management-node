@@ -168,7 +168,7 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
 
         for (ProducerDTO producer : producers) {
             List<Long> ids =
-                    producer.getDataProviders().stream().map(ProductDTO::getId).toList();
+                    producer.getProducts().stream().map(ProductDTO::getId).toList();
             dataProviderIds.addAll(ids);
         }
 
@@ -182,7 +182,7 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
      */
     private void processConsumersForProducers(List<ProducerDTO> producers) {
         for (ProducerDTO producer : producers) {
-            for (ProductDTO provider : producer.getDataProviders()) {
+            for (ProductDTO provider : producer.getProducts()) {
                 processConsumersForProvider(provider);
             }
         }
@@ -194,10 +194,6 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
      * @param provider the provider to process consumers for
      */
     private void processConsumersForProvider(ProductDTO provider) {
-        // Initialize consumers list if null
-        if (provider.getConsumers() == null) {
-            provider.setConsumers(new ArrayList<>());
-        }
 
         // Get consumer providers for this data provider
         List<ProductConsumerDTO> consumerProviders =
@@ -214,6 +210,9 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
      * @param provider          the provider to add consumers to
      */
     private void addValidConsumersToProvider(List<ProductConsumerDTO> consumerProviders, ProductDTO provider) {
+        if (provider.getConsumers() == null) {
+            provider.setConsumers(new ArrayList<>());
+        }
         consumerProviders.stream().filter(this::isValidProvider).forEach(consumerProvider -> {
             Optional<ConsumerDTO> consumer = consumerService.findById(consumerProvider.getConsumerId());
             consumer.ifPresent(provider.getConsumers()::add);

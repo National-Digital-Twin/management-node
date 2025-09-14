@@ -63,8 +63,7 @@ public class OrganisationProducerConverter implements EntityDtoConverter<Produce
 
         // Map dataProviders if they exist
         if (entity.getProducts() != null && !entity.getProducts().isEmpty()) {
-            entity.getProducts()
-                    .forEach(dataProvider -> dto.getDataProviders().add(productConverter.toDto(dataProvider)));
+            entity.getProducts().forEach(dataProvider -> dto.getProducts().add(productConverter.toDto(dataProvider)));
         }
 
         return dto;
@@ -100,9 +99,9 @@ public class OrganisationProducerConverter implements EntityDtoConverter<Produce
         }
 
         // Map dataProviders if they exist
-        if (dto.getDataProviders() != null && !dto.getDataProviders().isEmpty()) {
+        if (dto.getProducts() != null && !dto.getProducts().isEmpty()) {
             List<Product> dataProviders = new ArrayList<>();
-            dto.getDataProviders().forEach(dataProviderDTO -> {
+            dto.getProducts().forEach(dataProviderDTO -> {
                 // Set the producerId to ensure proper mapping
                 if (dataProviderDTO.getProducerId() == null && dto.getId() != null) {
                     dataProviderDTO.setProducerId(dto.getId());

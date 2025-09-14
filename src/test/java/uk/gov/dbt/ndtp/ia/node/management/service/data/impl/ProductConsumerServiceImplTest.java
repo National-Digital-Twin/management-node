@@ -22,15 +22,16 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dbt.ndtp.ia.node.management.converter.impl.ProductConsumerConverter;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.ProductConsumerDTO;
+import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Consumer;
+import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Product;
 import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.ProductConsumer;
-import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.ProductConsumerId;
-import uk.gov.dbt.ndtp.ia.node.management.persistency.repository.ConsumerProviderRepository;
+import uk.gov.dbt.ndtp.ia.node.management.persistency.repository.ProductConsumerRepository;
 
 @ExtendWith(MockitoExtension.class)
 class ProductConsumerServiceImplTest {
 
     @Mock
-    private ConsumerProviderRepository consumerProviderRepository;
+    private ProductConsumerRepository productConsumerRepository;
 
     @Mock
     private ProductConsumerConverter productConsumerConverter;
@@ -46,12 +47,13 @@ class ProductConsumerServiceImplTest {
     @BeforeEach
     void setUp() {
         // Set up test data
-        ProductConsumerId id = new ProductConsumerId();
-        id.setConsumerId(consumerId);
-        id.setProductId(productId);
-
         productConsumer = new ProductConsumer();
-        productConsumer.setId(id);
+        Consumer consumer = new Consumer();
+        consumer.setId(consumerId);
+        Product product = new Product();
+        product.setId(productId);
+        productConsumer.setConsumer(consumer);
+        productConsumer.setProduct(product);
         productConsumer.setGrantedTs(Timestamp.from(Instant.now()));
         productConsumer.setValidity(BigDecimal.ZERO);
 
@@ -69,7 +71,7 @@ class ProductConsumerServiceImplTest {
         List<ProductConsumer> productConsumers = List.of(productConsumer);
         List<ProductConsumerDTO> productConsumerDTOs = List.of(productConsumerDTO);
 
-        when(consumerProviderRepository.findByConsumerId(consumerId)).thenReturn(productConsumers);
+        when(productConsumerRepository.findByConsumerId(consumerId)).thenReturn(productConsumers);
         when(productConsumerConverter.toDtoList(productConsumers)).thenReturn(productConsumerDTOs);
 
         // Act
@@ -82,7 +84,7 @@ class ProductConsumerServiceImplTest {
         assertEquals(productId, result.get(0).getProductId());
 
         // Verify
-        verify(consumerProviderRepository).findByConsumerId(consumerId);
+        verify(productConsumerRepository).findByConsumerId(consumerId);
         verify(productConsumerConverter).toDtoList(productConsumers);
     }
 
@@ -93,7 +95,7 @@ class ProductConsumerServiceImplTest {
         List<ProductConsumer> emptyList = Collections.emptyList();
         List<ProductConsumerDTO> emptyDTOList = Collections.emptyList();
 
-        when(consumerProviderRepository.findByConsumerId(nonExistingId)).thenReturn(emptyList);
+        when(productConsumerRepository.findByConsumerId(nonExistingId)).thenReturn(emptyList);
         when(productConsumerConverter.toDtoList(emptyList)).thenReturn(emptyDTOList);
 
         // Act
@@ -104,7 +106,7 @@ class ProductConsumerServiceImplTest {
         assertTrue(result.isEmpty());
 
         // Verify
-        verify(consumerProviderRepository).findByConsumerId(nonExistingId);
+        verify(productConsumerRepository).findByConsumerId(nonExistingId);
         verify(productConsumerConverter).toDtoList(emptyList);
     }
 
@@ -114,7 +116,7 @@ class ProductConsumerServiceImplTest {
         List<ProductConsumer> productConsumers = List.of(productConsumer);
         List<ProductConsumerDTO> productConsumerDTOs = List.of(productConsumerDTO);
 
-        when(consumerProviderRepository.findByProductId(productId)).thenReturn(productConsumers);
+        when(productConsumerRepository.findByProductId(productId)).thenReturn(productConsumers);
         when(productConsumerConverter.toDtoList(productConsumers)).thenReturn(productConsumerDTOs);
 
         // Act
@@ -127,7 +129,7 @@ class ProductConsumerServiceImplTest {
         assertEquals(productId, result.get(0).getProductId());
 
         // Verify
-        verify(consumerProviderRepository).findByProductId(productId);
+        verify(productConsumerRepository).findByProductId(productId);
         verify(productConsumerConverter).toDtoList(productConsumers);
     }
 
@@ -138,7 +140,7 @@ class ProductConsumerServiceImplTest {
         List<ProductConsumer> emptyList = Collections.emptyList();
         List<ProductConsumerDTO> emptyDTOList = Collections.emptyList();
 
-        when(consumerProviderRepository.findByProductId(nonExistingId)).thenReturn(emptyList);
+        when(productConsumerRepository.findByProductId(nonExistingId)).thenReturn(emptyList);
         when(productConsumerConverter.toDtoList(emptyList)).thenReturn(emptyDTOList);
 
         // Act
@@ -149,7 +151,7 @@ class ProductConsumerServiceImplTest {
         assertTrue(result.isEmpty());
 
         // Verify
-        verify(consumerProviderRepository).findByProductId(nonExistingId);
+        verify(productConsumerRepository).findByProductId(nonExistingId);
         verify(productConsumerConverter).toDtoList(emptyList);
     }
 }

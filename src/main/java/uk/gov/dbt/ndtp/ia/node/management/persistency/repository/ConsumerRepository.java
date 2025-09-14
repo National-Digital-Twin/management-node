@@ -17,6 +17,15 @@ public interface ConsumerRepository extends JpaRepository<Consumer, Long> {
 
     List<Consumer> findByIdpClientId(String clientId);
 
-    @Query("SELECT c FROM Consumer c  JOIN c.productConsumers cp WHERE cp.id.productId  IN :providers")
+    /**
+     * Retrieves a list of {@link Consumer} entities associated with the specified provider IDs.
+     * The method performs a query to fetch consumers linked with products that correspond to the given provider IDs.
+     *
+     * @param providers a list of IDs of the providers whose associated consumers need to be retrieved
+     * @return a list of {@link Consumer} entities associated with the specified provider IDs
+     */
+    @Query("SELECT c FROM Consumer c  JOIN fetch c.productConsumers cp " + "inner join fetch cp.product p "
+            + "inner join fetch cp.consumer consumer "
+            + " WHERE p.id  IN :providers")
     List<Consumer> findConsumersByProviderIds(List<Long> providers);
 }

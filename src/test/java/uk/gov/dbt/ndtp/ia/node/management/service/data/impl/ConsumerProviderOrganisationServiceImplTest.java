@@ -23,15 +23,16 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dbt.ndtp.ia.node.management.converter.impl.ProductConsumerConverter;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.ProductConsumerDTO;
+import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Consumer;
+import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Product;
 import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.ProductConsumer;
-import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.ProductConsumerId;
-import uk.gov.dbt.ndtp.ia.node.management.persistency.repository.ConsumerProviderRepository;
+import uk.gov.dbt.ndtp.ia.node.management.persistency.repository.ProductConsumerRepository;
 
 @ExtendWith(MockitoExtension.class)
 public class ConsumerProviderOrganisationServiceImplTest {
 
     @Mock
-    private ConsumerProviderRepository consumerProviderRepository;
+    private ProductConsumerRepository productConsumerRepository;
 
     @Mock
     private ProductConsumerConverter productConsumerConverter;
@@ -49,18 +50,20 @@ public class ConsumerProviderOrganisationServiceImplTest {
     void setUp() {
         // Create test entities
         entity1 = new ProductConsumer();
-        ProductConsumerId id1 = new ProductConsumerId();
-        id1.setConsumerId(consumerId);
-        id1.setProductId(101L);
-        entity1.setId(id1);
+        Consumer consumer = new Consumer();
+        consumer.setId(consumerId);
+        Product product1 = new Product();
+        product1.setId(101L);
+        entity1.setConsumer(consumer);
+        entity1.setProduct(product1);
         entity1.setGrantedTs(Timestamp.from(Instant.now()));
         entity1.setValidity(new BigDecimal("365"));
 
         entity2 = new ProductConsumer();
-        ProductConsumerId id2 = new ProductConsumerId();
-        id2.setConsumerId(consumerId);
-        id2.setProductId(102L);
-        entity2.setId(id2);
+        Product product2 = new Product();
+        product2.setId(102L);
+        entity2.setConsumer(consumer);
+        entity2.setProduct(product2);
         entity2.setGrantedTs(Timestamp.from(Instant.now()));
         entity2.setValidity(new BigDecimal("180"));
 
@@ -83,7 +86,7 @@ public class ConsumerProviderOrganisationServiceImplTest {
         // Arrange
         List<ProductConsumer> entities = Arrays.asList(entity1, entity2);
         List<ProductConsumerDTO> dtos = Arrays.asList(dto1, dto2);
-        when(consumerProviderRepository.findByConsumerId(consumerId)).thenReturn(entities);
+        when(productConsumerRepository.findByConsumerId(consumerId)).thenReturn(entities);
         when(productConsumerConverter.toDtoList(entities)).thenReturn(dtos);
 
         // Act
