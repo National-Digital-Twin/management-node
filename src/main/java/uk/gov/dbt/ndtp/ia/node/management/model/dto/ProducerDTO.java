@@ -21,7 +21,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProducerDTO {
-    private final List<ProductDTO> dataProviders = new ArrayList<>();
+    private final List<ProductDTO> products = new ArrayList<>();
 
     @JsonIgnore
     private Long id;

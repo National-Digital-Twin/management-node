@@ -6,11 +6,15 @@
 
 package uk.gov.dbt.ndtp.ia.node.management.converter.impl;
 
+import java.util.List;
 import org.springframework.stereotype.Component;
 import uk.gov.dbt.ndtp.ia.node.management.converter.EntityDtoConverter;
+import uk.gov.dbt.ndtp.ia.node.management.model.dto.AttributesDTO;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.ProductConsumerDTO;
+import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Consumer;
+import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Product;
 import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.ProductConsumer;
-import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.ProductConsumerId;
+import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.ProductConsumerAttribute;
 
 /**
  * Converter for ConsumerAllowedDataProvider entity and ConsumerAllowedDataProviderDTO.
@@ -30,12 +34,26 @@ public class ProductConsumerConverter implements EntityDtoConverter<ProductConsu
             return null;
         }
 
-        return ProductConsumerDTO.builder()
-                .productId(entity.getId().getProductId())
-                .consumerId(entity.getId().getConsumerId())
+        ProductConsumerDTO dto = ProductConsumerDTO.builder()
+                .productId(entity.getProduct() != null ? entity.getProduct().getId() : null)
+                .consumerId(entity.getConsumer() != null ? entity.getConsumer().getId() : null)
                 .grantedTs(entity.getGrantedTs())
                 .validity(entity.getValidity())
                 .build();
+
+        // Map attributes if available
+        List<ProductConsumerAttribute> attrs = entity.getProductConsumerAttributes();
+        if (attrs != null && !attrs.isEmpty()) {
+            List<AttributesDTO> attributes = attrs.stream()
+                    .map(a -> AttributesDTO.builder()
+                            .name(a.getName())
+                            .type(a.getType())
+                            .value(a.getValue())
+                            .build())
+                    .toList();
+            dto.getAttributes().addAll(attributes);
+        }
+        return dto;
     }
 
     /**
@@ -52,14 +70,20 @@ public class ProductConsumerConverter implements EntityDtoConverter<ProductConsu
 
         ProductConsumer entity = new ProductConsumer();
 
-        // Create and set the embedded ID
-        ProductConsumerId id = new ProductConsumerId();
-        id.setProductId(dto.getProductId());
-        id.setConsumerId(dto.getConsumerId());
-        entity.setId(id);
-
         entity.setGrantedTs(dto.getGrantedTs());
         entity.setValidity(dto.getValidity());
+
+        if (dto.getProductId() != null) {
+            Product product = new Product();
+            product.setId(dto.getProductId());
+            entity.setProduct(product);
+        }
+
+        if (dto.getConsumerId() != null) {
+            Consumer consumer = new Consumer();
+            consumer.setId(dto.getConsumerId());
+            entity.setConsumer(consumer);
+        }
 
         return entity;
     }

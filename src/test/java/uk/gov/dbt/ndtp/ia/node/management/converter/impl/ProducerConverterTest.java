@@ -136,7 +136,7 @@ class ProducerConverterTest {
         dto.setOrgId(orgId);
 
         // Add data provider DTOs to the producer DTO
-        dto.getDataProviders().addAll(dataProviderDTOs);
+        dto.getProducts().addAll(dataProviderDTOs);
 
         // Set up mock behavior for productConverter
         lenient().when(productConverter.toDto(dataProvider1)).thenReturn(dataProviderDTO1);
@@ -172,18 +172,18 @@ class ProducerConverterTest {
         assertEquals(orgId, result.getOrgId());
 
         // Verify dataProviders mapping
-        assertNotNull(result.getDataProviders());
-        assertEquals(2, result.getDataProviders().size());
+        assertNotNull(result.getProducts());
+        assertEquals(2, result.getProducts().size());
 
         // Verify first data provider
-        ProductDTO productDTO1 = result.getDataProviders().get(0);
+        ProductDTO productDTO1 = result.getProducts().get(0);
         assertEquals(dataProviderId1, productDTO1.getId());
         assertEquals(dataProviderName1, productDTO1.getName());
         assertEquals(topic1, productDTO1.getTopic());
         assertEquals(producerId, productDTO1.getProducerId());
 
         // Verify second data provider
-        ProductDTO dataProviderDTO2 = result.getDataProviders().get(1);
+        ProductDTO dataProviderDTO2 = result.getProducts().get(1);
         assertEquals(dataProviderId2, dataProviderDTO2.getId());
         assertEquals(dataProviderName2, dataProviderDTO2.getName());
         assertEquals(topic2, dataProviderDTO2.getTopic());
@@ -225,8 +225,8 @@ class ProducerConverterTest {
 
         // Assert
         assertNotNull(result);
-        assertNotNull(result.getDataProviders());
-        assertTrue(result.getDataProviders().isEmpty());
+        assertNotNull(result.getProducts());
+        assertTrue(result.getProducts().isEmpty());
 
         // Verify productConverter was not called
         verify(productConverter, never()).toDto(any());
@@ -242,8 +242,8 @@ class ProducerConverterTest {
 
         // Assert
         assertNotNull(result);
-        assertNotNull(result.getDataProviders());
-        assertTrue(result.getDataProviders().isEmpty());
+        assertNotNull(result.getProducts());
+        assertTrue(result.getProducts().isEmpty());
 
         // Verify productConverter was not called
         verify(productConverter, never()).toDto(any());
@@ -359,7 +359,7 @@ class ProducerConverterTest {
     @Test
     void toEntity_withEmptyDataProviders_shouldReturnEntityWithEmptyProducts() {
         // Arrange
-        dto.getDataProviders().clear();
+        dto.getProducts().clear();
 
         // Act
         Producer result = converter.toEntity(dto);

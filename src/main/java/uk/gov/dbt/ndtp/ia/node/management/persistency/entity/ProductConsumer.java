@@ -6,12 +6,10 @@
 
 package uk.gov.dbt.ndtp.ia.node.management.persistency.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.EmbeddedId;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -20,12 +18,27 @@ import lombok.Setter;
 @Entity
 @Table(name = "product_consumer")
 public class ProductConsumer {
-    @EmbeddedId
-    private ProductConsumerId id;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    private Long id;
 
     @Column(name = "granted_ts", nullable = false)
     private Timestamp grantedTs;
 
     @Column(name = "validity", nullable = false)
     private BigDecimal validity;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "consumer_id", nullable = false)
+    private Consumer consumer;
+
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_consumer_id", referencedColumnName = "id", insertable = false, updatable = false)
+    private List<ProductConsumerAttribute> productConsumerAttributes;
 }

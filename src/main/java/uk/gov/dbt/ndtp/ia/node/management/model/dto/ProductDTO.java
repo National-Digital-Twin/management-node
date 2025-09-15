@@ -7,6 +7,7 @@
 package uk.gov.dbt.ndtp.ia.node.management.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.*;
 
@@ -19,14 +20,16 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductDTO {
+
     @JsonIgnore
     private Long id;
-
-    private String name;
-    private String topic;
 
     @JsonIgnore
     private Long producerId;
 
-    private List<ConsumerDTO> consumers;
+    private String name;
+
+    private String topic;
+
+    private List<ConsumerDTO> consumers = new ArrayList<>();
 }

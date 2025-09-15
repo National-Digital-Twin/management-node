@@ -12,7 +12,7 @@ spring:
         opaquetoken:
           introspection-uri: https://localhost:8443/realms/mng-node/protocol/openid-connect/token/introspect
           client-secret:
-          client-id: # required client id for introspect endpoint
+          client-id: MANAGEMENT_NODE_CLIENT # required client id for introspect endpoint
   flyway:
     create-schemas: on
     default-schema: mn

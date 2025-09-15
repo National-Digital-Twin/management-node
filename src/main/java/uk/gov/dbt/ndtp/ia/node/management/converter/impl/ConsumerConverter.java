@@ -8,6 +8,7 @@ package uk.gov.dbt.ndtp.ia.node.management.converter.impl;
 
 import org.springframework.stereotype.Component;
 import uk.gov.dbt.ndtp.ia.node.management.converter.EntityDtoConverter;
+import uk.gov.dbt.ndtp.ia.node.management.model.dto.AttributesDTO;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.ConsumerDTO;
 import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Consumer;
 import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Organisation;
@@ -42,12 +43,34 @@ public class ConsumerConverter implements EntityDtoConverter<Consumer, ConsumerD
             return null;
         }
 
-        return ConsumerDTO.builder()
+        ConsumerDTO dto = ConsumerDTO.builder()
                 .id(entity.getId())
                 .name(entity.getName())
                 .orgId(entity.getOrg() != null ? entity.getOrg().getId() : null)
                 .idpClientId(entity.getIdpClientId())
                 .build();
+
+        // Populate attributes from associated ProductConsumers
+        try {
+            if (entity.getId() != null) {
+                var productConsumers = entity.getProductConsumers();
+                if (productConsumers != null) {
+                    productConsumers.stream()
+                            .filter(pc -> pc.getProductConsumerAttributes() != null)
+                            .flatMap(pc -> pc.getProductConsumerAttributes().stream())
+                            .forEach(attr -> dto.getAttributes()
+                                    .add(AttributesDTO.builder()
+                                            .name(attr.getName())
+                                            .type(attr.getType())
+                                            .value(attr.getValue())
+                                            .build()));
+                }
+            }
+        } catch (Exception ignored) {
+            // Keep mapping resilient
+        }
+
+        return dto;
     }
 
     /**

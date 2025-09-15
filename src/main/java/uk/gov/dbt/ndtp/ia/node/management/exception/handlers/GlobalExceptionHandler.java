@@ -91,8 +91,8 @@ public class GlobalExceptionHandler {
         String errorId = generateErrorId();
         log.debug("Runtime exception occurred, error_id={}, path={}: ", errorId, request.getContextPath(), ex);
 
-        ErrorResponse errorResponse =
-                new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "An unexpected error occurred: " + ex.getMessage(), errorId);
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(), "An unexpected error occurred: " + ex.getMessage(), errorId);
 
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
