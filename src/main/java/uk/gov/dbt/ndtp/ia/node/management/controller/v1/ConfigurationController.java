@@ -43,24 +43,28 @@ public class ConfigurationController {
     @PreAuthorize("hasRole('ROLE_management-node:access_producer_configurations')")
     @Operation(
             summary = "Get Federator Producer configuration",
-            description = "Returns configuration for the authenticated client, optionally scoped to a specific producer.",
+            description =
+                    "Returns configuration for the authenticated client, optionally scoped to a specific producer.",
             security = {@SecurityRequirement(name = "bearerAuth")})
     @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Federator Producer configuration returned",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProducerConfigDTO.class))
-            ),
-            @ApiResponse(responseCode = "400", description = "Invalid request parameters"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden"),
-            @ApiResponse(responseCode = "404", description = "Not found"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
+        @ApiResponse(
+                responseCode = "200",
+                description = "Federator Producer configuration returned",
+                content =
+                        @Content(
+                                mediaType = "application/json",
+                                schema = @Schema(implementation = ProducerConfigDTO.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid request parameters"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public ProducerConfigDTO getProducerConfigurations(
             @Parameter(hidden = true) @AuthenticationPrincipal EnhancedPrincipal principal,
             @Parameter(name = "producer_id", description = "Optional Producer identifier to filter configuration")
-            @RequestParam(value = "producer_id", required = false) Long producer_id) {
+                    @RequestParam(value = "producer_id", required = false)
+                    Long producer_id) {
         log.info("Preparing Federator Producer Config for producer {}", producer_id);
         return configurationProvider.getProducerConfigByClientId(
                 principal.clientId(), producer_id != null ? Optional.of(producer_id) : Optional.empty());
@@ -70,24 +74,28 @@ public class ConfigurationController {
     @PreAuthorize("hasRole('ROLE_management-node:access_consumer_configurations')")
     @Operation(
             summary = "Get Federator Consumer configuration",
-            description = "Returns configuration for the authenticated client, optionally scoped to a specific consumer.",
+            description =
+                    "Returns configuration for the authenticated client, optionally scoped to a specific consumer.",
             security = {@SecurityRequirement(name = "bearerAuth")})
     @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Consumer configuration returned",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ConsumerConfigDTO.class))
-            ),
-            @ApiResponse(responseCode = "400", description = "Invalid request parameters"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden"),
-            @ApiResponse(responseCode = "404", description = "Not found"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
+        @ApiResponse(
+                responseCode = "200",
+                description = "Consumer configuration returned",
+                content =
+                        @Content(
+                                mediaType = "application/json",
+                                schema = @Schema(implementation = ConsumerConfigDTO.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid request parameters"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public ConsumerConfigDTO getConsumerConfigurations(
             @Parameter(hidden = true) @AuthenticationPrincipal EnhancedPrincipal principal,
             @Parameter(name = "consumer_id", description = "Optional Consumer identifier to filter configuration")
-            @RequestParam(value = "consumer_id", required = false) Long consumerId) {
+                    @RequestParam(value = "consumer_id", required = false)
+                    Long consumerId) {
         log.info("Preparing Consumer Config for client Id {} and Consumer {}", principal.clientId(), consumerId);
 
         return configurationProvider.getConsumerConfigByClientId(
