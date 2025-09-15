@@ -12,17 +12,17 @@ spring:
         opaquetoken:
           introspection-uri: https://localhost:8443/realms/mng-node/protocol/openid-connect/token/introspect
           client-secret:
-          client-id:
+          client-id: MANAGEMENT_NODE_CLIENT # required client id for introspect endpoint
   flyway:
     create-schemas: on
     default-schema: mn
-    locations: classpath:db/migration,classpath:db/samples
+    locations: classpath:db/migration,classpath:db/samples # samples are only for local development
     enabled: true
     baseline-on-migrate: true
   datasource:
     url: jdbc:postgresql://localhost:5433/postgres
-    username: keycloak_db_user
-    password: keycloak_db_user_password
+    username: # required postgress username
+    password: # required postgress username
   jpa:
     properties:
       hibernate:
@@ -35,18 +35,18 @@ server:
   port: 8090
   ssl:
     key-alias: localhost
-    key-store: /home/developer/Downloads/managementNode/docker/keystore.jks
+    key-store: keystore.jks #path to ssl keystore
     key-store-type: JKS
-    key-store-password: changeit
-    trust-store: /home/developer/Downloads/managementNode/docker/truststore.jks
-    trust-store-password: changeit
+    key-store-password: #keystore password
+    trust-store:  #path to ssl truststore
+    trust-store-password: #truststore password
     trust-store-type: JKS
     client-auth: need
-    enabled: true
+    enabled: true # disable for local development Only
 application:
   client:
-    key-store: /home/developer/Downloads/managementNode/docker/keystore.jks
-    keyStorePassword: changeit
+    key-store: keystore.jks # path to MTLS client keystore
+    keyStorePassword: # MTLS client keystore password
     keyStoreType: JKS
 
 # Actuator Configuration

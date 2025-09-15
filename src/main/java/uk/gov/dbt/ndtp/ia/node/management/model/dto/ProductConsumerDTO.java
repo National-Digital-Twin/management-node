@@ -8,6 +8,8 @@ package uk.gov.dbt.ndtp.ia.node.management.model.dto;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.*;
 
 /**
@@ -23,4 +25,5 @@ public class ProductConsumerDTO {
     private Long consumerId;
     private Timestamp grantedTs;
     private BigDecimal validity;
+    private final List<AttributesDTO> attributes = new ArrayList<>();
 }

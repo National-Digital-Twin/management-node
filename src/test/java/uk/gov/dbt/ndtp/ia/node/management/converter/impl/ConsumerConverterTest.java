@@ -167,4 +167,66 @@ class ConsumerConverterTest {
         // Verify
         verify(organisationRepository, times(1)).findById(orgId);
     }
+
+    @Test
+    void toDto_withAttributes_shouldPopulateAttributesFromEntity() {
+        // Arrange
+        uk.gov.dbt.ndtp.ia.node.management.persistency.entity.ProductConsumer pc1 =
+                new uk.gov.dbt.ndtp.ia.node.management.persistency.entity.ProductConsumer();
+        uk.gov.dbt.ndtp.ia.node.management.persistency.entity.ProductConsumerAttribute a1 =
+                new uk.gov.dbt.ndtp.ia.node.management.persistency.entity.ProductConsumerAttribute();
+        a1.setName("attr1");
+        a1.setType("string");
+        a1.setValue("v1");
+        uk.gov.dbt.ndtp.ia.node.management.persistency.entity.ProductConsumerAttribute a2 =
+                new uk.gov.dbt.ndtp.ia.node.management.persistency.entity.ProductConsumerAttribute();
+        a2.setName("attr2");
+        a2.setType("number");
+        a2.setValue("42");
+        pc1.setProductConsumerAttributes(java.util.List.of(a1, a2));
+
+        uk.gov.dbt.ndtp.ia.node.management.persistency.entity.ProductConsumer pc2 =
+                new uk.gov.dbt.ndtp.ia.node.management.persistency.entity.ProductConsumer();
+        uk.gov.dbt.ndtp.ia.node.management.persistency.entity.ProductConsumerAttribute a3 =
+                new uk.gov.dbt.ndtp.ia.node.management.persistency.entity.ProductConsumerAttribute();
+        a3.setName("attr3");
+        a3.setType("bool");
+        a3.setValue("true");
+        pc2.setProductConsumerAttributes(java.util.List.of(a3));
+
+        entity.setProductConsumers(java.util.List.of(pc1, pc2));
+
+        // Act
+        ConsumerDTO result = converter.toDto(entity);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(3, result.getAttributes().size());
+        assertTrue(result.getAttributes().stream()
+                .anyMatch(a -> a.getName().equals("attr1")
+                        && a.getType().equals("string")
+                        && a.getValue().equals("v1")));
+        assertTrue(result.getAttributes().stream()
+                .anyMatch(a -> a.getName().equals("attr2")
+                        && a.getType().equals("number")
+                        && a.getValue().equals("42")));
+        assertTrue(result.getAttributes().stream()
+                .anyMatch(a -> a.getName().equals("attr3")
+                        && a.getType().equals("bool")
+                        && a.getValue().equals("true")));
+    }
+
+    @Test
+    void toDto_withNoAttributes_shouldHaveEmptyAttributesList() {
+        // Arrange
+        entity.setProductConsumers(java.util.List.of());
+
+        // Act
+        ConsumerDTO result = converter.toDto(entity);
+
+        // Assert
+        assertNotNull(result);
+        assertNotNull(result.getAttributes());
+        assertEquals(0, result.getAttributes().size());
+    }
 }

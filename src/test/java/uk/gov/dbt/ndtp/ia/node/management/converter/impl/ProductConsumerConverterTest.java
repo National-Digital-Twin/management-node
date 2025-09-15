@@ -11,14 +11,18 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.ProductConsumerDTO;
+import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Consumer;
+import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Product;
 import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.ProductConsumer;
-import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.ProductConsumerId;
+import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.ProductConsumerAttribute;
 
 @ExtendWith(MockitoExtension.class)
 class ProductConsumerConverterTest {
@@ -37,10 +41,12 @@ class ProductConsumerConverterTest {
     void setUp() {
         // Create test entity
         entity = new ProductConsumer();
-        ProductConsumerId id = new ProductConsumerId();
-        id.setConsumerId(consumerId);
-        id.setProductId(dataProviderId);
-        entity.setId(id);
+        Consumer consumer = new Consumer();
+        consumer.setId(consumerId);
+        Product product = new Product();
+        product.setId(dataProviderId);
+        entity.setConsumer(consumer);
+        entity.setProduct(product);
         entity.setGrantedTs(grantedTs);
         entity.setValidity(validity);
 
@@ -63,6 +69,15 @@ class ProductConsumerConverterTest {
 
     @Test
     void toDto_withValidEntity_shouldReturnCorrectDTO() {
+        // Add attributes to entity
+        ProductConsumerAttribute attr = new ProductConsumerAttribute();
+        attr.setName("classification");
+        attr.setType("string");
+        attr.setValue("public");
+        List<ProductConsumerAttribute> attrs = new ArrayList<>();
+        attrs.add(attr);
+        entity.setProductConsumerAttributes(attrs);
+
         // Act
         ProductConsumerDTO result = converter.toDto(entity);
 
@@ -72,6 +87,11 @@ class ProductConsumerConverterTest {
         assertEquals(dataProviderId, result.getProductId());
         assertEquals(grantedTs, result.getGrantedTs());
         assertEquals(validity, result.getValidity());
+        assertNotNull(result.getAttributes());
+        assertEquals(1, result.getAttributes().size());
+        assertEquals("classification", result.getAttributes().get(0).getName());
+        assertEquals("string", result.getAttributes().get(0).getType());
+        assertEquals("public", result.getAttributes().get(0).getValue());
     }
 
     @Test
@@ -90,9 +110,10 @@ class ProductConsumerConverterTest {
 
         // Assert
         assertNotNull(result);
-        assertNotNull(result.getId());
-        assertEquals(consumerId, result.getId().getConsumerId());
-        assertEquals(dataProviderId, result.getId().getProductId());
+        assertNotNull(result.getConsumer());
+        assertNotNull(result.getProduct());
+        assertEquals(consumerId, result.getConsumer().getId());
+        assertEquals(dataProviderId, result.getProduct().getId());
         assertEquals(grantedTs, result.getGrantedTs());
         assertEquals(validity, result.getValidity());
     }

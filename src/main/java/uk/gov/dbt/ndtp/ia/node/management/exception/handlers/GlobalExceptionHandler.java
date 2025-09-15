@@ -47,9 +47,10 @@ public class GlobalExceptionHandler {
 
         String errorId = generateErrorId();
         log.debug(
-                "Authentication processing exception occurred for client {}, error_id={}: ",
+                "Authentication processing exception occurred for client {}, error_id={} , path={}: ",
                 ex.getClientId(),
                 errorId,
+                request.getContextPath(),
                 ex);
 
         ErrorResponse errorResponse =
@@ -69,7 +70,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex, WebRequest request) {
 
         String errorId = generateErrorId();
-        log.debug("Runtime exception occurred, error_id={}: ", errorId, ex);
+        log.debug("Runtime exception occurred, error_id={}, path={}: ", errorId, request.getContextPath(), ex);
 
         ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(), "An internal server error occurred", errorId);
@@ -88,10 +89,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAllExceptions(Exception ex, WebRequest request) {
 
         String errorId = generateErrorId();
-        log.debug("Exception occurred, error_id={}: ", errorId, ex);
+        log.debug("Runtime exception occurred, error_id={}, path={}: ", errorId, request.getContextPath(), ex);
 
-        ErrorResponse errorResponse =
-                new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "An unexpected error occurred", errorId);
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(), "An unexpected error occurred: " + ex.getMessage(), errorId);
 
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }

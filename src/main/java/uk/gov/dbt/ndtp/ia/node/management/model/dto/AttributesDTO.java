@@ -6,29 +6,16 @@
 
 package uk.gov.dbt.ndtp.ia.node.management.model.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.*;
 
-/**
- * DTO for consumerId entity.
- */
 @Builder
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ConsumerDTO {
-    @JsonIgnore
-    private Long id;
+public class AttributesDTO {
 
     private String name;
-
-    @JsonIgnore
-    private Long orgId;
-
-    private String idpClientId;
-
-    private final List<AttributesDTO> attributes = new ArrayList<>();
+    private String value;
+    private String type;
 }
