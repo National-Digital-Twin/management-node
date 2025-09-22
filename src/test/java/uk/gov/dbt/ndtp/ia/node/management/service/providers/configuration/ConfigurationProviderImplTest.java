@@ -29,7 +29,6 @@ import uk.gov.dbt.ndtp.ia.node.management.model.dto.*;
 import uk.gov.dbt.ndtp.ia.node.management.service.data.ConsumerService;
 import uk.gov.dbt.ndtp.ia.node.management.service.data.ProducerService;
 import uk.gov.dbt.ndtp.ia.node.management.service.data.ProductConsumerService;
-import uk.gov.dbt.ndtp.ia.node.management.service.data.ProductService;
 
 @ExtendWith(MockitoExtension.class)
 class ConfigurationProviderImplTest {
@@ -39,9 +38,6 @@ class ConfigurationProviderImplTest {
 
     @Mock
     private ProductConsumerService consumerAllowedDataProvidersService;
-
-    @Mock
-    private ProductService dataProviderService;
 
     @Mock
     private ProducerService producerService;
@@ -115,7 +111,7 @@ class ConfigurationProviderImplTest {
         // Verify
         verify(consumerService).findByIdpClientId(clientId);
         verify(producerService).getProducersByConsumerIds(List.of(consumerId));
-        verifyNoInteractions(consumerAllowedDataProvidersService, dataProviderService);
+        verify(consumerAllowedDataProvidersService).findByConsumerId(consumerId);
     }
 
     @Test
@@ -139,7 +135,7 @@ class ConfigurationProviderImplTest {
         // Verify
         verify(consumerService).findByIdpClientId(clientId);
         verify(producerService).getProducersByConsumerIds(List.of(consumerId));
-        verifyNoInteractions(consumerAllowedDataProvidersService, dataProviderService);
+        verify(consumerAllowedDataProvidersService).findByConsumerId(consumerId);
     }
 
     @Test
@@ -159,7 +155,7 @@ class ConfigurationProviderImplTest {
         // Verify
         verify(consumerService).findByIdpClientId(clientId);
         verify(producerService).getProducersByConsumerIds(Collections.emptyList());
-        verifyNoInteractions(consumerAllowedDataProvidersService, dataProviderService);
+        verifyNoInteractions(consumerAllowedDataProvidersService);
     }
 
     @Test
@@ -182,7 +178,7 @@ class ConfigurationProviderImplTest {
         // Verify
         verify(consumerService).findByIdpClientId(clientId);
         verify(producerService).getProducersByConsumerIds(Collections.emptyList());
-        verifyNoInteractions(consumerAllowedDataProvidersService, dataProviderService);
+        verifyNoInteractions(consumerAllowedDataProvidersService);
     }
 
     @Test
@@ -208,7 +204,7 @@ class ConfigurationProviderImplTest {
         // Verify
         verify(consumerService).findByIdpClientId(clientId);
         verify(producerService).getProducersByConsumerIds(List.of(consumerId));
-        verifyNoInteractions(consumerAllowedDataProvidersService, dataProviderService);
+        verify(consumerAllowedDataProvidersService).findByConsumerId(consumerId);
     }
 
     // Tests for getProducerConfigByClientId
@@ -410,8 +406,12 @@ class ConfigurationProviderImplTest {
         assertNotNull(result);
         assertEquals(clientId, result.getClientId());
         assertEquals(1, result.getProducers().size());
-        assertTrue(
-                result.getProducers().getFirst().getProducts().getFirst().getConsumers().isEmpty());
+        assertTrue(result.getProducers()
+                .getFirst()
+                .getProducts()
+                .getFirst()
+                .getConsumers()
+                .isEmpty());
 
         // Verify
         verify(producerService).getProducersByClientId(clientId);
@@ -450,8 +450,12 @@ class ConfigurationProviderImplTest {
         assertNotNull(result);
         assertEquals(clientId, result.getClientId());
         assertEquals(1, result.getProducers().size());
-        assertTrue(
-                result.getProducers().getFirst().getProducts().getFirst().getConsumers().isEmpty());
+        assertTrue(result.getProducers()
+                .getFirst()
+                .getProducts()
+                .getFirst()
+                .getConsumers()
+                .isEmpty());
 
         // Verify
         verify(producerService).getProducersByClientId(clientId);
@@ -483,8 +487,12 @@ class ConfigurationProviderImplTest {
         assertNotNull(result);
         assertEquals(clientId, result.getClientId());
         assertEquals(1, result.getProducers().size());
-        assertTrue(
-                result.getProducers().getFirst().getProducts().getFirst().getConsumers().isEmpty());
+        assertTrue(result.getProducers()
+                .getFirst()
+                .getProducts()
+                .getFirst()
+                .getConsumers()
+                .isEmpty());
 
         // Verify
         verify(producerService).getProducersByClientId(clientId);

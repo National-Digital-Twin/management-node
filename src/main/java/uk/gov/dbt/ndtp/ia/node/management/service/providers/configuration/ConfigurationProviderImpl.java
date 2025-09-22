@@ -17,7 +17,6 @@ import uk.gov.dbt.ndtp.ia.node.management.model.dto.*;
 import uk.gov.dbt.ndtp.ia.node.management.service.data.ConsumerService;
 import uk.gov.dbt.ndtp.ia.node.management.service.data.ProducerService;
 import uk.gov.dbt.ndtp.ia.node.management.service.data.ProductConsumerService;
-import uk.gov.dbt.ndtp.ia.node.management.service.data.ProductService;
 
 @Service
 public class ConfigurationProviderImpl implements ConfigurationProvider {
@@ -26,13 +25,11 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
 
     private final ProductConsumerService consumerAllowedDataProvidersService;
 
-
     private final ProducerService producerService;
 
     public ConfigurationProviderImpl(
             ConsumerService consumerService,
             ProductConsumerService consumerAllowedDataProviders,
-            ProductService dataProviderService,
             ProducerService producerService) {
 
         this.consumerService = consumerService;
@@ -52,21 +49,28 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
     public ConsumerConfigDTO getConsumerConfigByClientId(String clientId, Optional<Long> consumerId) {
         List<ConsumerDTO> consumers = getFilteredConsumers(clientId, consumerId);
         List<Long> consumerIds = consumers.stream().map(ConsumerDTO::getId).toList();
-        
+
         List<Long> validProductIds = new ArrayList<>();
 
-        consumers.forEach(consumer -> validProductIds.addAll(
-                consumerAllowedDataProvidersService.findByConsumerId(consumer.getId()).stream()
+        consumers.forEach(consumer ->
+                validProductIds.addAll(consumerAllowedDataProvidersService.findByConsumerId(consumer.getId()).stream()
                         .filter(this::isValidProvider)
                         .map(ProductConsumerDTO::getProductId)
-                        .toList()
-        ));
-
-
+                        .toList()));
 
         List<ProducerDTO> producers = producerService.getProducersByConsumerIds(consumerIds).stream()
                 .filter(ProducerDTO::getActive)
                 .toList();
+
+        // Filter products of each producer to only those in validProductIds
+        if (!validProductIds.isEmpty()) {
+            var validIdsSet = new java.util.HashSet<>(validProductIds);
+            producers.forEach(
+                    p -> p.getProducts().removeIf(prod -> prod.getId() == null || !validIdsSet.contains(prod.getId())));
+        } else {
+            // If no valid products, clear products for all producers
+            producers.forEach(p -> p.getProducts().clear());
+        }
 
         return ConsumerConfigDTO.builder()
                 .clientId(clientId)
@@ -109,8 +113,6 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
 
         return consumers;
     }
-
-
 
     /**
      * Filters active producers by client ID and optional producer ID.
