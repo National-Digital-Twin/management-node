@@ -20,7 +20,7 @@ public interface ProducerService {
      * @param producerIds the list of producer IDs to retrieve
      * @return a map where keys are organisation IDs and values are lists of producer DTOs associated with each organisation
      */
-    List<ProducerDTO> getProducersByIds(List<Long> producerIds);
+    List<ProducerDTO> getProducersByConsumerIds(List<Long> producerIds);
 
     List<ProducerDTO> getProducersByClientId(String clientId);
 }
