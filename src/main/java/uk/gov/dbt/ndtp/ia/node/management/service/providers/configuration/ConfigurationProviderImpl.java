@@ -26,7 +26,6 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
 
     private final ProductConsumerService consumerAllowedDataProvidersService;
 
-    private final ProductService dataProviderService;
 
     private final ProducerService producerService;
 
@@ -38,7 +37,6 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
 
         this.consumerService = consumerService;
         this.consumerAllowedDataProvidersService = consumerAllowedDataProviders;
-        this.dataProviderService = dataProviderService;
         this.producerService = producerService;
     }
 
@@ -53,9 +51,22 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
     @Override
     public ConsumerConfigDTO getConsumerConfigByClientId(String clientId, Optional<Long> consumerId) {
         List<ConsumerDTO> consumers = getFilteredConsumers(clientId, consumerId);
-        List<ProductConsumerDTO> consumerAllowedDataProviders = getValidDataProviders(consumers);
-        List<ProductDTO> dataProviders = getDataProvidersForConsumers(consumerAllowedDataProviders);
-        List<ProducerDTO> producers = getActiveProducersForDataProviders(dataProviders);
+        List<Long> consumerIds = consumers.stream().map(ConsumerDTO::getId).toList();
+        
+        List<Long> validProductIds = new ArrayList<>();
+
+        consumers.forEach(consumer -> validProductIds.addAll(
+                consumerAllowedDataProvidersService.findByConsumerId(consumer.getId()).stream()
+                        .filter(this::isValidProvider)
+                        .map(ProductConsumerDTO::getProductId)
+                        .toList()
+        ));
+
+
+
+        List<ProducerDTO> producers = producerService.getProducersByConsumerIds(consumerIds).stream()
+                .filter(ProducerDTO::getActive)
+                .toList();
 
         return ConsumerConfigDTO.builder()
                 .clientId(clientId)
@@ -99,42 +110,7 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
         return consumers;
     }
 
-    /**
-     * Retrieves data providers for the given consumer-product relationships.
-     *
-     * @param consumerAllowedDataProviders list of consumer-product relationships
-     * @return list of data providers
-     */
-    private List<ProductDTO> getDataProvidersForConsumers(List<ProductConsumerDTO> consumerAllowedDataProviders) {
-        List<Long> dataProviderIds = consumerAllowedDataProviders.stream()
-                .map(ProductConsumerDTO::getProductId)
-                .toList();
 
-        return dataProviderService.getProductsByIds(dataProviderIds);
-    }
-
-    /**
-     * Retrieves and filters active producers for the given data providers.
-     *
-     * @param dataProviders list of data providers
-     * @return list of active producers
-     */
-    private List<ProducerDTO> getActiveProducersForDataProviders(List<ProductDTO> dataProviders) {
-        List<Long> producerIds =
-                dataProviders.stream().map(ProductDTO::getProducerId).toList();
-
-        return producerService.getProducersByIds(producerIds).stream()
-                .filter(ProducerDTO::getActive)
-                .toList();
-    }
-
-    private List<ProductConsumerDTO> getValidDataProviders(List<ConsumerDTO> consumers) {
-        return consumers.stream()
-                .map(consumer -> consumerAllowedDataProvidersService.findByConsumerId(consumer.getId()))
-                .flatMap(List::stream)
-                .filter(this::isValidProvider)
-                .toList();
-    }
 
     /**
      * Filters active producers by client ID and optional producer ID.

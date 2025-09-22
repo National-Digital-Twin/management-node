@@ -39,8 +39,8 @@ public class ProducerServiceImpl implements ProducerService {
      * {@inheritDoc}
      */
     @Override
-    public List<ProducerDTO> getProducersByIds(List<Long> producerIds) {
-        List<Producer> producers = producerRepository.findByIds(producerIds);
+    public List<ProducerDTO> getProducersByConsumerIds(List<Long> consumerIds) {
+        List<Producer> producers = producerRepository.findByConsumerIds(consumerIds);
 
         // Convert entities to DTOs using the converter
         return organisationProducerConverter.toDtoList(producers);

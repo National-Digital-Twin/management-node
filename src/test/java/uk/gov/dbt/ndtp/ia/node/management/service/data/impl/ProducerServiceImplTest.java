@@ -57,50 +57,50 @@ class ProducerServiceImplTest {
     }
 
     @Test
-    void getProducersByIds_withValidIds_shouldReturnProducerDTOs() {
+    void getProducersByConsumerIds_withValidIds_shouldReturnProducerDTOs() {
         // Arrange
-        List<Long> producerIds = List.of(producerId);
+        List<Long> consumerIds = List.of(producerId);
         List<Producer> producers = List.of(producer);
         List<ProducerDTO> producerDTOs = List.of(producerDTO);
 
-        when(producerRepository.findByIds(producerIds)).thenReturn(producers);
+        when(producerRepository.findByConsumerIds(consumerIds)).thenReturn(producers);
         when(organisationProducerConverter.toDtoList(producers)).thenReturn(producerDTOs);
 
         // Act
-        List<ProducerDTO> result = producerService.getProducersByIds(producerIds);
+        List<ProducerDTO> result = producerService.getProducersByConsumerIds(consumerIds);
 
         // Assert
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals(producerId, result.get(0).getId());
-        assertEquals(clientId, result.get(0).getIdpClientId());
-        assertEquals("Test Producer", result.get(0).getName());
-        assertEquals(true, result.get(0).getActive());
+        assertEquals(producerId, result.getFirst().getId());
+        assertEquals(clientId, result.getFirst().getIdpClientId());
+        assertEquals("Test Producer", result.getFirst().getName());
+        assertEquals(true, result.getFirst().getActive());
 
         // Verify
-        verify(producerRepository).findByIds(producerIds);
+        verify(producerRepository).findByConsumerIds(consumerIds);
         verify(organisationProducerConverter).toDtoList(producers);
     }
 
     @Test
-    void getProducersByIds_withEmptyIds_shouldReturnEmptyList() {
+    void getProducersByConsumerIds_withEmptyIds_shouldReturnEmptyList() {
         // Arrange
         List<Long> emptyIds = Collections.emptyList();
         List<Producer> emptyProducers = Collections.emptyList();
         List<ProducerDTO> emptyDTOs = Collections.emptyList();
 
-        when(producerRepository.findByIds(emptyIds)).thenReturn(emptyProducers);
+        when(producerRepository.findByConsumerIds(emptyIds)).thenReturn(emptyProducers);
         when(organisationProducerConverter.toDtoList(emptyProducers)).thenReturn(emptyDTOs);
 
         // Act
-        List<ProducerDTO> result = producerService.getProducersByIds(emptyIds);
+        List<ProducerDTO> result = producerService.getProducersByConsumerIds(emptyIds);
 
         // Assert
         assertNotNull(result);
         assertTrue(result.isEmpty());
 
         // Verify
-        verify(producerRepository).findByIds(emptyIds);
+        verify(producerRepository).findByConsumerIds(emptyIds);
         verify(organisationProducerConverter).toDtoList(emptyProducers);
     }
 
@@ -119,10 +119,10 @@ class ProducerServiceImplTest {
         // Assert
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals(producerId, result.get(0).getId());
-        assertEquals(clientId, result.get(0).getIdpClientId());
-        assertEquals("Test Producer", result.get(0).getName());
-        assertEquals(true, result.get(0).getActive());
+        assertEquals(producerId, result.getFirst().getId());
+        assertEquals(clientId, result.getFirst().getIdpClientId());
+        assertEquals("Test Producer", result.getFirst().getName());
+        assertEquals(true, result.getFirst().getActive());
 
         // Verify
         verify(producerRepository).findByIdpClientId(clientId);

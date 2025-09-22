@@ -15,11 +15,9 @@ import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Product;
 
 /**
  * Repository interface for managing {@link Producer} entities.
- *
  * This interface provides methods for interacting with the underlying database,
  * specifically for the {@link Producer} entity. It extends {@link JpaRepository}
  * to provide standard CRUD operations and supports custom query methods.
- *
  * The primary focus is on enabling operations related to the {@link Producer}
  * entity with the identifier type {@link Long}.
  */
@@ -27,14 +25,15 @@ import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Product;
 public interface ProducerRepository extends JpaRepository<Producer, Long> {
 
     /**
-     * Retrieves a list of {@link Producer} entities, along with their associated {@link Product} entities,
-     * based on the provided list of producer IDs.
+     * Retrieves a list of {@link Producer} entities, including their associated {@link Product} entities
+     * and linked product consumers, filtered by the provided list of consumer IDs.
      *
-     * @param ids a list of IDs of the {@link Producer} entities to be retrieved
-     * @return a list of {@link Producer} entities with their associated {@link Product} entities
+     * @param consumerIds a list of consumer IDs used to filter the {@link Producer} and associated entities
+     * @return a list of {@link Producer} entities along with their associated {@link Product} entities and product consumers
      */
-    @Query("SELECT o FROM Producer o JOIN FETCH o.products WHERE o.id IN :ids")
-    List<Producer> findByIds(List<Long> ids);
+    @Query(
+            "SELECT o FROM Producer o JOIN FETCH o.products p  JOIN  p.productConsumer pc WHERE pc.consumer.id IN :consumerIds")
+    List<Producer> findByConsumerIds(List<Long> consumerIds);
 
     /**
      * Retrieves a list of {@link Producer} entities, along with their associated {@link Product} entities,

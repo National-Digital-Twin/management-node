@@ -98,14 +98,10 @@ class ConfigurationProviderImplTest {
     void getConsumerConfigByClientId_withValidClientIdAndNoConsumerId_shouldReturnConfig() {
         // Arrange
         List<ConsumerDTO> consumers = List.of(consumerDTO);
-        List<ProductConsumerDTO> productConsumers = List.of(productConsumerDTO);
-        List<ProductDTO> products = List.of(productDTO);
         List<ProducerDTO> producers = List.of(producerDTO);
 
         when(consumerService.findByIdpClientId(clientId)).thenReturn(consumers);
-        when(consumerAllowedDataProvidersService.findByConsumerId(consumerId)).thenReturn(productConsumers);
-        when(dataProviderService.getProductsByIds(List.of(productId))).thenReturn(products);
-        when(producerService.getProducersByIds(List.of(producerId))).thenReturn(producers);
+        when(producerService.getProducersByConsumerIds(List.of(consumerId))).thenReturn(producers);
 
         // Act
         ConsumerConfigDTO result = configurationProvider.getConsumerConfigByClientId(clientId, Optional.empty());
@@ -114,27 +110,22 @@ class ConfigurationProviderImplTest {
         assertNotNull(result);
         assertEquals(clientId, result.getClientId());
         assertEquals(1, result.getProducers().size());
-        assertEquals(producerId, result.getProducers().get(0).getId());
+        assertEquals(producerId, result.getProducers().getFirst().getId());
 
         // Verify
         verify(consumerService).findByIdpClientId(clientId);
-        verify(consumerAllowedDataProvidersService).findByConsumerId(consumerId);
-        verify(dataProviderService).getProductsByIds(List.of(productId));
-        verify(producerService).getProducersByIds(List.of(producerId));
+        verify(producerService).getProducersByConsumerIds(List.of(consumerId));
+        verifyNoInteractions(consumerAllowedDataProvidersService, dataProviderService);
     }
 
     @Test
     void getConsumerConfigByClientId_withValidClientIdAndConsumerId_shouldReturnFilteredConfig() {
         // Arrange
         List<ConsumerDTO> allConsumers = List.of(consumerDTO);
-        List<ProductConsumerDTO> productConsumers = List.of(productConsumerDTO);
-        List<ProductDTO> products = List.of(productDTO);
         List<ProducerDTO> producers = List.of(producerDTO);
 
         when(consumerService.findByIdpClientId(clientId)).thenReturn(allConsumers);
-        when(consumerAllowedDataProvidersService.findByConsumerId(consumerId)).thenReturn(productConsumers);
-        when(dataProviderService.getProductsByIds(List.of(productId))).thenReturn(products);
-        when(producerService.getProducersByIds(List.of(producerId))).thenReturn(producers);
+        when(producerService.getProducersByConsumerIds(List.of(consumerId))).thenReturn(producers);
 
         // Act
         ConsumerConfigDTO result = configurationProvider.getConsumerConfigByClientId(clientId, Optional.of(consumerId));
@@ -143,21 +134,19 @@ class ConfigurationProviderImplTest {
         assertNotNull(result);
         assertEquals(clientId, result.getClientId());
         assertEquals(1, result.getProducers().size());
-        assertEquals(producerId, result.getProducers().get(0).getId());
+        assertEquals(producerId, result.getProducers().getFirst().getId());
 
         // Verify
         verify(consumerService).findByIdpClientId(clientId);
-        verify(consumerAllowedDataProvidersService).findByConsumerId(consumerId);
-        verify(dataProviderService).getProductsByIds(List.of(productId));
-        verify(producerService).getProducersByIds(List.of(producerId));
+        verify(producerService).getProducersByConsumerIds(List.of(consumerId));
+        verifyNoInteractions(consumerAllowedDataProvidersService, dataProviderService);
     }
 
     @Test
     void getConsumerConfigByClientId_withNoMatchingConsumers_shouldReturnEmptyConfig() {
         // Arrange
         when(consumerService.findByIdpClientId(clientId)).thenReturn(Collections.emptyList());
-        when(dataProviderService.getProductsByIds(Collections.emptyList())).thenReturn(Collections.emptyList());
-        when(producerService.getProducersByIds(Collections.emptyList())).thenReturn(Collections.emptyList());
+        when(producerService.getProducersByConsumerIds(Collections.emptyList())).thenReturn(Collections.emptyList());
 
         // Act
         ConsumerConfigDTO result = configurationProvider.getConsumerConfigByClientId(clientId, Optional.empty());
@@ -169,9 +158,8 @@ class ConfigurationProviderImplTest {
 
         // Verify
         verify(consumerService).findByIdpClientId(clientId);
-        verify(consumerAllowedDataProvidersService, never()).findByConsumerId(any());
-        verify(dataProviderService).getProductsByIds(Collections.emptyList());
-        verify(producerService).getProducersByIds(Collections.emptyList());
+        verify(producerService).getProducersByConsumerIds(Collections.emptyList());
+        verifyNoInteractions(consumerAllowedDataProvidersService, dataProviderService);
     }
 
     @Test
@@ -181,8 +169,7 @@ class ConfigurationProviderImplTest {
                 ConsumerDTO.builder().id(999L).idpClientId(clientId).build();
 
         when(consumerService.findByIdpClientId(clientId)).thenReturn(List.of(differentConsumer));
-        when(dataProviderService.getProductsByIds(Collections.emptyList())).thenReturn(Collections.emptyList());
-        when(producerService.getProducersByIds(Collections.emptyList())).thenReturn(Collections.emptyList());
+        when(producerService.getProducersByConsumerIds(Collections.emptyList())).thenReturn(Collections.emptyList());
 
         // Act
         ConsumerConfigDTO result = configurationProvider.getConsumerConfigByClientId(clientId, Optional.of(consumerId));
@@ -194,155 +181,21 @@ class ConfigurationProviderImplTest {
 
         // Verify
         verify(consumerService).findByIdpClientId(clientId);
-        verify(consumerAllowedDataProvidersService, never()).findByConsumerId(any());
-        verify(dataProviderService).getProductsByIds(Collections.emptyList());
-        verify(producerService).getProducersByIds(Collections.emptyList());
-    }
-
-    @Test
-    void getConsumerConfigByClientId_withNoValidDataProviders_shouldReturnEmptyConfig() {
-        // Arrange
-        List<ConsumerDTO> consumers = List.of(consumerDTO);
-
-        when(consumerService.findByIdpClientId(clientId)).thenReturn(consumers);
-        when(consumerAllowedDataProvidersService.findByConsumerId(consumerId)).thenReturn(Collections.emptyList());
-        when(dataProviderService.getProductsByIds(Collections.emptyList())).thenReturn(Collections.emptyList());
-        when(producerService.getProducersByIds(Collections.emptyList())).thenReturn(Collections.emptyList());
-
-        // Act
-        ConsumerConfigDTO result = configurationProvider.getConsumerConfigByClientId(clientId, Optional.empty());
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(clientId, result.getClientId());
-        assertTrue(result.getProducers().isEmpty());
-
-        // Verify
-        verify(consumerService).findByIdpClientId(clientId);
-        verify(consumerAllowedDataProvidersService).findByConsumerId(consumerId);
-        verify(dataProviderService).getProductsByIds(Collections.emptyList());
-        verify(producerService).getProducersByIds(Collections.emptyList());
-    }
-
-    @Test
-    void getConsumerConfigByClientId_withExpiredValidity_shouldReturnEmptyConfig() {
-        // Arrange
-        List<ConsumerDTO> consumers = List.of(consumerDTO);
-
-        // Create expired product consumer relationship
-        ProductConsumerDTO expiredProductConsumer = ProductConsumerDTO.builder()
-                .consumerId(consumerId)
-                .productId(productId)
-                .validity(BigDecimal.valueOf(30)) // 30 days validity
-                .grantedTs(Timestamp.from(Instant.now().minus(60, ChronoUnit.DAYS))) // 60 days ago
-                .build();
-
-        when(consumerService.findByIdpClientId(clientId)).thenReturn(consumers);
-        when(consumerAllowedDataProvidersService.findByConsumerId(consumerId))
-                .thenReturn(List.of(expiredProductConsumer));
-        when(dataProviderService.getProductsByIds(Collections.emptyList())).thenReturn(Collections.emptyList());
-        when(producerService.getProducersByIds(Collections.emptyList())).thenReturn(Collections.emptyList());
-
-        // Act
-        ConsumerConfigDTO result = configurationProvider.getConsumerConfigByClientId(clientId, Optional.empty());
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(clientId, result.getClientId());
-        assertTrue(result.getProducers().isEmpty());
-
-        // Verify
-        verify(consumerService).findByIdpClientId(clientId);
-        verify(consumerAllowedDataProvidersService).findByConsumerId(consumerId);
-        verify(dataProviderService).getProductsByIds(Collections.emptyList());
-        verify(producerService).getProducersByIds(Collections.emptyList());
-    }
-
-    @Test
-    void getConsumerConfigByClientId_withValidityButNoGrantedTs_shouldReturnEmptyConfig() {
-        // Arrange
-        List<ConsumerDTO> consumers = List.of(consumerDTO);
-
-        // Create product consumer relationship with validity but no grantedTs
-        ProductConsumerDTO invalidProductConsumer = ProductConsumerDTO.builder()
-                .consumerId(consumerId)
-                .productId(productId)
-                .validity(BigDecimal.valueOf(30)) // 30 days validity
-                .grantedTs(null) // No granted timestamp
-                .build();
-
-        when(consumerService.findByIdpClientId(clientId)).thenReturn(consumers);
-        when(consumerAllowedDataProvidersService.findByConsumerId(consumerId))
-                .thenReturn(List.of(invalidProductConsumer));
-        when(dataProviderService.getProductsByIds(Collections.emptyList())).thenReturn(Collections.emptyList());
-        when(producerService.getProducersByIds(Collections.emptyList())).thenReturn(Collections.emptyList());
-
-        // Act
-        ConsumerConfigDTO result = configurationProvider.getConsumerConfigByClientId(clientId, Optional.empty());
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(clientId, result.getClientId());
-        assertTrue(result.getProducers().isEmpty());
-
-        // Verify
-        verify(consumerService).findByIdpClientId(clientId);
-        verify(consumerAllowedDataProvidersService).findByConsumerId(consumerId);
-        verify(dataProviderService).getProductsByIds(Collections.emptyList());
-        verify(producerService).getProducersByIds(Collections.emptyList());
-    }
-
-    @Test
-    void getConsumerConfigByClientId_withValidityZero_shouldReturnConfig() {
-        // Arrange
-        List<ConsumerDTO> consumers = List.of(consumerDTO);
-
-        // Create product consumer relationship with zero validity
-        ProductConsumerDTO zeroValidityProductConsumer = ProductConsumerDTO.builder()
-                .consumerId(consumerId)
-                .productId(productId)
-                .validity(BigDecimal.ZERO) // Zero validity means no expiration
-                .build();
-
-        List<ProductDTO> products = List.of(productDTO);
-        List<ProducerDTO> producers = List.of(producerDTO);
-
-        when(consumerService.findByIdpClientId(clientId)).thenReturn(consumers);
-        when(consumerAllowedDataProvidersService.findByConsumerId(consumerId))
-                .thenReturn(List.of(zeroValidityProductConsumer));
-        when(dataProviderService.getProductsByIds(List.of(productId))).thenReturn(products);
-        when(producerService.getProducersByIds(List.of(producerId))).thenReturn(producers);
-
-        // Act
-        ConsumerConfigDTO result = configurationProvider.getConsumerConfigByClientId(clientId, Optional.empty());
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(clientId, result.getClientId());
-        assertEquals(1, result.getProducers().size());
-
-        // Verify
-        verify(consumerService).findByIdpClientId(clientId);
-        verify(consumerAllowedDataProvidersService).findByConsumerId(consumerId);
-        verify(dataProviderService).getProductsByIds(List.of(productId));
-        verify(producerService).getProducersByIds(List.of(producerId));
+        verify(producerService).getProducersByConsumerIds(Collections.emptyList());
+        verifyNoInteractions(consumerAllowedDataProvidersService, dataProviderService);
     }
 
     @Test
     void getConsumerConfigByClientId_withNoActiveProducers_shouldReturnEmptyConfig() {
         // Arrange
         List<ConsumerDTO> consumers = List.of(consumerDTO);
-        List<ProductConsumerDTO> productConsumers = List.of(productConsumerDTO);
-        List<ProductDTO> products = List.of(productDTO);
 
         // Create inactive producer
         ProducerDTO inactiveProducer =
                 ProducerDTO.builder().id(producerId).active(false).build();
 
         when(consumerService.findByIdpClientId(clientId)).thenReturn(consumers);
-        when(consumerAllowedDataProvidersService.findByConsumerId(consumerId)).thenReturn(productConsumers);
-        when(dataProviderService.getProductsByIds(List.of(productId))).thenReturn(products);
-        when(producerService.getProducersByIds(List.of(producerId))).thenReturn(List.of(inactiveProducer));
+        when(producerService.getProducersByConsumerIds(List.of(consumerId))).thenReturn(List.of(inactiveProducer));
 
         // Act
         ConsumerConfigDTO result = configurationProvider.getConsumerConfigByClientId(clientId, Optional.empty());
@@ -354,9 +207,8 @@ class ConfigurationProviderImplTest {
 
         // Verify
         verify(consumerService).findByIdpClientId(clientId);
-        verify(consumerAllowedDataProvidersService).findByConsumerId(consumerId);
-        verify(dataProviderService).getProductsByIds(List.of(productId));
-        verify(producerService).getProducersByIds(List.of(producerId));
+        verify(producerService).getProducersByConsumerIds(List.of(consumerId));
+        verifyNoInteractions(consumerAllowedDataProvidersService, dataProviderService);
     }
 
     // Tests for getProducerConfigByClientId
@@ -384,8 +236,8 @@ class ConfigurationProviderImplTest {
         assertNotNull(result);
         assertEquals(clientId, result.getClientId());
         assertEquals(1, result.getProducers().size());
-        assertEquals(producerId, result.getProducers().get(0).getId());
-        assertEquals(1, result.getProducers().get(0).getProducts().size());
+        assertEquals(producerId, result.getProducers().getFirst().getId());
+        assertEquals(1, result.getProducers().getFirst().getProducts().size());
 
         // Verify
         verify(producerService).getProducersByClientId(clientId);
@@ -417,7 +269,7 @@ class ConfigurationProviderImplTest {
         assertNotNull(result);
         assertEquals(clientId, result.getClientId());
         assertEquals(1, result.getProducers().size());
-        assertEquals(producerId, result.getProducers().get(0).getId());
+        assertEquals(producerId, result.getProducers().getFirst().getId());
 
         // Verify
         verify(producerService).getProducersByClientId(clientId);
@@ -519,7 +371,7 @@ class ConfigurationProviderImplTest {
         assertNotNull(result);
         assertEquals(clientId, result.getClientId());
         assertEquals(1, result.getProducers().size());
-        assertNotNull(result.getProducers().get(0).getProducts().get(0).getConsumers());
+        assertNotNull(result.getProducers().getFirst().getProducts().getFirst().getConsumers());
 
         // Verify
         verify(producerService).getProducersByClientId(clientId);
@@ -559,7 +411,7 @@ class ConfigurationProviderImplTest {
         assertEquals(clientId, result.getClientId());
         assertEquals(1, result.getProducers().size());
         assertTrue(
-                result.getProducers().get(0).getProducts().get(0).getConsumers().isEmpty());
+                result.getProducers().getFirst().getProducts().getFirst().getConsumers().isEmpty());
 
         // Verify
         verify(producerService).getProducersByClientId(clientId);
@@ -599,7 +451,7 @@ class ConfigurationProviderImplTest {
         assertEquals(clientId, result.getClientId());
         assertEquals(1, result.getProducers().size());
         assertTrue(
-                result.getProducers().get(0).getProducts().get(0).getConsumers().isEmpty());
+                result.getProducers().getFirst().getProducts().getFirst().getConsumers().isEmpty());
 
         // Verify
         verify(producerService).getProducersByClientId(clientId);
@@ -632,7 +484,7 @@ class ConfigurationProviderImplTest {
         assertEquals(clientId, result.getClientId());
         assertEquals(1, result.getProducers().size());
         assertTrue(
-                result.getProducers().get(0).getProducts().get(0).getConsumers().isEmpty());
+                result.getProducers().getFirst().getProducts().getFirst().getConsumers().isEmpty());
 
         // Verify
         verify(producerService).getProducersByClientId(clientId);
@@ -643,88 +495,4 @@ class ConfigurationProviderImplTest {
 
     // Tests for isValidProvider method through public methods
 
-    @Test
-    void isValidProvider_withValidityNullShouldBeValid() {
-        // Arrange
-        List<ConsumerDTO> consumers = List.of(consumerDTO);
-        ProductConsumerDTO validProductConsumer = ProductConsumerDTO.builder()
-                .consumerId(consumerId)
-                .productId(productId)
-                .validity(null) // Null validity means no expiration
-                .build();
-
-        List<ProductDTO> products = List.of(productDTO);
-        List<ProducerDTO> producers = List.of(producerDTO);
-
-        when(consumerService.findByIdpClientId(clientId)).thenReturn(consumers);
-        when(consumerAllowedDataProvidersService.findByConsumerId(consumerId))
-                .thenReturn(List.of(validProductConsumer));
-        when(dataProviderService.getProductsByIds(List.of(productId))).thenReturn(products);
-        when(producerService.getProducersByIds(List.of(producerId))).thenReturn(producers);
-
-        // Act
-        ConsumerConfigDTO result = configurationProvider.getConsumerConfigByClientId(clientId, Optional.empty());
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getProducers().size());
-    }
-
-    @Test
-    void isValidProvider_withValidGrantedTsAndValidity_shouldBeValid() {
-        // Arrange
-        List<ConsumerDTO> consumers = List.of(consumerDTO);
-        ProductConsumerDTO validProductConsumer = ProductConsumerDTO.builder()
-                .consumerId(consumerId)
-                .productId(productId)
-                .validity(BigDecimal.valueOf(30)) // 30 days validity
-                .grantedTs(Timestamp.from(Instant.now().minus(15, ChronoUnit.DAYS))) // 15 days ago, still valid
-                .build();
-
-        List<ProductDTO> products = List.of(productDTO);
-        List<ProducerDTO> producers = List.of(producerDTO);
-
-        when(consumerService.findByIdpClientId(clientId)).thenReturn(consumers);
-        when(consumerAllowedDataProvidersService.findByConsumerId(consumerId))
-                .thenReturn(List.of(validProductConsumer));
-        when(dataProviderService.getProductsByIds(List.of(productId))).thenReturn(products);
-        when(producerService.getProducersByIds(List.of(producerId))).thenReturn(producers);
-
-        // Act
-        ConsumerConfigDTO result = configurationProvider.getConsumerConfigByClientId(clientId, Optional.empty());
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getProducers().size());
-    }
-
-    // Test for isValidGrantedTs method through isValidProvider
-
-    @Test
-    void isValidGrantedTs_withFutureDate_shouldBeValid() {
-        // Arrange
-        List<ConsumerDTO> consumers = List.of(consumerDTO);
-        ProductConsumerDTO validProductConsumer = ProductConsumerDTO.builder()
-                .consumerId(consumerId)
-                .productId(productId)
-                .validity(BigDecimal.valueOf(30)) // 30 days validity
-                .grantedTs(Timestamp.from(Instant.now().plus(1, ChronoUnit.DAYS))) // Future date
-                .build();
-
-        List<ProductDTO> products = List.of(productDTO);
-        List<ProducerDTO> producers = List.of(producerDTO);
-
-        when(consumerService.findByIdpClientId(clientId)).thenReturn(consumers);
-        when(consumerAllowedDataProvidersService.findByConsumerId(consumerId))
-                .thenReturn(List.of(validProductConsumer));
-        when(dataProviderService.getProductsByIds(List.of(productId))).thenReturn(products);
-        when(producerService.getProducersByIds(List.of(producerId))).thenReturn(producers);
-
-        // Act
-        ConsumerConfigDTO result = configurationProvider.getConsumerConfigByClientId(clientId, Optional.empty());
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getProducers().size());
-    }
 }
