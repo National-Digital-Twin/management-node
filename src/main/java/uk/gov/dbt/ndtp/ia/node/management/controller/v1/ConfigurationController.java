@@ -40,7 +40,7 @@ public class ConfigurationController {
     }
 
     @GetMapping("/producer")
-    @PreAuthorize("hasRole('ROLE_management-node:access_producer_configurations')")
+    @PreAuthorize("hasAuthority('ROLE_management-node:access_producer_configurations')")
     @Operation(
             summary = "Get Federator Producer configuration",
             description =
@@ -71,7 +71,7 @@ public class ConfigurationController {
     }
 
     @GetMapping("/consumer")
-    @PreAuthorize("hasRole('ROLE_management-node:access_consumer_configurations')")
+    @PreAuthorize("hasAuthority('ROLE_management-node:access_consumer_configurations')")
     @Operation(
             summary = "Get Federator Consumer configuration",
             description =

@@ -7,6 +7,7 @@
 package uk.gov.dbt.ndtp.ia.node.management.model.jwt;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
@@ -35,7 +36,10 @@ public class JwtToken {
     private String typ;
     private String azp;
     private List<String> allowedOrigins;
+
+    @JsonProperty("resource_access")
     private Map<String, ResourceAccess> resourceAccess;
+
     private String scope;
     private String clientId;
     private String username;

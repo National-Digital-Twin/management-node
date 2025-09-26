@@ -6,10 +6,12 @@
 
 package uk.gov.dbt.ndtp.ia.node.management.exception.handlers;
 
+import java.nio.file.AccessDeniedException;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
@@ -41,7 +43,11 @@ public class GlobalExceptionHandler {
      * @param request the current request
      * @return a ResponseEntity with an error message
      */
-    @ExceptionHandler(AuthenticationProcessingException.class)
+    @ExceptionHandler({
+        AuthenticationProcessingException.class,
+        AccessDeniedException.class,
+        AuthorizationDeniedException.class
+    })
     public ResponseEntity<ErrorResponse> handleAuthenticationProcessingException(
             AuthenticationProcessingException ex, WebRequest request) {
 
