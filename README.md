@@ -18,6 +18,8 @@ The Management Node Module is a Spring Boot application that provides APIs to be
 - Docker and Docker Compose
 - OpenSSL (for certificate generation)
 
+---
+
 ## Quick Start
 
 ### Setting up Keycloak with Docker Compose
