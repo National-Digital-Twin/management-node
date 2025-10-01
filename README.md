@@ -12,13 +12,62 @@ The Management Node Module is a Spring Boot application that provides APIs to be
 
 --- 
 
+## Database Schema
+
+For a full description of the database tables, relationships, and constraints, see the Database Schema documentation: [docs/DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md).
+
+--- 
+
 ## Prerequisites
 - Java 21
 - Maven 3.9+
 - Docker and Docker Compose
 - OpenSSL (for certificate generation)
+- Keycloak (for authentication and authorization)
 
 ## Quick Start
+
+### Run the Spring Boot application
+
+This project is a Spring Boot application. You can run it by supplying configuration via either:
+- A default application.yml (or application.yaml) file, or
+- A profile-specific file application-{profile}.yml and passing the profile argument at startup.
+
+Quick options:
+
+1. Provide a default config:
+   - Create src/main/resources/application.yml with your local settings (SSL keystore/truststore, Keycloak client, DB, etc.). See the Configuration and Certificate Setup sections below.
+   - Run:
+     ```bash
+     mvn spring-boot:run
+     ```
+     or:
+     ```bash
+     java -jar target/management-node-0.0.1.jar
+     ```
+
+2. Use a profile-specific config:
+   - Create src/main/resources/application-local.yml (replace "local" with your profile name) with your settings.
+   - Run with the profile:
+     ```bash
+     mvn spring-boot:run -Dspring-boot.run.profiles=local
+     ```
+     or:
+     ```bash
+     java -jar target/management-node-0.0.1.jar --spring.profiles.active=local
+     ```
+   - You can also set the environment variable:
+     ```bash
+     export SPRING_PROFILES_ACTIVE=local
+     ```
+
+Notes:
+- Spring Boot will load application.yml and then override with application-{profile}.yml if a profile is active.
+- You may also point to an external YAML using:
+  ```bash
+  java -jar target/management-node-0.0.1.jar --spring.config.location=/path/to/your.yml
+  ```
+- The application serves HTTPS on port 8090 by default (see server.ssl in configuration).
 
 ### Setting up Keycloak with Docker Compose
 

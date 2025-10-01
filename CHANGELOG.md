@@ -19,20 +19,9 @@ This project follows **Semantic Versioning (SemVer)** ([semver.org](https://semv
 
 ---
 
-## [Unreleased] 
 
-### Added 
-- Placeholder for upcoming features and enhancements. 
 
-### Fixed 
-- Placeholder for bug fixes and security updates. 
-
-### Changed 
-- Placeholder for changes to existing functionality. 
-
----
-
-## [0.90.0] - 2025-09-09
+## [1.0.0] - 2025-10-1
 
 ### Initial release
 - This is the first initial changelog entry for the management-node. It introduces the baseline feature set and establishes the changelog structure following Semantic Versioning.
