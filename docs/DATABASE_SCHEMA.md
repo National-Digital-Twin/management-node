@@ -38,7 +38,7 @@ erDiagram
     BIGSERIAL id PK
     VARCHAR name
     TEXT description
-    BIGINT org_id FK -> ORGANISATION.id
+    BIGINT org_id FK
     BOOLEAN active
     VARCHAR host
     NUMERIC port
@@ -48,29 +48,28 @@ erDiagram
   CONSUMER {
     BIGSERIAL id PK
     VARCHAR name
-    BIGINT org_id FK -> ORGANISATION.id
+    BIGINT org_id FK
     VARCHAR idp_client_id
   }
   PRODUCT {
     BIGSERIAL id PK
     VARCHAR name
     VARCHAR topic
-    BIGINT producer_id FK -> PRODUCER.id
+    BIGINT producer_id FK
   }
   PRODUCT_CONSUMER {
     BIGSERIAL id PK
-    BIGINT product_id FK -> PRODUCT.id
-    BIGINT consumer_id FK -> CONSUMER.id
+    BIGINT product_id FK
+    BIGINT consumer_id FK
     TIMESTAMP granted_ts
     NUMERIC validity
-    UNIQUE (product_id, consumer_id)
   }
   PRODUCT_CONSUMER_ATTRIBUTE {
     BIGSERIAL id PK
     VARCHAR name
     VARCHAR type
     VARCHAR value
-    BIGINT product_consumer_id FK -> PRODUCT_CONSUMER.id
+    BIGINT product_consumer_id FK
   }
 ```
 
