@@ -39,6 +39,7 @@ erDiagram
     VARCHAR name
     TEXT description
     BIGINT org_id FK
+
     BOOLEAN active
     VARCHAR host
     NUMERIC port
@@ -63,6 +64,7 @@ erDiagram
     BIGINT consumer_id FK
     TIMESTAMP granted_ts
     NUMERIC validity
+
   }
   PRODUCT_CONSUMER_ATTRIBUTE {
     BIGSERIAL id PK

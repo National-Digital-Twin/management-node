@@ -25,6 +25,8 @@ For a full description of the database tables, relationships, and constraints, s
 - OpenSSL (for certificate generation)
 - Keycloak (for authentication and authorization)
 
+---
+
 ## Quick Start
 
 ### Run the Spring Boot application
@@ -562,7 +564,7 @@ Role-specific access:
 - Producer Federator: must have role `access_producer_configurations` to access `/api/v1/configuration/producer`.
 - Consumer Federator: must have role `access_consumer_configurations` to access `/api/v1/configuration/consumer`.
 
-Read the full details, examples, and Keycloak mapping guidance in [AUTHENTICATIONS](docs/AUTHENTICATION_REQUIREMENTS.md).
+Read the full details, examples, and Keycloak mapping guidance in [Authentication Requirements](docs/AUTHENTICATION_REQUIREMENTS.md).
 
 ## Public Funding Acknowledgment
 This repository has been developed with public funding as part of the National Digital Twin Programme (NDTP), a UK Government initiative. NDTP, alongside its partners, has invested in this work to advance open, secure, and reusable digital twin technologies for any organisation, whether from the public or private sector, irrespective of size.
@@ -576,7 +578,7 @@ We take security seriously. If you believe you have found a security vulnerabili
 ## Software Bill of Materials (SBOM)
 This project provides a Software Bill of Materials (SBOM) to help users and integrators understand its dependencies.
 ### Current SBOM
-Download the [latest SBOM for this codebase](https://github.com/[repository-name]/dependency-graph/sbom) to view the current list of components used in this repository.
+Download the [latest SBOM for this codebase](https://github.com/National-digital-twin/management-node/dependency-graph/sbom) to view the current list of components used in this repository.
 ## Contributing
 We welcome contributions that align with the Programme’s objectives. Please read our `CONTRIBUTING.md` guidelines before submitting pull requests.
 ## Acknowledgements
