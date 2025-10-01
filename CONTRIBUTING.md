@@ -28,7 +28,7 @@ Public users and NDTP partners are encouraged to engage in the following ways:
 ---
 ## Reporting Issues
 If you encounter a bug, error, or inconsistency, please follow these steps:
-1. Check for an existing issue under [Issues](https://github.com/National-Digital-Twin/your-repo/issues).
+1. Check for an existing issue under [Issues](https://github.com/National-Digital-Twin/management-node/issues).
 2. Open a new issue if no one has reported it yet. Use one of the provided issue templates.
 3. Provide a clear, detailed description of the issue, including steps to reproduce it if applicable.
 4. Label the issue appropriately (bug, documentation, enhancement, etc.).  
