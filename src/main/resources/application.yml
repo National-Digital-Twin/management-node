@@ -1,0 +1,72 @@
+spring:
+  application:
+    name: management-node
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://localhost:8443/realms/mng-node
+          jwk-set-uri: https://localhost:8443/realms/mng-node/protocol/openid-connect/certs
+          audiences: management-node
+          authorities-claim-name: resource_access
+        opaquetoken:
+          introspection-uri: https://localhost:8443/realms/mng-node/protocol/openid-connect/token/introspect
+          client-secret:
+          client-id: MANAGEMENT_NODE_CLIENT # required client id for introspect endpoint
+  flyway:
+    create-schemas: on
+    default-schema: mn
+    locations: classpath:db/migration,classpath:db/samples # samples are only for local development
+    enabled: true
+    baseline-on-migrate: true
+  datasource:
+    url: jdbc:postgresql://localhost:5433/postgres
+    username: # required postgress username
+    password: # required postgress username
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        show_sql: true
+        default_schema: mn
+
+# Server configuration
+server:
+  port: 8090
+  ssl:
+    key-alias: localhost
+    key-store: keystore.jks #path to ssl keystore
+    key-store-type: JKS
+    key-store-password: #keystore password
+    trust-store:  #path to ssl truststore
+    trust-store-password: #truststore password
+    trust-store-type: JKS
+    client-auth: need
+    enabled: true # disable for local development Only
+application:
+  client:
+    key-store: keystore.jks # path to MTLS client keystore
+    keyStorePassword: # MTLS client keystore password
+    keyStoreType: JKS
+
+# Actuator Configuration
+management:
+  server:
+    port: 8081
+    ssl:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+# Logging Configuration
+logging:
+  level:
+    org.springframework.security: DEBUG
+    uk.gov.dbt.ndtp.ia.node.management: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X{clientId}] - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X{clientId}] - %msg%n"
