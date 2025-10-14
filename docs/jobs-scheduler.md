@@ -1,5 +1,10 @@
 # Jobs Scheduler
 
+**Repository:** `management-node`  
+**Description:** `Provides APIs to be accessed by Consumer and Producer Federators for the purpose of dynamic configuration management `  
+**SPDX-License-Identifier:** `Apache-2.0 AND OGL-UK-3.0 `
+
+---
 This document describes the two ways to schedule recurring jobs in the system: CRON and Interval. It also includes examples for both CRON expressions and ISO‑8601 durations.
 
 ## 1. CRON type

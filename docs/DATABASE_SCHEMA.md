@@ -1,5 +1,13 @@
 # Database Schema
 
+**Repository:** `management-node`  
+**Description:** `Provides APIs to be accessed by Consumer and Producer Federators for the purpose of dynamic configuration management `  
+**SPDX-License-Identifier:** `Apache-2.0 AND OGL-UK-3.0 `
+
+---
+
+
+
 This document describes the relational database schema used by the Management Node. The schema is applied via Flyway migrations located at:
 
 - `src/main/resources/db/migration/`

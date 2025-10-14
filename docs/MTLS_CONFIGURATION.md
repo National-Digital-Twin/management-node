@@ -1,5 +1,10 @@
 # MTLS Configuration Guide
 
+**Repository:** `management-node`  
+**Description:** `Provides APIs to be accessed by Consumer and Producer Federators for the purpose of dynamic configuration management `  
+**SPDX-License-Identifier:** `Apache-2.0 AND OGL-UK-3.0 `
+
+---
 This guide provides detailed instructions on how to configure Mutual TLS (MTLS) for both the Keycloak authentication server and the Management Node Spring Boot application.
 
 ## What is MTLS and Why It's Needed
