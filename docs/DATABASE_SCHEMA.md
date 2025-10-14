@@ -4,9 +4,6 @@ This document describes the relational database schema used by the Management No
 
 - `src/main/resources/db/migration/`
 
-The current schema is based on the following migrations:
-- `V20250728142253__intial_database_tables.sql`
-- `V20250914182403__productConsumersAttributesTable.sql`
 
 The database is designed to model Organisations, their Producers and Consumers, the Products offered by Producers, and the access grants that allow specific Consumers to access specific Products. Additional attributes can be attached to each grant.
 
@@ -29,6 +26,7 @@ erDiagram
   PRODUCT ||--o{ PRODUCT_CONSUMER : grants
   CONSUMER ||--o{ PRODUCT_CONSUMER : consumes
   PRODUCT_CONSUMER ||--o{ PRODUCT_CONSUMER_ATTRIBUTE : has
+  PRODUCT_TYPE ||--o{ PRODUCT : categorizes
 
   ORGANISATION {
     BIGSERIAL id PK
@@ -51,12 +49,21 @@ erDiagram
     VARCHAR name
     BIGINT org_id FK
     VARCHAR idp_client_id
+    VARCHAR schedule_type
+    VARCHAR schedule_expression
+  }
+  PRODUCT_TYPE {
+    BIGSERIAL id PK
+    VARCHAR name
+    VARCHAR description
   }
   PRODUCT {
     BIGSERIAL id PK
     VARCHAR name
     VARCHAR topic
     BIGINT producer_id FK
+    BIGINT product_type_id FK
+    VARCHAR source
   }
   PRODUCT_CONSUMER {
     BIGSERIAL id PK
@@ -64,7 +71,9 @@ erDiagram
     BIGINT consumer_id FK
     TIMESTAMP granted_ts
     NUMERIC validity
-
+    VARCHAR schedule_type
+    VARCHAR schedule_expression
+    VARCHAR destination
   }
   PRODUCT_CONSUMER_ATTRIBUTE {
     BIGSERIAL id PK
@@ -119,9 +128,25 @@ Columns:
 - `name` VARCHAR(50), not null
 - `org_id` BIGINT, not null, foreign key → `organisation(id)`
 - `idp_client_id` VARCHAR(50), not null — identity provider client id (e.g., Keycloak). Informational; not an FK
+- `schedule_type` VARCHAR(100), nullable — type of schedule, e.g., `cron`, `interval`
+- `schedule_expression` VARCHAR(255), nullable — schedule expression matching the chosen schedule_type
 
 Usage:
 - Participates in access grants via `product_consumer`.
+- Optional scheduling metadata for consumer-driven jobs.
+
+---
+
+### product_type
+Represents a category/type of Product (e.g., topic-based, file-based).
+
+Columns:
+- `id` BIGSERIAL, primary key
+- `name` VARCHAR(150), not null
+- `description` VARCHAR(255), nullable — brief description of the product type
+
+Usage:
+- Lookup table used to categorize products. Initial values seeded by migration: `topic` and `file`.
 
 ---
 
@@ -133,21 +158,27 @@ Columns:
 - `name` VARCHAR(50), not null
 - `topic` VARCHAR(150), not null — logical topic or channel for the product
 - `producer_id` BIGINT, not null, foreign key → `producer(id)`
+- `product_type_id` BIGINT, nullable, foreign key → `product_type(id)` — categorization of the product
+- `source` VARCHAR(500), nullable — optional source identifier/URI for the product
 
 Usage:
 - The resource being granted to Consumers via `product_consumer`.
+- Migration defaults existing rows to the `topic` product type.
 
 ---
 
 ### product_consumer
 Join table representing an access grant that allows a Consumer to access a Product.
 
-Columns (after migration `V20250914182403`):
+Columns:
 - `id` BIGSERIAL, primary key
 - `product_id` BIGINT, not null, foreign key → `product(id)`
 - `consumer_id` BIGINT, not null, foreign key → `consumer(id)`
 - `granted_ts` TIMESTAMP, not null — timestamp when access was granted
 - `validity` NUMERIC, not null — validity period/units are application-defined
+- `schedule_type` VARCHAR(100), nullable — e.g., `cron`, `interval`
+- `schedule_expression` VARCHAR(255), nullable — expression matching the schedule_type
+- `destination` VARCHAR(500), nullable — optional destination identifier/URI for scheduled deliveries
 - `uq_product_consumer_pair` UNIQUE (`product_id`, `consumer_id`) — ensures one grant per pair
 
 Notes:
@@ -155,6 +186,7 @@ Notes:
 
 Usage:
 - Central record for authorization decisions: which Consumer can access which Product and since when.
+- Optional scheduling metadata for grant-level processing/delivery.
 
 ---
 
@@ -176,7 +208,7 @@ Usage:
 ## Migration Notes
 - Schema is versioned and applied with Flyway on application startup.
 - Foreign keys enforce referential integrity among core entities.
-- Consider adding database indexes on foreign key columns (`producer.producer_id`, `consumer.org_id`, `product.producer_id`, `product_consumer.product_id`, `product_consumer.consumer_id`, `product_consumer_attribute.product_consumer_id`) to optimize query performance, if not already present in future migrations.
+- Consider adding database indexes on foreign key columns (`producer.producer_id`, `consumer.org_id`, `product.producer_id`, `product_consumer.product_id`, `product_consumer.consumer_id`, `product_consumer_attribute.product_consumer_id`) to optimize query performance.
 
 ## Data Protection and Security
 - Identity fields like `idp_client_id` are not foreign keys; they link to external IdP configuration (e.g., Keycloak) at the application layer.
