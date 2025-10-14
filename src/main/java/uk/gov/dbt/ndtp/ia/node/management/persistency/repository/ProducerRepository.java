@@ -31,8 +31,9 @@ public interface ProducerRepository extends JpaRepository<Producer, Long> {
      * @param consumerIds a list of consumer IDs used to filter the {@link Producer} and associated entities
      * @return a list of {@link Producer} entities along with their associated {@link Product} entities and product consumers
      */
-    @Query(
-            "SELECT o FROM Producer o JOIN FETCH o.products p  JOIN  p.productConsumer pc WHERE pc.consumer.id IN :consumerIds")
+    @Query(" SELECT o FROM Producer o " + "JOIN FETCH o.products p  JOIN  p.productConsumer pc "
+            + "JOIN FETCH p.productType t "
+            + "WHERE pc.consumer.id IN :consumerIds ")
     List<Producer> findByConsumerIds(List<Long> consumerIds);
 
     /**
@@ -42,6 +43,8 @@ public interface ProducerRepository extends JpaRepository<Producer, Long> {
      * @param idpClientId the Identity Provider client identifier used to retrieve corresponding {@link Producer} entities
      * @return a list of {@link Producer} entities with their associated {@link Product} entities
      */
-    @Query("SELECT o FROM Producer o JOIN FETCH o.products WHERE o.idpClientId IN :idpClientId")
+    @Query("SELECT o FROM Producer o " + "JOIN FETCH o.products p "
+            + "JOIN FETCH p.productType t "
+            + "WHERE o.idpClientId IN :idpClientId")
     List<Producer> findByIdpClientId(String idpClientId);
 }

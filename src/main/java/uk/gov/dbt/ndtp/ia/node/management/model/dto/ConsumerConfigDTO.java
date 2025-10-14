@@ -15,5 +15,8 @@ import lombok.Getter;
 public class ConsumerConfigDTO {
 
     private final String clientId;
+    private final String name;
+    private final String scheduleType;
+    private final String scheduleExpression;
     private final List<ProducerDTO> producers;
 }

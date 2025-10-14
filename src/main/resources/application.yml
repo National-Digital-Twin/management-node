@@ -10,8 +10,8 @@ spring:
           audiences: management-node
           authorities-claim-name: resource_access
         opaquetoken:
-          introspection-uri: https://localhost:8443/realms/mng-node/protocol/openid-connect/token/introspect
           client-secret:
+          introspection-uri: https://localhost:8443/realms/mng-node/protocol/openid-connect/token/introspect
           client-id: MANAGEMENT_NODE_CLIENT # required client id for introspect endpoint
   flyway:
     create-schemas: on
