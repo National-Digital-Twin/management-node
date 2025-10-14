@@ -42,14 +42,15 @@ public class ProductConverter implements EntityDtoConverter<Product, ProductDTO>
             return null;
         }
 
+        String typeName =
+                entity.getProductType() != null ? entity.getProductType().getName() : null;
         return ProductDTO.builder()
                 .id(entity.getId())
                 .name(entity.getName())
                 .topic(entity.getTopic())
-                .type(entity.getProductType().getName())
+                .type(typeName)
                 .source(entity.getSource())
                 .producerId(entity.getProducer() != null ? entity.getProducer().getId() : null)
-                .type(entity.getProductType().getName())
                 .build();
     }
 
