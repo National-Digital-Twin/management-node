@@ -7,6 +7,7 @@
 package uk.gov.dbt.ndtp.ia.node.management.config;
 
 import java.util.Collection;
+import java.util.Objects;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -36,5 +37,18 @@ public class CustomJwtAuthenticationToken extends JwtAuthenticationToken {
     @Override
     public EnhancedPrincipal getPrincipal() {
         return this.principal;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        CustomJwtAuthenticationToken that = (CustomJwtAuthenticationToken) o;
+        return Objects.equals(getPrincipal(), that.getPrincipal());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), getPrincipal());
     }
 }

@@ -23,7 +23,7 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
 
     private final ConsumerService consumerService;
 
-    private final ProductConsumerService consumerAllowedDataProvidersService;
+    private final ProductConsumerService productConsumerService;
 
     private final ProducerService producerService;
 
@@ -33,7 +33,7 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
             ProducerService producerService) {
 
         this.consumerService = consumerService;
-        this.consumerAllowedDataProvidersService = consumerAllowedDataProviders;
+        this.productConsumerService = consumerAllowedDataProviders;
         this.producerService = producerService;
     }
 
@@ -50,13 +50,10 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
         List<ConsumerDTO> consumers = getFilteredConsumers(clientId, consumerId);
         List<Long> consumerIds = consumers.stream().map(ConsumerDTO::getId).toList();
 
-        List<Long> validProductIds = new ArrayList<>();
-
-        consumers.forEach(consumer ->
-                validProductIds.addAll(consumerAllowedDataProvidersService.findByConsumerId(consumer.getId()).stream()
-                        .filter(this::isValidProvider)
-                        .map(ProductConsumerDTO::getProductId)
-                        .toList()));
+        List<ProductConsumerDTO> validProductConsumers = getValidProductConsumers(consumers);
+        List<Long> validProductIds = validProductConsumers.stream()
+                .map(ProductConsumerDTO::getProductId)
+                .toList();
 
         List<ProducerDTO> producers = producerService.getProducersByConsumerIds(consumerIds).stream()
                 .filter(ProducerDTO::getActive)
@@ -72,10 +69,35 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
             producers.forEach(p -> p.getProducts().clear());
         }
 
+        // finding the products and adding the configurations
+        producers.forEach(producer -> producer.getProducts().forEach(product -> {
+            List<ProductConsumerDTO> configs = validProductConsumers.stream()
+                    .filter(pc -> pc.getProductId().equals(product.getId()))
+                    .toList();
+            product.setConfigurations(configs);
+        }));
+
+        ConsumerDTO firstConsumer = consumers.getFirst();
         return ConsumerConfigDTO.builder()
+                .scheduleExpression(firstConsumer.getScheduleExpression())
+                .scheduleType(firstConsumer.getScheduleType())
                 .clientId(clientId)
+                .name(firstConsumer.getName())
                 .producers(producers)
                 .build();
+    }
+
+    private List<ProductConsumerDTO> getValidProductConsumers(List<ConsumerDTO> consumers) {
+        List<ProductConsumerDTO> validProductIds = new ArrayList<>();
+
+        consumers.forEach(consumer -> {
+            List<ProductConsumerDTO> list = productConsumerService.findByConsumerId(consumer.getId()).stream()
+                    .filter(this::isValidProvider)
+                    .toList();
+
+            validProductIds.addAll(list);
+        });
+        return validProductIds;
     }
 
     @Override
@@ -174,8 +196,7 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
     private void processConsumersForProvider(ProductDTO provider) {
 
         // Get consumer providers for this data provider
-        List<ProductConsumerDTO> consumerProviders =
-                consumerAllowedDataProvidersService.findByDataProviderId(provider.getId());
+        List<ProductConsumerDTO> consumerProviders = productConsumerService.findByDataProviderId(provider.getId());
 
         // Filter valid providers and add their consumers
         addValidConsumersToProvider(consumerProviders, provider);

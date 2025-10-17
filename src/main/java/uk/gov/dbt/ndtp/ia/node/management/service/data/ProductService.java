@@ -25,8 +25,8 @@ public interface ProductService {
     /**
      * Retrieves a list of DataProviderDTO objects associated with the specified producer IDs.
      *
-     * @param ProducerIds the list of producer IDs for which data providers need to be retrieved
+     * @param producerIds the list of producer IDs for which data providers need to be retrieved
      * @return a list of DataProviderDTO objects corresponding to the given producer IDs
      */
-    List<ProductDTO> getProductsByProducerIds(List<Long> ProducerIds);
+    List<ProductDTO> getProductsByProducerIds(List<Long> producerIds);
 }

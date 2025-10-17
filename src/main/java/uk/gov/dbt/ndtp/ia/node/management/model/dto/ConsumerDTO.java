@@ -30,5 +30,9 @@ public class ConsumerDTO {
 
     private String idpClientId;
 
+    private String scheduleType;
+
+    private String scheduleExpression;
+
     private final List<AttributesDTO> attributes = new ArrayList<>();
 }

@@ -24,6 +24,12 @@ public class Consumer {
     @Column(name = "name", nullable = false, length = 50)
     private String name;
 
+    @Column(name = "schedule_type", nullable = false)
+    private String scheduleType;
+
+    @Column(name = "schedule_expression")
+    private String scheduleExpression;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "org_id", nullable = false)
     private Organisation org;

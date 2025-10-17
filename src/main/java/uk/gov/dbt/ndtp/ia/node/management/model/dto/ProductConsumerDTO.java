@@ -6,6 +6,7 @@
 
 package uk.gov.dbt.ndtp.ia.node.management.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -21,9 +22,20 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductConsumerDTO {
+    @JsonIgnore
     private Long productId;
+
+    @JsonIgnore
     private Long consumerId;
+
+    @JsonIgnore
     private Timestamp grantedTs;
+
+    @JsonIgnore
     private BigDecimal validity;
+
+    private String scheduleType;
+    private String scheduleExpression;
+    private String destination;
     private final List<AttributesDTO> attributes = new ArrayList<>();
 }
