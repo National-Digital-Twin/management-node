@@ -96,8 +96,9 @@ The application uses Keycloak for authentication and authorization. Follow these
 
 4. Verify that Keycloak is running:
    ```bash
-   curl -k https://localhost:8443/health
+   curl -k https://localhost:8443/realms/master --cert client.crt --key client.key
    ```
+   Note: The client certificate files (client.crt and client.key) must be in your current directory or provide the full path. If you haven't generated these yet, see the [Certificate Setup](#certificate-setup) section.
 
 5. Access the Keycloak admin console at https://localhost:8443/admin with the following credentials:
    - Username: `admin`
@@ -328,35 +329,133 @@ After starting Keycloak, you need to set up a realm for the Management Node. You
 5. Navigate to and select the `docker/keycloak/management-node-realm.json` file from your project directory
 6. Click "Create" or "Import"
 7. After the import is complete, verify that the `management-node` realm has been created with all the necessary configurations
-8. Note the client secret for the `ztf-client` from the Credentials tab (Clients → ztf-client → Credentials) and update it in your application.yml if needed
+8. Note the client secret for the `management-node` client from the Credentials tab (Clients → management-node → Credentials) and update it in your application.yml if needed
 
 ### Option 2: Manual Configuration
 
-If you prefer to set up the realm manually:
+If you prefer to set up the realm manually (updated for Keycloak 26.x):
 
-1. Log in to the Keycloak admin console at https://localhost:8443/admin
-2. Create a new realm named `management-node`
-3. Create a client with the following settings:
-   - Client ID: `ztf-client`
-   - Client Protocol: `openid-connect`
-   - Access Type: `confidential`
-   - Valid Redirect URIs: `https://localhost:8090/*`
-   - Web Origins: `+`
-4. Note the client secret from the Credentials tab and update it in your application.yml if needed
+1. Log in to the Keycloak admin console at https://localhost:8443/admin (you must first import your `client.p12` certificate into your browser)
+
+2. Create a new realm named `management-node` by clicking the dropdown in the top-left and selecting "Create Realm"
+
+3. Create the **management-node** client:
+   - In the `management-node` realm, navigate to **Clients** and click **Create client**
+   
+   **General Settings:**
+   - Client type: `OpenID Connect`
+   - Client ID: `management-node`
+   - Click **Next**
+   
+   **Capability config:**
+   - Client authentication: **ON** (this enables the Credentials tab)
+   - Authorization: **OFF**
+   - Authentication flow: Enable **Service accounts roles**
+   - Click **Next**
+   
+   **Login settings:**
+   - Valid redirect URIs: `https://localhost:8090/*`
+   - Valid post logout redirect URIs: `+`
+   - Web origins: `+`
+   - Click **Save**
+
+4. After saving, click on the **Credentials** tab to view the **Client Secret**. Copy this secret.
+
+5. Add required roles to the client:
+   - Go to **Clients** → **management-node** → **Roles** tab
+   - Click **Create role** and add the following roles:
+     - `access_producer_configurations`
+     - `access_consumer_configurations`
+
+6. Assign roles to the service account:
+   - Go to **Clients** → **management-node** → **Service accounts roles** tab
+   - Click **Assign role**
+   - Filter by **Filter by clients** and select **management-node**
+   - Check both roles (`access_producer_configurations` and `access_consumer_configurations`)
+   - Click **Assign**
+
+7. Update your `application.yml` with the client configuration:
+   ```yaml
+   spring:
+     security:
+       oauth2:
+         resourceserver:
+           jwt:
+             issuer-uri: https://localhost:8443/realms/management-node
+             jwk-set-uri: https://localhost:8443/realms/management-node/protocol/openid-connect/certs
+             audiences: account
+           opaquetoken:
+             introspection-uri: https://localhost:8443/realms/management-node/protocol/openid-connect/token/introspect
+             client-secret: YOUR_CLIENT_SECRET_FROM_STEP_4
+             client-id: management-node
+   
+   application:
+     client:
+       key-store: keystore.jks
+       key-store-password: changeit
+       keyStoreType: JKS
+   ```
 
 ### Testing mTLS connectivity:
 
-Once KeyCloak is running and configured, you can test mTLS connectivity using the below command:
+Once Keycloak is running and configured, you can test mTLS connectivity using the command below. Replace `YOUR_CLIENT_SECRET` with the actual client secret obtained from the Keycloak Credentials tab (step 4 in the manual configuration above):
 
-    ```bash
-    curl --location 'https://localhost:8443/realms/management-node/protocol/openid-connect/token' \
-    --cert client.crt --key client.key \
-    --header 'Content-Type: application/x-www-form-urlencoded' \
-    --data-urlencode 'client_id=ztf-client' \
-    --data-urlencode 'grant_type=client_credentials'
-    ```
+```bash
+curl -k --location 'https://localhost:8443/realms/management-node/protocol/openid-connect/token' \
+  --cert client.crt --key client.key \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'client_id=management-node' \
+  --data-urlencode 'client_secret=YOUR_CLIENT_SECRET' \
+  --data-urlencode 'grant_type=client_credentials'
+```
 
-This tests the mTLS setup by attempting to obtain a token from Keycloak using client certificate authentication.
+**Note:** The `client_secret` parameter is required for confidential clients. Make sure to:
+1. Copy the client secret from Keycloak admin console: **Clients** → **management-node** → **Credentials** tab
+2. Replace `YOUR_CLIENT_SECRET` in the command above with your actual client secret
+3. The `-k` flag is used to allow insecure connections (self-signed certificates) for development
+
+If successful, you will receive a JSON response containing an `access_token` with the assigned roles in the `resource_access.management-node.roles` claim. This confirms that:
+- ✅ mTLS authentication is working (client certificates validated)
+- ✅ Client credentials are correct
+- ✅ Keycloak is properly configured
+- ✅ Service account has the required roles assigned
+
+### Testing API Endpoints:
+
+Once you have a valid token, you can test the protected API endpoints:
+
+```bash
+# Get a token and save it
+TOKEN=$(curl -k https://localhost:8443/realms/management-node/protocol/openid-connect/token \
+  --cert client.crt --key client.key \
+  --data-urlencode 'grant_type=client_credentials' \
+  --data-urlencode 'client_id=management-node' \
+  --data-urlencode 'client_secret=YOUR_CLIENT_SECRET' \
+  -s | jq -r '.access_token')
+
+# Test the producer endpoint
+curl -k https://localhost:8090/api/v1/configuration/producer \
+  --cert client.crt --key client.key \
+  -H "Authorization: Bearer $TOKEN" | jq .
+
+# Test the consumer endpoint
+curl -k https://localhost:8090/api/v1/configuration/consumer \
+  --cert client.crt --key client.key \
+  -H "Authorization: Bearer $TOKEN" | jq .
+```
+
+Expected response (if no configuration data exists yet):
+```json
+{
+  "clientId": "management-node",
+  "producers": []
+}
+```
+
+If successful, you will receive a JSON response containing an `access_token`. This confirms that:
+- ✅ mTLS authentication is working (client certificates validated)
+- ✅ Client credentials are correct
+- ✅ Keycloak is properly configured
 
 ## Building and Running with Maven
 
@@ -557,12 +656,32 @@ How Springdoc OpenAPI works in this project
 ## Authentication Requirements
 
 All protected endpoints require JWT bearer tokens. Tokens must:
-- Include the audience (aud) "management-node".
-- Contain a `resource_access` claim with client roles used for authorization.
+- Include the audience (aud) claim with value `account` (default Keycloak audience for service accounts).
+- Contain a `resource_access` claim with client-specific roles under `resource_access.management-node.roles`.
 
-Role-specific access:
-- Producer Federator: must have role `access_producer_configurations` to access `/api/v1/configuration/producer`.
-- Consumer Federator: must have role `access_consumer_configurations` to access `/api/v1/configuration/consumer`.
+**Required Client Roles:**
+- `access_producer_configurations` - Required to access `/api/v1/configuration/producer` endpoint
+- `access_consumer_configurations` - Required to access `/api/v1/configuration/consumer` endpoint
+
+**Token Structure Example:**
+```json
+{
+  "aud": "account",
+  "resource_access": {
+    "management-node": {
+      "roles": [
+        "access_producer_configurations",
+        "access_consumer_configurations"
+      ]
+    }
+  },
+  "client_id": "management-node"
+}
+```
+
+These roles must be:
+1. Created as client roles in the Keycloak `management-node` client
+2. Assigned to the service account of the `management-node` client
 
 Read the full details, examples, and Keycloak mapping guidance in [Authentication Requirements](docs/AUTHENTICATION_REQUIREMENTS.md).
 

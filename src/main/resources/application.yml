@@ -5,14 +5,13 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://localhost:8443/realms/mng-node
-          jwk-set-uri: https://localhost:8443/realms/mng-node/protocol/openid-connect/certs
-          audiences: management-node
-          authorities-claim-name: resource_access
+          issuer-uri: https://localhost:8443/realms/management-node
+          jwk-set-uri: https://localhost:8443/realms/management-node/protocol/openid-connect/certs
+          audiences: account
         opaquetoken:
-          introspection-uri: https://localhost:8443/realms/mng-node/protocol/openid-connect/token/introspect
-          client-secret:
-          client-id: MANAGEMENT_NODE_CLIENT # required client id for introspect endpoint
+          introspection-uri: https://localhost:8443/realms/management-node/protocol/openid-connect/token/introspect
+          client-secret: # Client secret from keycloak
+          client-id: management-node # MANAGEMENT_NODE_CLIENT  required client id for introspect endpoint
   flyway:
     create-schemas: on
     default-schema: mn
@@ -20,9 +19,9 @@ spring:
     enabled: true
     baseline-on-migrate: true
   datasource:
-    url: jdbc:postgresql://localhost:5433/postgres
-    username: # required postgress username
-    password: # required postgress username
+    url: jdbc:postgresql://localhost:5433/keycloak_db # this is setup to get you going easily using the Keycloak postgress so change this !
+    username: keycloak_db_user
+    password: keycloak_db_user_password
   jpa:
     properties:
       hibernate:
@@ -37,16 +36,16 @@ server:
     key-alias: localhost
     key-store: keystore.jks #path to ssl keystore
     key-store-type: JKS
-    key-store-password: #keystore password
-    trust-store:  #path to ssl truststore
-    trust-store-password: #truststore password
+    key-store-password: changeit #keystore password
+    trust-store: truststore.jks #path to ssl truststore
+    trust-store-password: changeit #truststore password
     trust-store-type: JKS
     client-auth: need
     enabled: true # disable for local development Only
 application:
   client:
     key-store: keystore.jks # path to MTLS client keystore
-    keyStorePassword: # MTLS client keystore password
+    key-store-password: changeit # MTLS client keystore password
     keyStoreType: JKS
 
 # Actuator Configuration
