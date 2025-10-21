@@ -6,7 +6,9 @@
 #
 
 # Build stage
+ARG JAR_FILE=management-node-1.0.1.jar
 FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
+ARG JAR_FILE
 WORKDIR /build
 
 # Copy the project files
@@ -18,6 +20,7 @@ RUN mvn -B clean package -DskipTests
 
 # Runtime stage
 FROM eclipse-temurin:21-jdk-alpine
+ARG JAR_FILE
 
 # Create non-root user and group
 RUN addgroup -S app && adduser -S -G app -u 10001 app
@@ -28,7 +31,7 @@ WORKDIR /app
 RUN mkdir -p /app/docker /app/logs /app/tmp && chown -R app:app /app
 
 # Copy application jar from build stage
-COPY --from=build /build/target/management-node-0.90.0.jar /app/app.jar
+COPY --from=build /build/target/${JAR_FILE} /app/app.jar
 RUN chown app:app /app/app.jar
 
 # Use non-root user from here on

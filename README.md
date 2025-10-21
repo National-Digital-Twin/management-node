@@ -24,22 +24,27 @@ For a full description of the database tables, relationships, and constraints, s
 - Docker and Docker Compose
 - OpenSSL (for certificate generation)
 - Keycloak (for authentication and authorization)
-
+- The below assumes your running in Linux - bash, it has been tested under WSL2.
 ---
 
 ## Quick Start
+Note. see lower for setting up prerequisites for local deployment certs, keycloak etc.
 
 ### Run the Spring Boot application
 
 This project is a Spring Boot application. You can run it by supplying configuration via either:
-- A default application.yml (or application.yaml) file, or
+- A default application.yml file, or
 - A profile-specific file application-{profile}.yml and passing the profile argument at startup.
 
 Quick options:
 
 1. Provide a default config:
-   - Create src/main/resources/application.yml with your local settings (SSL keystore/truststore, Keycloak client, DB, etc.). See the Configuration and Certificate Setup sections below.
-   - Run:
+   - Modify src/main/resources/application.yml with your local settings (SSL keystore/truststore, Keycloak client, DB, etc.). See the Configuration and Certificate Setup sections below.
+   - Run: (change to suit your local if different)
+      ```
+      export POSTGRES_PASSWORD=keycloak_db_user_password
+      export CERTPASSWORD=changeit
+      ```
      ```bash
      mvn spring-boot:run
      ```
@@ -69,70 +74,11 @@ Notes:
   ```bash
   java -jar target/management-node-0.0.1.jar --spring.config.location=/path/to/your.yml
   ```
-- The application serves HTTPS on port 8090 by default (see server.ssl in configuration).
+- The application serves HTTPS on port 8090 by default (see server.ssl in configuration).  
 
-### Setting up Keycloak with Docker Compose
 
-The application uses Keycloak for authentication and authorization. Follow these steps to set up Keycloak using Docker Compose:
 
-1. Navigate to the docker directory:
-   ```bash
-   cd docker
-   ```
-
-2. Make sure you have the required certificates in the `docker` directory:
-   - `keystore.jks` - Java keystore containing the server certificate
-   - `truststore.jks` - Java truststore containing trusted certificates
-   - `localhost.p12` - PKCS12 keystore for client authentication
-   - `localhost.crt` - Certificate file
-   - `localhost.key` - Private key file
-
-   If you need to generate these files for development, see the [Certificate Setup](#certificate-setup) section.
-
-3. Start Keycloak and PostgreSQL using Docker Compose:
-   ```bash
-   docker compose -f keycloak/docker-compose.yml up -d
-   ```
-
-4. Verify that Keycloak is running:
-   ```bash
-   curl -k https://localhost:8443/health
-   ```
-
-5. Access the Keycloak admin console at https://localhost:8443/admin with the following credentials:
-   - Username: `admin`
-   - Password: `password`
-
-### Configuration
-
-For Docker Compose to run successfully, you need to create a `.env` file in the `docker/keycloak` directory with the following settings:
-
-```
-POSTGRES_DB=keycloak_db
-POSTGRES_USER=keycloak_db_user
-POSTGRES_PASSWORD=keycloak_db_user_password
-KEYCLOAK_ADMIN=admin
-KEYCLOAK_ADMIN_PASSWORD=password
-KC_HOSTNAME_STRICT_BACKCHANNEL=false
-SERVER_SSL_KEY_STORE_PASSWORD=changeit
-SERVER_SSL_TRUST_STORE_PASSWORD=changeit
-KC_HTTPS_KEY_STORE_PASSWORD=changeit
-KC_HTTPS_TRUST_STORE_PASSWORD=changeit
-KC_SPI_TRUSTSTORE_FILE_PASSWORD=changeit
-KC_HOSTNAME=keycloak
-KC_HOSTNAME_PORT=8080
-KC_HTTP_ENABLED=false
-KC_HOSTNAME_STRICT_HTTPS=false
-KC_HEALTH_ENABLED=true
-KC_DB=postgres
-KC_HTTPS_CLIENT_AUTH=required
-KC_HTTPS_ENABLED=true
-KC_HTTPS_PORT=8443
-KC_LOG_LEVEL=INFO
-```
-
-This file contains essential environment variables for both PostgreSQL and Keycloak configuration. You can modify these values as needed for your environment, but make sure to create this file before running Docker Compose.
-
+# Prerequisites setup
 ## Certificate Setup
 
 The Management Node Module implements a zero-trust security architecture using Mutual TLS (MTLS) for secure communication between all components. This section explains why certificates are needed, how to generate them, and where they are used in the system.
@@ -178,6 +124,11 @@ The system requires several certificate files:
 
 For development purposes, follow these steps to generate certificates for mTLS. All passwords used are `changeit`. When generating these certficates, for the `Country Name`, you can use the value of 'UK'. All remaining certificate fields can be left to their default values.
 
+move to the docker folder
+```bash
+cd docker
+```
+
 1. **Generate a Root CA certificate**:
    ```bash
    openssl req -x509 -sha256 -days 3650 -newkey rsa:4096 -keyout rootCA.key -out rootCA.crt
@@ -191,12 +142,8 @@ For development purposes, follow these steps to generate certificates for mTLS. 
    This creates a private key and certificate signing request (CSR) for the host.
 
 3. **Sign the host certificate with the Root CA**:
-   ```bash
-   openssl x509 -req -CA rootCA.crt -CAkey rootCA.key -in localhost.csr -out localhost.crt -days 365 -CAcreateserial -extfile localhost.ext
-   ```
-   This signs the host CSR with the Root CA, creating a certificate valid for 365 days.
-   
-   The content of the `localhost.ext` file should be:
+
+   Create a file called `localhost.ext` file should contain:
    ```
    authorityKeyIdentifier=keyid,issuer
    basicConstraints=CA:FALSE
@@ -205,6 +152,13 @@ For development purposes, follow these steps to generate certificates for mTLS. 
    DNS.1 = localhost
    DNS.2 = keycloak
    ```
+
+   ```bash
+   openssl x509 -req -CA rootCA.crt -CAkey rootCA.key -in localhost.csr -out localhost.crt -days 365 -CAcreateserial -extfile localhost.ext
+   ```
+   This signs the host CSR with the Root CA, creating a certificate valid for 365 days.
+   
+
    This configuration specifies that the certificate is valid for both `localhost` and `keycloak` hostnames.
 
 4. **Create a PKCS12 keystore for the server**:
@@ -265,8 +219,14 @@ For development purposes, follow these steps to generate certificates for mTLS. 
 
 After generating the certificates, place them in the appropriate locations:
 
+if you've followed the above the follow with
+```bash
+cp keystore.jks ./keystore.jks
+cp truststore.jks ../truststore.jks
+```
+
 1. **For Keycloak**:
-   - Place all certificate files in the `docker` directory
+   - All the certificate files should now be in the `docker` directory
    - The docker-compose.yml maps these files into the Keycloak container:
      ```yaml
      volumes:
@@ -315,48 +275,184 @@ KC_SPI_TRUSTSTORE_FILE_PASSWORD=changeit
 
 For production environments, use strong, unique passwords and secure storage solutions for managing these credentials.
 
+
+### Setting up Keycloak with Docker Compose
+
+#### Configuration
+
+For Docker Compose to run successfully, you need to create a `.env` file in the `docker/keycloak` directory with the following settings:
+
+```
+POSTGRES_DB=keycloak_db
+POSTGRES_USER=keycloak_db_user
+POSTGRES_PASSWORD=keycloak_db_user_password
+KEYCLOAK_ADMIN=admin
+KEYCLOAK_ADMIN_PASSWORD=password
+KC_HOSTNAME_STRICT_BACKCHANNEL=false
+SERVER_SSL_KEY_STORE_PASSWORD=changeit
+SERVER_SSL_TRUST_STORE_PASSWORD=changeit
+KC_HTTPS_KEY_STORE_PASSWORD=changeit
+KC_HTTPS_TRUST_STORE_PASSWORD=changeit
+KC_SPI_TRUSTSTORE_FILE_PASSWORD=changeit
+KC_HOSTNAME=keycloak
+KC_HOSTNAME_PORT=8080
+KC_HTTP_ENABLED=false
+KC_HOSTNAME_STRICT_HTTPS=false
+KC_HEALTH_ENABLED=true
+KC_DB=postgres
+KC_HTTPS_CLIENT_AUTH=required
+KC_HTTPS_ENABLED=true
+KC_HTTPS_PORT=8443
+KC_LOG_LEVEL=INFO
+```
+
+This file contains essential environment variables for both PostgreSQL and Keycloak configuration. You can modify these values as needed for your environment, but make sure to create this file before running Docker Compose.
+
+The application uses Keycloak for authentication and authorization. Follow these steps to set up Keycloak using Docker Compose:
+
+1. Navigate to the docker directory:
+   ```bash
+   cd docker
+   ```
+
+2. Make sure you have the required certificates in the `docker` directory: see lower for local certificate setup 
+   - `keystore.jks` - Java keystore containing the server certificate
+   - `truststore.jks` - Java truststore containing trusted certificates
+   - `localhost.p12` - PKCS12 keystore for client authentication
+   - `localhost.crt` - Certificate file
+   - `localhost.key` - Private key file
+
+   If you need to generate these files for development, see the [Certificate Setup](#certificate-setup) section.
+
+3. Start Keycloak and PostgreSQL using Docker Compose:
+   ```bash
+   docker compose -f keycloak/docker-compose.yml up -d
+   ```
+
+4. Verify that Keycloak is running:
+   ```bash
+   curl -k https://localhost:8443/realms/master --cert client.crt --key client.key
+   ```
+   Note: The client certificate files (client.crt and client.key) must be in your current directory or provide the full path. If you haven't generated these yet, see the [Certificate Setup](#certificate-setup) section.
+
+5. Access the Keycloak admin console at https://localhost:8443/admin with the following credentials:
+   - Username: `admin`
+   - Password: `password`  
+
+   you will need to first import your client.p12 digital certificate file into your local browser, else the request will be rejected. for chrome got to. settings - privacy and security - security - manage certificate - manage imported certificates from windows, then import and follow the wizard.
+
+
+
+
 ## Keycloak Realm Setup
 
-After starting Keycloak, you need to set up a realm for the Management Node. You can either import the pre-configured realm or create it manually. To access the administrative interface at https://localhost:8443/admin, you will need to first import your client.p12 digital certificate file into your local browser, else the request will be rejected.
+After starting Keycloak, you need to set up a realm for the Management Node. You can either import the pre-configured realm or create it manually. To access the administrative interface at https://localhost:8443/admin.
 
 ### Option 1: Import the Realm Configuration (Recommended)
 
 1. Log in to the Keycloak admin console at https://localhost:8443/admin
 2. Click on the dropdown menu in the top-left corner (it may show "master" if you haven't created any realms yet)
-3. Click on "Create Realm" or "Add realm" button
-4. Click on the "Browse" or "Select file" button
-5. Navigate to and select the `docker/keycloak/management-node-realm.json` file from your project directory
-6. Click "Create" or "Import"
-7. After the import is complete, verify that the `management-node` realm has been created with all the necessary configurations
-8. Note the client secret for the `ztf-client` from the Credentials tab (Clients → ztf-client → Credentials) and update it in your application.yml if needed
+3. Click on "Manage realms"
+4. Click on "Create Realm" or "Add realm" button
+5. Click on the "Browse" or "Select file" button
+6. Navigate to and select the `docker/keycloak/management-node.json` file from your project directory
+7. Click "Create" or "Import"
+8. After the import is complete, verify that the `management-node` realm has been created with all the necessary configurations
+9. Note the client secret for the `management-node` client from the Credentials tab (Clients → management-node → Credentials) click regenerate, view it update it in your application.yml if needed (or do ```export KEYCLOAK_CLIENTID=newClientSecret```)
 
 ### Option 2: Manual Configuration
 
-If you prefer to set up the realm manually:
+If you prefer to set up the realm manually (updated for Keycloak 26.x):
 
-1. Log in to the Keycloak admin console at https://localhost:8443/admin
-2. Create a new realm named `management-node`
-3. Create a client with the following settings:
-   - Client ID: `ztf-client`
-   - Client Protocol: `openid-connect`
-   - Access Type: `confidential`
-   - Valid Redirect URIs: `https://localhost:8090/*`
-   - Web Origins: `+`
-4. Note the client secret from the Credentials tab and update it in your application.yml if needed
+1. Log in to the Keycloak admin console at https://localhost:8443/admin (you must first import your `client.p12` certificate into your browser)
+
+2. Create a new realm named `management-node` by clicking the dropdown in the top-left and selecting "Create Realm"
+
+3. Create the **management-node** client:
+   - In the `management-node` realm, navigate to **Clients** and click **Create client**
+   
+   **General Settings:**
+   - Client type: `OpenID Connect`
+   - Client ID: `management-node`
+   - Click **Next**
+   
+   **Capability config:**
+   - Client authentication: **ON** (this enables the Credentials tab)
+   - Authorization: **OFF**
+   - Authentication flow: Enable **Service accounts roles**
+   - Click **Next**
+   
+   **Login settings:**
+   - Valid redirect URIs: `https://localhost:8090/*`
+   - Valid post logout redirect URIs: `+`
+   - Web origins: `+`
+   - Click **Save**
+
+4. After saving, click on the **Credentials** tab to view the **Client Secret**. Copy this secret.
+
+5. Add required roles to the client:
+   - Go to **Clients** → **management-node** → **Roles** tab
+   - Click **Create role** and add the following roles:
+     - `access_producer_configurations`
+     - `access_consumer_configurations`
+
+6. Assign roles to the service account:
+   - Go to **Clients** → **management-node** → **Service accounts roles** tab
+   - Click **Assign role**
+   - Filter by **Filter by clients** and select **management-node**
+   - Check both roles (`access_producer_configurations` and `access_consumer_configurations`)
+   - Click **Assign**
+
+7. Update your `application.yml` with the client configuration, if needed:
+   ```yaml
+   spring:
+     security:
+       oauth2:
+         resourceserver:
+           jwt:
+             issuer-uri: https://localhost:8443/realms/management-node
+             jwk-set-uri: https://localhost:8443/realms/management-node/protocol/openid-connect/certs
+             audiences: account
+           opaquetoken:
+             introspection-uri: https://localhost:8443/realms/management-node/protocol/openid-connect/token/introspect
+             client-secret: "client_secret=${KEYCLOAK_CLIENTID}"
+             client-id: management-node
+   
+   application:
+     client:
+       key-store: keystore.jks
+       key-store-password: changeit
+       keyStoreType: JKS
+   ```
 
 ### Testing mTLS connectivity:
 
-Once KeyCloak is running and configured, you can test mTLS connectivity using the below command:
+Once Keycloak is running and configured, you can test mTLS connectivity using the command below. Replace `YOUR_CLIENT_SECRET` with the actual client secret obtained from the Keycloak Credentials tab (step 4 in the manual configuration above):
 
-    ```bash
-    curl --location 'https://localhost:8443/realms/management-node/protocol/openid-connect/token' \
-    --cert client.crt --key client.key \
-    --header 'Content-Type: application/x-www-form-urlencoded' \
-    --data-urlencode 'client_id=ztf-client' \
-    --data-urlencode 'grant_type=client_credentials'
-    ```
+```bash
+export KEYCLOAK_CLIENTID=`YOUR_CLIENT_SECRET`
+cd docker # or where your certificates are stored
+```
 
-This tests the mTLS setup by attempting to obtain a token from Keycloak using client certificate authentication.
+```bash
+curl -k --location 'https://localhost:8443/realms/management-node/protocol/openid-connect/token' \
+  --cert client.crt --key client.key \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'client_id=management-node' \
+  --data-urlencode "client_secret=${KEYCLOAK_CLIENTID}" \
+  --data-urlencode 'grant_type=client_credentials'
+```
+
+**Note:** The `client_secret` parameter is required for confidential clients. Make sure to:
+1. Copy the client secret from Keycloak admin console: **Clients** → **management-node** → **Credentials** tab
+2. Replace `YOUR_CLIENT_SECRET` in the command above with your actual client secret
+3. The `-k` flag is used to allow insecure connections (self-signed certificates) for development
+
+If successful, you will receive a JSON response containing an `access_token` with the assigned roles in the `resource_access.management-node.roles` claim. This confirms that:
+- ✅ mTLS authentication is working (client certificates validated)
+- ✅ Client credentials are correct
+- ✅ Keycloak is properly configured
+- ✅ Service account has the required roles assigned
 
 ## Building and Running with Maven
 
@@ -386,7 +482,13 @@ The Management Node Module uses Maven for dependency management and build automa
 
 ### Running the Application
 
-After building, you can run the application using one of these methods:
+After building, you can run the application using one of these methods:  
+
+Note: if running with defaults export your passwords first.eg
+   ```
+   export POSTGRES_PASSWORD=keycloak_db_user_password
+   export CERTPASSWORD=changeit
+   ```
 
 1. Using the Java command:
    ```bash
@@ -405,6 +507,45 @@ After building, you can run the application using one of these methods:
    ```
 
 The application will be available at https://localhost:8090
+
+### Testing API Endpoints:
+
+Once you have a valid token, you can test the protected API endpoints:
+
+```bash
+cd docker # or where your certificates are stored
+
+# Get a token and save it
+TOKEN=$(curl -k https://localhost:8443/realms/management-node/protocol/openid-connect/token \
+  --cert client.crt --key client.key \
+  --data-urlencode 'grant_type=client_credentials' \
+  --data-urlencode 'client_id=management-node' \
+  --data-urlencode "client_secret=${KEYCLOAK_CLIENTID}" \
+  -s | jq -r '.access_token')
+
+# Test the producer endpoint
+curl -k https://localhost:8090/api/v1/configuration/producer \
+  --cert client.crt --key client.key \
+  -H "Authorization: Bearer $TOKEN" | jq .
+
+# Test the consumer endpoint
+curl -k https://localhost:8090/api/v1/configuration/consumer \
+  --cert client.crt --key client.key \
+  -H "Authorization: Bearer $TOKEN" | jq .
+```
+
+Expected response (if no configuration data exists yet):
+```json
+{
+  "clientId": "management-node",
+  "producers": []
+}
+```
+
+If successful, you will receive a JSON response containing an `access_token`. This confirms that:
+- ✅ mTLS authentication is working (client certificates validated)
+- ✅ Client credentials are correct
+- ✅ Keycloak is properly configured
 
 ### Using Profile-Specific Configuration Files
 
@@ -557,12 +698,32 @@ How Springdoc OpenAPI works in this project
 ## Authentication Requirements
 
 All protected endpoints require JWT bearer tokens. Tokens must:
-- Include the audience (aud) "management-node".
-- Contain a `resource_access` claim with client roles used for authorization.
+- Include the audience (aud) claim with value `account` (default Keycloak audience for service accounts).
+- Contain a `resource_access` claim with client-specific roles under `resource_access.management-node.roles`.
 
-Role-specific access:
-- Producer Federator: must have role `access_producer_configurations` to access `/api/v1/configuration/producer`.
-- Consumer Federator: must have role `access_consumer_configurations` to access `/api/v1/configuration/consumer`.
+**Required Client Roles:**
+- `access_producer_configurations` - Required to access `/api/v1/configuration/producer` endpoint
+- `access_consumer_configurations` - Required to access `/api/v1/configuration/consumer` endpoint
+
+**Token Structure Example:**
+```json
+{
+  "aud": "account",
+  "resource_access": {
+    "management-node": {
+      "roles": [
+        "access_producer_configurations",
+        "access_consumer_configurations"
+      ]
+    }
+  },
+  "client_id": "management-node"
+}
+```
+
+These roles must be:
+1. Created as client roles in the Keycloak `management-node` client
+2. Assigned to the service account of the `management-node` client
 
 Read the full details, examples, and Keycloak mapping guidance in [Authentication Requirements](docs/AUTHENTICATION_REQUIREMENTS.md).
 

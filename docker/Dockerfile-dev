@@ -6,7 +6,9 @@
 #
 
 # Build stage
+ARG JAR_FILE=management-node-1.0.1.jar
 FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
+ARG JAR_FILE
 WORKDIR /build
 
 # Copy the project files
@@ -18,6 +20,7 @@ RUN mvn clean package -DskipTests
 
 # Runtime stage
 FROM eclipse-temurin:23-jdk-alpine
+ARG JAR_FILE
 
 WORKDIR /app
 
@@ -25,7 +28,7 @@ WORKDIR /app
 RUN mkdir -p /app/docker
 
 # Copy application jar from build stage and certificates
-COPY --from=build /build/target/management-node-0.90.0.jar /app/app.jar
+COPY --from=build /build/target/${JAR_FILE} /app/app.jar
 COPY docker/keystore.jks /app/docker/keystore.jks
 COPY docker/truststore.jks /app/docker/truststore.jks
 
