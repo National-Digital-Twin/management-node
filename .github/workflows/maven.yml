@@ -56,11 +56,11 @@ jobs:
           GH_PACKAGES_PAT: ${{ secrets.GH_PACKAGES_PAT }}
         run: ./mvnw $MAVEN_CLI_OPTS verify
       - name: SonarCloud analysis
-        # Uses the SonarCloud GitHub App for auth (no tokens/secrets needed)
         uses: sonarsource/sonarcloud-github-action@v2
         with:
-          # Coverage report produced by JaCoCo during 'mvn verify'
           args: >
+            -Dsonar.projectKey=management-node
+            -Dsonar.organization=National-Digital-Twin
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
       - name: Upload JaCoCo HTML report
         if: always()
