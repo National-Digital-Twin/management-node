@@ -17,7 +17,8 @@ COPY src ./src
 RUN mvn -B clean package -DskipTests
 
 # Runtime stage
-FROM eclipse-temurin:21-jdk-alpine
+# Name this stage so CI can target it (matches --target management-node in workflows)
+FROM eclipse-temurin:21-jdk-alpine AS management-node
 
 # Create non-root user and group
 RUN addgroup -S app && adduser -S -G app -u 10001 app
