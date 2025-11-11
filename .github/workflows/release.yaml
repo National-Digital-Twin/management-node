@@ -92,7 +92,7 @@ jobs:
       - name: Build packages
         run: ./mvnw $MAVEN_CLI_OPTS package -DskipTests
       - name: Publish package
-        run: ./mvnw $MAVEN_CLI_OPTS deploy -DskipTests --settings .m2/settings.xml
+        run: ./mvnw $MAVEN_CLI_OPTS deploy -DskipTests
 
   release-ghcr:
     name: "Build and release docker images to GHCR with tags '${{ inputs.image_tag }}, latest'"
