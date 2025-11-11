@@ -31,6 +31,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 env:
   MAVEN_CLI_OPTS: "--batch-mode --no-transfer-progress"
@@ -40,6 +41,9 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v5
+        with:
+          # Full history is recommended for accurate Sonar analysis and PR decoration
+          fetch-depth: 0
       - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:
@@ -51,6 +55,13 @@ jobs:
         env:
           GH_PACKAGES_PAT: ${{ secrets.GH_PACKAGES_PAT }}
         run: ./mvnw $MAVEN_CLI_OPTS verify
+      - name: SonarCloud analysis
+        # Uses the SonarCloud GitHub App for auth (no tokens/secrets needed)
+        uses: sonarsource/sonarcloud-github-action@v2
+        with:
+          # Coverage report produced by JaCoCo during 'mvn verify'
+          args: >
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
       - name: Upload JaCoCo HTML report
         if: always()
         uses: actions/upload-artifact@v4
