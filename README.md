@@ -50,7 +50,7 @@ Quick options:
      ```
      or:
      ```bash
-     java -jar target/management-node-0.0.1.jar
+     java -jar target/management-node-1.0.1.jar
      ```
 
 2. Use a profile-specific config:
@@ -61,7 +61,7 @@ Quick options:
      ```
      or:
      ```bash
-     java -jar target/management-node-0.0.1.jar --spring.profiles.active=local
+     java -jar target/management-node-1.0.1.jar --spring.profiles.active=local
      ```
    - You can also set the environment variable:
      ```bash
@@ -197,33 +197,40 @@ cd docker
    ```
    This bundles the client certificate and private key into a PKCS12 format for use in browsers or client applications.
 
-10. **Create a Java keystore using keytool**:
+10. **Create a Java keystore using keytool** (PKCS12 format, compatible with modern Java):
     ```bash
-    keytool -importkeystore -destkeystore keystore.jks -srckeystore localhost.p12 -srcstoretype PKCS12 -alias "localhost"
+    keytool -importkeystore -destkeystore keystore.jks -deststoretype PKCS12 -srckeystore localhost.p12 -srcstoretype PKCS12 -alias "localhost"
     ```
-    This converts the PKCS12 keystore to a Java KeyStore (JKS) format used by Java applications.
+    This converts the PKCS12 keystore. Note: Despite the `.jks` extension, modern keytool creates PKCS12 format by default, which is more secure and standard.
 
-11. **Create a Java truststore using keytool**:
+11. **Create a Java truststore using keytool** (PKCS12 format):
     ```bash
-    keytool -import -trustcacerts -noprompt -alias ca -ext san=dns:localhost,ip:127.0.0.1 -file rootCA.crt -keystore truststore.jks
+    keytool -import -trustcacerts -noprompt -alias ca -ext san=dns:localhost,ip:127.0.0.1 -file rootCA.crt -keystore truststore.jks -storetype PKCS12
     ```
-    This creates a truststore containing the Root CA certificate, which will be used to validate client certificates.
+    This creates a truststore containing the Root CA certificate in PKCS12 format, which will be used to validate client certificates.
 
-12. **Import the Root CA into the truststore**:
+12. **Verify the truststore** (optional but recommended):
     ```bash
-    keytool -importcert -file rootCA.crt -alias rootCA -keystore truststore.jks -storetype JKS
+    keytool -list -keystore truststore.jks -storetype PKCS12 -storepass changeit
     ```
-    This ensures the Root CA is properly imported into the Java truststore.
+    This verifies that the Root CA is properly imported into the truststore.
 
 ### Certificate Placement and Configuration
 
 After generating the certificates, place them in the appropriate locations:
 
-if you've followed the above the follow with
+if you've followed the above then follow with
 ```bash
-cp keystore.jks ./keystore.jks
+cp keystore.jks ../keystore.jks
 cp truststore.jks ../truststore.jks
+cp client.crt ../client.crt
+cp client.key ../client.key
 ```
+
+This copies the necessary files to the management-node root directory:
+- `keystore.jks` - Used by the Management Node application for its SSL server configuration
+- `truststore.jks` - Used by the Management Node to validate client certificates
+- `client.crt` and `client.key` - Used for testing API endpoints with mTLS authentication
 
 1. **For Keycloak**:
    - All the certificate files should now be in the `docker` directory
@@ -333,7 +340,7 @@ The application uses Keycloak for authentication and authorization. Follow these
    ```bash
    curl -k https://localhost:8443/realms/master --cert client.crt --key client.key
    ```
-   Note: The client certificate files (client.crt and client.key) must be in your current directory or provide the full path. If you haven't generated these yet, see the [Certificate Setup](#certificate-setup) section.
+   Note: Keycloak takes about 30 seconds before its ready and the client certificate files (client.crt and client.key) must be in your current directory or provide the full path. If you haven't generated these yet, see the [Certificate Setup](#certificate-setup) section.
 
 5. Access the Keycloak admin console at https://localhost:8443/admin with the following credentials:
    - Username: `admin`
@@ -358,7 +365,7 @@ After starting Keycloak, you need to set up a realm for the Management Node. You
 6. Navigate to and select the `docker/keycloak/management-node.json` file from your project directory
 7. Click "Create" or "Import"
 8. After the import is complete, verify that the `management-node` realm has been created with all the necessary configurations
-9. Note the client secret for the `management-node` client from the Credentials tab (Clients → management-node → Credentials) click regenerate, view it update it in your application.yml if needed (or do ```export KEYCLOAK_CLIENTID=newClientSecret```)
+9. Note the client secret for the `management-node` client from the Credentials tab (Clients → management-node → Credentials) click regenerate, view it and do ```export KEYCLOAK_CLIENTID=*************``` 
 
 ### Option 2: Manual Configuration
 
@@ -403,7 +410,7 @@ If you prefer to set up the realm manually (updated for Keycloak 26.x):
    - Check both roles (`access_producer_configurations` and `access_consumer_configurations`)
    - Click **Assign**
 
-7. Update your `application.yml` with the client configuration, if needed:
+7. Update your `application.yml` with the client configuration, if needed (or do ```export KEYCLOAK_CLIENTID=*************```):
    ```yaml
    spring:
      security:
@@ -467,6 +474,7 @@ The Management Node Module uses Maven for dependency management and build automa
 
 2. Build the application:
    ```bash
+   cd management-node # change to suit, if following along do cd ../ (from the docker folder)
    mvn clean package
    ```
    This command will:
@@ -489,21 +497,22 @@ Note: if running with defaults export your passwords first.eg
    export POSTGRES_PASSWORD=keycloak_db_user_password
    export CERTPASSWORD=changeit
    ```
+Ensure certificate files are in the management-node root directory (if not already there from certificate setup):
+```sh
+cp docker/keystore.jks keystore.jks
+cp docker/truststore.jks truststore.jks
+cp docker/client.crt client.crt
+cp docker/client.key client.key
+```
 
 1. Using the Java command:
    ```bash
-   java -jar target/management-node-0.0.1.jar
+   java -jar target/management-node-1.0.1.jar
    ```
 
 2. Using the Maven Spring Boot plugin:
    ```bash
    mvn spring-boot:run
-   ```
-
-3. Using Docker:
-   ```bash
-   docker build -t management-node -f docker/Dockerfile .
-   docker run -p 8090:8090 management-node
    ```
 
 The application will be available at https://localhost:8090
@@ -512,8 +521,30 @@ The application will be available at https://localhost:8090
 
 Once you have a valid token, you can test the protected API endpoints:
 
+**Step 1: Get your Keycloak Client Secret**
+
+1. Log in to Keycloak admin console at https://localhost:8443/admin
+2. Navigate to: **management-node realm** → **Clients** → **management-node** → **Credentials** tab
+3. Copy the **Client Secret** value (you can regenerate if needed)
+4. Export it as an environment variable:
+
 ```bash
-cd docker # or where your certificates are stored
+export KEYCLOAK_CLIENTID=your_actual_client_secret_here
+```
+
+**Step 2: Get a JWT token and test the endpoints**
+
+```bash
+# Navigate to the root directory where client certificates are located
+cd /path/to/management-node
+
+# First, verify you can get a token (view the full response)
+curl -k https://localhost:8443/realms/management-node/protocol/openid-connect/token \
+  --cert client.crt --key client.key \
+  --data-urlencode 'grant_type=client_credentials' \
+  --data-urlencode 'client_id=management-node' \
+  --data-urlencode "client_secret=${KEYCLOAK_CLIENTID}" \
+  -s | jq .
 
 # Get a token and save it
 TOKEN=$(curl -k https://localhost:8443/realms/management-node/protocol/openid-connect/token \
@@ -522,6 +553,11 @@ TOKEN=$(curl -k https://localhost:8443/realms/management-node/protocol/openid-co
   --data-urlencode 'client_id=management-node' \
   --data-urlencode "client_secret=${KEYCLOAK_CLIENTID}" \
   -s | jq -r '.access_token')
+
+# Verify the token was retrieved successfully
+echo "Token (first 50 chars): ${TOKEN:0:50}..."
+
+# If TOKEN is "null", check that KEYCLOAK_CLIENTID is set correctly
 
 # Test the producer endpoint
 curl -k https://localhost:8090/api/v1/configuration/producer \
@@ -638,16 +674,48 @@ The current configuration aims for 80% code coverage across instructions, branch
 ### Common Issues
 
 1. **Certificate Issues**:
+   - **Error**: `SSL routines::sslv3 alert certificate unknown`
+     - The server doesn't trust your client certificate
+     - **Solution**: Regenerate the truststore with the current rootCA:
+       ```bash
+       cd docker
+       mv truststore.jks truststore.jks.old
+       keytool -import -trustcacerts -noprompt -alias ca -file rootCA.crt -keystore truststore.jks -storepass changeit
+       # Rebuild the Docker image
+       cd ..
+       docker build -t management-node -f docker/Dockerfile-dev .
+       ```
    - Ensure that the paths to the keystore and truststore files in application.yml are correct
    - Verify that the certificate passwords match those in the .env file
+   - If certificates were regenerated, ensure the truststore contains the new rootCA
 
 2. **Keycloak Connection Issues**:
-   - Check that Keycloak is running and accessible at https://localhost:8443
-   - Verify that the client secret in application.yml matches the one in Keycloak
+   - **Error**: `Connection refused` when trying to reach Keycloak
+     - **From Docker container**: Use `--network keycloak_keycloak_network` and connect to `keycloak:8443`
+     - **From host machine**: Use `localhost:8443` or `host.docker.internal:8443`
+   - **Error**: Token validation fails with 401 Unauthorized
+     - Check that `KEYCLOAK_CLIENTID` environment variable is set correctly
+     - Verify the token contains required roles using: `echo $TOKEN | cut -d. -f2 | base64 -d | jq .`
+   - Check that Keycloak is running: `docker ps | grep keycloak`
+   - Verify that the client secret matches the one in Keycloak admin console
 
 3. **Database Connection Issues**:
-   - Ensure PostgreSQL is running and accessible
-   - Check the database credentials in the .env file
+   - **Error**: `Connection to localhost:5433 refused` from Docker container
+     - Docker containers can't reach `localhost` on the host
+     - **Solution**: Use `--network keycloak_keycloak_network` and `jdbc:postgresql://keycloak-postgres-1:5432/keycloak_db`
+     - Or use `--add-host=host.docker.internal:host-gateway` and `jdbc:postgresql://host.docker.internal:5433/keycloak_db`
+   - Ensure PostgreSQL is running: `docker ps | grep postgres`
+   - Check the database credentials match those in the .env file
+   - Verify you can connect manually: `docker exec -it keycloak-postgres-1 psql -U keycloak_db_user -d keycloak_db`
+
+4. **Docker-Specific Issues**:
+   - **Issue**: Management Node can't fetch JWKs from Keycloak (SSL trust issues between containers)
+     - **Symptom**: Application starts but JWT validation fails silently
+     - **Workaround**: Run the application directly using Maven instead of Docker for local development
+     - **Alternative**: Use docker-compose to set up all services with proper SSL configuration
+   - **Issue**: Environment variables not being passed to container
+     - Ensure you use `-e` flag for each environment variable
+     - Verify with: `docker exec <container_id> env | grep VARIABLE_NAME`
 
 ## Security Considerations
 

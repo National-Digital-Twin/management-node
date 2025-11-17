@@ -19,7 +19,7 @@ spring:
     enabled: true
     baseline-on-migrate: true
   datasource:
-    url: jdbc:postgresql://localhost:5433/keycloak_db # this is setup to get you going easily using the Keycloak postgress so change this !
+    url: jdbc:postgresql://localhost:5433/keycloak_db # this is setup to get you going easily using the Keycloak postgres so change this !
     username: ${POSTGRES_USER:keycloak_db_user}
     password: ${POSTGRES_PASSWORD:}
   jpa:
@@ -35,11 +35,11 @@ server:
   ssl:
     key-alias: localhost
     key-store: keystore.jks #path to ssl keystore
-    key-store-type: JKS
+    key-store-type: PKCS12
     key-store-password: ${CERTPASSWORD:} #keystore password
     trust-store: truststore.jks #path to ssl truststore
     trust-store-password: ${CERTPASSWORD:} #truststore password
-    trust-store-type: JKS
+    trust-store-type: PKCS12
     client-auth: need
     enabled: true # disable for local development Only
 application:

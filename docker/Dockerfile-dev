@@ -24,14 +24,14 @@ ARG JAR_FILE
 
 WORKDIR /app
 
-# Create directory for certificates
-RUN mkdir -p /app/docker
-
 # Copy application jar from build stage and certificates
 COPY --from=build /build/target/${JAR_FILE} /app/app.jar
-COPY docker/keystore.jks /app/docker/keystore.jks
-COPY docker/truststore.jks /app/docker/truststore.jks
+COPY docker/keystore.jks /app/keystore.jks
+COPY docker/truststore.jks /app/truststore.jks
 
-EXPOSE 8443
+# Set default certificate password
+ENV CERTPASSWORD=changeit
+
+EXPOSE 8090
 
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
