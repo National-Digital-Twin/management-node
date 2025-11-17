@@ -62,6 +62,7 @@ jobs:
         with:
           args: >
             -Dsonar.projectKey=National-Digital-Twin_management-node
+            -Dsonar.organization=National Digital Twin programme
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
       - name: Upload JaCoCo HTML report
         if: always()
