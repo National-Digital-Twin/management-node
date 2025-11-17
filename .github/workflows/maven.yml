@@ -55,7 +55,7 @@ jobs:
         env:
           GH_PACKAGES_PAT: ${{ secrets.GH_PACKAGES_PAT }}
         run: ./mvnw $MAVEN_CLI_OPTS verify
-      - name: run code coverage
+      - name: Code Coverage
         env:
           GH_PACKAGES_PAT: ${{ secrets.GH_PACKAGES_PAT }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
