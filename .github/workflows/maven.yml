@@ -56,7 +56,7 @@ jobs:
           GH_PACKAGES_PAT: ${{ secrets.GH_PACKAGES_PAT }}
         run: ./mvnw $MAVEN_CLI_OPTS verify
       - name: SonarCloud analysis
-        uses: sonarsource/sonarcloud-github-action@v2
+        uses: sonarsource/sonarqube-scan-action@v4.2.2
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
