@@ -57,6 +57,8 @@ jobs:
         run: ./mvnw $MAVEN_CLI_OPTS verify
       - name: SonarCloud analysis
         uses: sonarsource/sonarcloud-github-action@v2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
             -Dsonar.projectKey=management-node
