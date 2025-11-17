@@ -61,7 +61,6 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -Dsonar.projectKey=management-node
             -Dsonar.organization=National-Digital-Twin
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
       - name: Upload JaCoCo HTML report
