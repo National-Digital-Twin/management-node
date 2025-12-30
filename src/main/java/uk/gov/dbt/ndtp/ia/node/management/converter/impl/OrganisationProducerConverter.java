@@ -106,10 +106,10 @@ public class OrganisationProducerConverter implements EntityDtoConverter<Produce
                 if (dataProviderDTO.getProducerId() == null && dto.getId() != null) {
                     dataProviderDTO.setProducerId(dto.getId());
                 }
-                Product dataProvider = productConverter.toEntity(dataProviderDTO);
-                if (dataProvider != null) {
-                    dataProvider.setProducer(entity);
-                    dataProviders.add(dataProvider);
+                Product product = productConverter.toEntity(dataProviderDTO);
+                if (product != null) {
+                    product.setProducer(entity);
+                    dataProviders.add(product);
                 }
             });
             entity.setProducts(dataProviders);

@@ -31,5 +31,11 @@ public class ProductDTO {
 
     private String topic;
 
+    private String type;
+
+    private String source;
+
     private List<ConsumerDTO> consumers = new ArrayList<>();
+
+    private List<ProductConsumerDTO> configurations = new ArrayList<>();
 }

@@ -77,7 +77,7 @@ Import client key and crt in keystore to create the "certificate" to be used in 
     curl --location 'https://localhost:8443/realms/management-node/protocol/openid-connect/token' \
 --cert client.crt --key client.key \
 --header 'Content-Type: application/x-www-form-urlencoded' \
---data-urlencode 'client_id=ztf-client' \
+--data-urlencode 'client_id=management-node' \
 --data-urlencode 'grant_type=client_credentials'
 
 ---

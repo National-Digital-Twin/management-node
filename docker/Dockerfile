@@ -6,7 +6,9 @@
 #
 
 # Build stage
+ARG JAR_FILE=management-node-1.0.1.jar
 FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
+ARG JAR_FILE
 WORKDIR /build
 
 # Copy the project files
@@ -20,6 +22,7 @@ RUN mvn -B clean package -DskipTests
 # Name this stage so CI can target it (matches --target management-node in workflows)
 FROM eclipse-temurin:21-jdk-alpine AS management-node
 
+
 # Create non-root user and group
 RUN addgroup -S app && adduser -S -G app -u 10001 app
 
@@ -32,6 +35,7 @@ RUN mkdir -p /app/docker /app/logs /app/tmp && chown -R app:app /app
 # Use the jar name provided by CI via --build-arg JAR_NAME="management-node-${version}"
 ARG JAR_NAME
 COPY --from=build /build/target/${JAR_NAME}.jar /app/app.jar
+
 RUN chown app:app /app/app.jar
 
 # Use non-root user from here on

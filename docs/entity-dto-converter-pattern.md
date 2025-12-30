@@ -1,5 +1,11 @@
 # Entity-DTO Converter Pattern
 
+**Repository:** `management-node`  
+**Description:** `Provides APIs to be accessed by Consumer and Producer Federators for the purpose of dynamic configuration management `  
+**SPDX-License-Identifier:** `Apache-2.0 AND OGL-UK-3.0 `
+
+
+
 ## Overview
 
 This document describes the Entity-DTO converter pattern implemented in the project to handle conversions between entity objects and DTOs (Data Transfer Objects). This pattern replaces the previous approach of using ModelMapper for these conversions.

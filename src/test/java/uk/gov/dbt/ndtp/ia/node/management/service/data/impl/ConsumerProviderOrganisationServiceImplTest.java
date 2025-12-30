@@ -29,7 +29,7 @@ import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.ProductConsumer;
 import uk.gov.dbt.ndtp.ia.node.management.persistency.repository.ProductConsumerRepository;
 
 @ExtendWith(MockitoExtension.class)
-public class ConsumerProviderOrganisationServiceImplTest {
+class ConsumerProviderOrganisationServiceImplTest {
 
     @Mock
     private ProductConsumerRepository productConsumerRepository;

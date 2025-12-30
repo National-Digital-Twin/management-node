@@ -138,7 +138,6 @@ class ConsumerServiceImplTest {
         // Arrange
         List<Long> providerIds = List.of(1L, 2L);
         List<Consumer> consumers = List.of(consumer);
-        List<ConsumerDTO> consumerDTOs = List.of(consumerDTO);
 
         when(consumerRepository.findConsumersByProviderIds(providerIds)).thenReturn(consumers);
         when(consumerConverter.toDto(consumer)).thenReturn(consumerDTO);

@@ -27,9 +27,16 @@ public class Product {
     @Column(name = "topic", nullable = false, length = 150)
     private String topic;
 
+    @Column(name = "source", length = 500)
+    private String source;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "producer_id", nullable = false)
     private Producer producer;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_type_id")
+    private ProductType productType;
 
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", referencedColumnName = "id", insertable = false, updatable = false)

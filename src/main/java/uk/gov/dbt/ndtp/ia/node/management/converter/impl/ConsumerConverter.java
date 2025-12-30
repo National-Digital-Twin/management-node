@@ -48,6 +48,8 @@ public class ConsumerConverter implements EntityDtoConverter<Consumer, ConsumerD
                 .name(entity.getName())
                 .orgId(entity.getOrg() != null ? entity.getOrg().getId() : null)
                 .idpClientId(entity.getIdpClientId())
+                .scheduleExpression(entity.getScheduleExpression())
+                .scheduleType(entity.getScheduleType())
                 .build();
 
         // Populate attributes from associated ProductConsumers
@@ -89,7 +91,8 @@ public class ConsumerConverter implements EntityDtoConverter<Consumer, ConsumerD
         entity.setId(dto.getId());
         entity.setName(dto.getName());
         entity.setIdpClientId(dto.getIdpClientId());
-
+        entity.setScheduleExpression(dto.getScheduleExpression());
+        entity.setScheduleType(dto.getScheduleType());
         // Set the organisation if orgId is provided
         if (dto.getOrgId() != null) {
             Organisation organisation =

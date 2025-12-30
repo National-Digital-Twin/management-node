@@ -7,7 +7,6 @@
 package uk.gov.dbt.ndtp.ia.node.management.converter;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Generic interface for converting between entity and DTO objects.
@@ -43,7 +42,7 @@ public interface EntityDtoConverter<E, D> {
         if (entities == null) {
             return List.of();
         }
-        return entities.stream().map(this::toDto).collect(Collectors.toList());
+        return entities.stream().map(this::toDto).toList();
     }
 
     /**
@@ -56,6 +55,6 @@ public interface EntityDtoConverter<E, D> {
         if (dtos == null) {
             return List.of();
         }
-        return dtos.stream().map(this::toEntity).collect(Collectors.toList());
+        return dtos.stream().map(this::toEntity).toList();
     }
 }
