@@ -19,8 +19,9 @@ COPY src ./src
 RUN mvn -B clean package -DskipTests
 
 # Runtime stage
-FROM eclipse-temurin:21-jdk-alpine
-ARG JAR_FILE
+# Name this stage so CI can target it (matches --target management-node in workflows)
+FROM eclipse-temurin:21-jdk-alpine AS management-node
+
 
 # Create non-root user and group
 RUN addgroup -S app && adduser -S -G app -u 10001 app
@@ -31,7 +32,10 @@ WORKDIR /app
 RUN mkdir -p /app/docker /app/logs /app/tmp && chown -R app:app /app
 
 # Copy application jar from build stage
-COPY --from=build /build/target/${JAR_FILE} /app/app.jar
+# Use the jar name provided by CI via --build-arg JAR_NAME="management-node-${version}"
+ARG JAR_NAME
+COPY --from=build /build/target/${JAR_NAME}.jar /app/app.jar
+
 RUN chown app:app /app/app.jar
 
 # Use non-root user from here on
