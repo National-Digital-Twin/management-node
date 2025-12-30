@@ -1,0 +1,1547 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Management Node is is the control plane for the National Digital Twin Programme IA Node Net.">
+      
+      
+        <meta name="author" content="NDTP">
+      
+      
+        <link rel="canonical" href="https://docs.ndtp.co.uk/develop/Index/">
+      
+      
+        <link rel="prev" href="../DATABASE_SCHEMA/">
+      
+      
+        <link rel="next" href="../JACOCO_COVERAGE/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/android-chrome-512x512-1-150x150.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>README - Management-Node Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#readme" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Management-Node Documentation" class="md-header__button md-logo" aria-label="Management-Node Documentation" data-md-component="logo">
+      
+  <img src="../assets/light-page_header_logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Management-Node Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              README
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Management-Node Documentation" class="md-nav__button md-logo" aria-label="Management-Node Documentation" data-md-component="logo">
+      
+  <img src="../assets/light-page_header_logo.png" alt="logo">
+
+    </a>
+    Management-Node Documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../AUTHENTICATION_REQUIREMENTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Authentication Requirements
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DATABASE_SCHEMA/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Database Schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    README
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    README
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#database-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Database Schema
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Start
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Quick Start">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#run-the-spring-boot-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run the Spring Boot application
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../JACOCO_COVERAGE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JaCoCo Code Coverage Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MOCKITO_USAGE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mockito Testing Tool Usage Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MTLS_CONFIGURATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MTLS Configuration Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../entity-dto-converter-pattern/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entity-DTO Converter Pattern
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../jobs-scheduler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Jobs Scheduler
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#database-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Database Schema
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Start
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Quick Start">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#run-the-spring-boot-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run the Spring Boot application
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="readme">README</h1>
+<p><strong>Repository:</strong> <code>management-node</code><br />
+<strong>Description:</strong> <code>Provides APIs to be accessed by Consumer and Producer Federators for the purpose of dynamic configuration management</code><br />
+<strong>SPDX-License-Identifier:</strong> <code>Apache-2.0 AND OGL-UK-3.0</code></p>
+<hr />
+<h2 id="overview">Overview</h2>
+<p>The Management Node Module is a Spring Boot application that provides APIs to be accessed by Consumer and Producer Federators. It implements a secure communication architecture using Mutual TLS (MTLS) connectivity between Federator instances and itself, as well as establishing zero trust connectivity with Keycloak for authentication and authorization.   </p>
+<hr />
+<h2 id="database-schema">Database Schema</h2>
+<p>For a full description of the database tables, relationships, and constraints, see the Database Schema documentation: <a href="docs/DATABASE_SCHEMA.md">docs/DATABASE_SCHEMA.md</a>.</p>
+<hr />
+<h2 id="prerequisites">Prerequisites</h2>
+<ul>
+<li>Java 21</li>
+<li>Maven 3.9+</li>
+<li>Docker and Docker Compose</li>
+<li>OpenSSL (for certificate generation)</li>
+<li>Keycloak (for authentication and authorization)</li>
+<li>The below assumes your running in Linux - bash, it has been tested under WSL2.</li>
+</ul>
+<hr />
+<h2 id="quick-start">Quick Start</h2>
+<p>Note. see lower for setting up prerequisites for local deployment certs, keycloak etc.</p>
+<h3 id="run-the-spring-boot-application">Run the Spring Boot application</h3>
+<p>This project is a Spring Boot application. You can run it by supplying configuration via either:
+- A default application.yml file, or
+- A profile-specific file application-{profile}.yml and passing the profile argument at startup.</p>
+<p>Quick options:</p>
+<ol>
+<li>Provide a default config:</li>
+<li>Modify src/main/resources/application.yml with your local settings (SSL keystore/truststore, Keycloak client, DB, etc.). See the Configuration and Certificate Setup sections below.</li>
+<li>
+<p>Run: (change to suit your local if different)
+      <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>export POSTGRES_PASSWORD=keycloak_db_user_password
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>export CERTPASSWORD=changeit
+</span></code></pre></div>
+     <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>mvn<span class="w"> </span>spring-boot:run
+</span></code></pre></div>
+     or:
+     <div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>java<span class="w"> </span>-jar<span class="w"> </span>target/management-node-1.0.1.jar
+</span></code></pre></div></p>
+</li>
+<li>
+<p>Use a profile-specific config:</p>
+</li>
+<li>Create src/main/resources/application-local.yml (replace "local" with your profile name) with your settings.</li>
+<li>Run with the profile:
+     <div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>mvn<span class="w"> </span>spring-boot:run<span class="w"> </span>-Dspring-boot.run.profiles<span class="o">=</span><span class="nb">local</span>
+</span></code></pre></div>
+     or:
+     <div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>java<span class="w"> </span>-jar<span class="w"> </span>target/management-node-1.0.1.jar<span class="w"> </span>--spring.profiles.active<span class="o">=</span><span class="nb">local</span>
+</span></code></pre></div></li>
+<li>You can also set the environment variable:
+     <div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">SPRING_PROFILES_ACTIVE</span><span class="o">=</span><span class="nb">local</span>
+</span></code></pre></div></li>
+</ol>
+<p>Notes:
+- Spring Boot will load application.yml and then override with application-{profile}.yml if a profile is active.
+- You may also point to an external YAML using:
+  <div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>java<span class="w"> </span>-jar<span class="w"> </span>target/management-node-0.0.1.jar<span class="w"> </span>--spring.config.location<span class="o">=</span>/path/to/your.yml
+</span></code></pre></div>
+- The application serves HTTPS on port 8090 by default (see server.ssl in configuration).  </p>
+<h1 id="prerequisites-setup">Prerequisites setup</h1>
+<h2 id="certificate-setup">Certificate Setup</h2>
+<p>The Management Node Module implements a zero-trust security architecture using Mutual TLS (MTLS) for secure communication between all components. This section explains why certificates are needed, how to generate them, and where they are used in the system.</p>
+<blockquote>
+<p><strong>Note:</strong> For detailed instructions on configuring MTLS for both Keycloak and the Management Node, see the <a href="docs/MTLS_CONFIGURATION.md">MTLS Configuration Guide</a>.</p>
+</blockquote>
+<h3 id="why-certificates-are-needed">Why Certificates Are Needed</h3>
+<ol>
+<li>
+<p><strong>Zero-Trust Security Model</strong>: The system follows a zero-trust approach where all communications must be authenticated and encrypted, regardless of whether they occur inside or outside the network perimeter.</p>
+</li>
+<li>
+<p><strong>Mutual TLS (MTLS)</strong>: Unlike standard TLS where only the server authenticates itself to the client, MTLS requires both parties to authenticate each other using X.509 certificates.</p>
+</li>
+<li>
+<p><strong>Service-to-Service Authentication</strong>: Certificates provide a secure way for services to verify each other's identity without relying on passwords or API keys.</p>
+</li>
+</ol>
+<h3 id="certificate-types-and-their-purpose">Certificate Types and Their Purpose</h3>
+<p>The system requires several certificate files:</p>
+<ol>
+<li><strong>Private Key (<code>localhost.key</code>)</strong>: </li>
+<li>The private key used to sign and decrypt data</li>
+<li>Must be kept secure and never shared</li>
+<li>
+<p>Used by both Keycloak and the Management Node</p>
+</li>
+<li>
+<p><strong>Certificate (<code>localhost.crt</code>)</strong>: </p>
+</li>
+<li>The public certificate containing the public key</li>
+<li>Shared with other services to verify the identity</li>
+<li>
+<p>Used in both server and client authentication</p>
+</li>
+<li>
+<p><strong>PKCS12 Keystore (<code>localhost.p12</code>)</strong>: </p>
+</li>
+<li>A container format that stores the private key and certificate</li>
+<li>Used primarily for client authentication</li>
+<li>
+<p>Imported by Keycloak for client certificate validation</p>
+</li>
+<li>
+<p><strong>Java Keystore (<code>keystore.jks</code>)</strong>: </p>
+</li>
+<li>Java-specific format for storing the server's private key and certificate</li>
+<li>
+<p>Used by both Keycloak and the Management Node for their TLS endpoints</p>
+</li>
+<li>
+<p><strong>Java Truststore (<code>truststore.jks</code>)</strong>: </p>
+</li>
+<li>Contains certificates that the server trusts</li>
+<li>Used to validate client certificates during MTLS</li>
+</ol>
+<h3 id="step-by-step-certificate-generation">Step-by-Step Certificate Generation</h3>
+<p>For development purposes, follow these steps to generate certificates for mTLS. All passwords used are <code>changeit</code>. When generating these certficates, for the <code>Country Name</code>, you can use the value of 'UK'. All remaining certificate fields can be left to their default values.</p>
+<p>move to the docker folder
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nb">cd</span><span class="w"> </span>docker
+</span></code></pre></div></p>
+<ol>
+<li>
+<p><strong>Generate a Root CA certificate</strong>:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>openssl<span class="w"> </span>req<span class="w"> </span>-x509<span class="w"> </span>-sha256<span class="w"> </span>-days<span class="w"> </span><span class="m">3650</span><span class="w"> </span>-newkey<span class="w"> </span>rsa:4096<span class="w"> </span>-keyout<span class="w"> </span>rootCA.key<span class="w"> </span>-out<span class="w"> </span>rootCA.crt
+</span></code></pre></div>
+   This creates a Root Certificate Authority (CA) that will be used to sign other certificates. The certificate is valid for 10 years (3650 days).</p>
+</li>
+<li>
+<p><strong>Generate a host certificate</strong>:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>openssl<span class="w"> </span>req<span class="w"> </span>-new<span class="w"> </span>-newkey<span class="w"> </span>rsa:4096<span class="w"> </span>-keyout<span class="w"> </span>localhost.key<span class="w"> </span>-out<span class="w"> </span>localhost.csr<span class="w"> </span>-nodes
+</span></code></pre></div>
+   This creates a private key and certificate signing request (CSR) for the host.</p>
+</li>
+<li>
+<p><strong>Sign the host certificate with the Root CA</strong>:</p>
+</li>
+</ol>
+<p>Create a file called <code>localhost.ext</code> file should contain:
+   <div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>authorityKeyIdentifier=keyid,issuer
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>basicConstraints=CA:FALSE
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>subjectAltName = @alt_names
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>[alt_names]
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>DNS.1 = localhost
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>DNS.2 = keycloak
+</span></code></pre></div></p>
+<p><div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>openssl<span class="w"> </span>x509<span class="w"> </span>-req<span class="w"> </span>-CA<span class="w"> </span>rootCA.crt<span class="w"> </span>-CAkey<span class="w"> </span>rootCA.key<span class="w"> </span>-in<span class="w"> </span>localhost.csr<span class="w"> </span>-out<span class="w"> </span>localhost.crt<span class="w"> </span>-days<span class="w"> </span><span class="m">365</span><span class="w"> </span>-CAcreateserial<span class="w"> </span>-extfile<span class="w"> </span>localhost.ext
+</span></code></pre></div>
+   This signs the host CSR with the Root CA, creating a certificate valid for 365 days.</p>
+<p>This configuration specifies that the certificate is valid for both <code>localhost</code> and <code>keycloak</code> hostnames.</p>
+<ol>
+<li>
+<p><strong>Create a PKCS12 keystore for the server</strong>:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>openssl<span class="w"> </span>pkcs12<span class="w"> </span>-export<span class="w"> </span>-out<span class="w"> </span>localhost.p12<span class="w"> </span>-name<span class="w"> </span><span class="s2">&quot;localhost&quot;</span><span class="w"> </span>-inkey<span class="w"> </span>localhost.key<span class="w"> </span>-in<span class="w"> </span>localhost.crt
+</span></code></pre></div>
+   This bundles the host certificate and private key into a PKCS12 format.</p>
+</li>
+<li>
+<p><strong>Create a PEM file for Linux keystore</strong>:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>openssl<span class="w"> </span>pkcs12<span class="w"> </span>-in<span class="w"> </span>localhost.p12<span class="w"> </span>-clcerts<span class="w"> </span>-nokeys<span class="w"> </span>-out<span class="w"> </span>localhost.pem
+</span></code></pre></div>
+   This extracts the certificate (without the private key) in PEM format.</p>
+</li>
+<li>
+<p><strong>Add the Root CA to the Trust Store</strong>:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>keytool<span class="w"> </span>-importcert<span class="w"> </span>-file<span class="w"> </span>rootCA.crt<span class="w"> </span>-alias<span class="w"> </span>clientca<span class="w"> </span>-keystore<span class="w"> </span>localhost.p12<span class="w"> </span>-storetype<span class="w"> </span>PKCS12<span class="w"> </span>-storepass<span class="w"> </span>changeit
+</span></code></pre></div>
+   This adds the Root CA to the trust store so that clients signed by this CA will be trusted.</p>
+</li>
+<li>
+<p><strong>Generate a client certificate</strong>:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>openssl<span class="w"> </span>req<span class="w"> </span>-new<span class="w"> </span>-newkey<span class="w"> </span>rsa:4096<span class="w"> </span>-nodes<span class="w"> </span>-keyout<span class="w"> </span>client.key<span class="w"> </span>-out<span class="w"> </span>client.csr
+</span></code></pre></div>
+   This creates a private key and CSR for the client.</p>
+</li>
+<li>
+<p><strong>Sign the client certificate with the Root CA</strong>:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>openssl<span class="w"> </span>x509<span class="w"> </span>-req<span class="w"> </span>-CA<span class="w"> </span>rootCA.crt<span class="w"> </span>-CAkey<span class="w"> </span>rootCA.key<span class="w"> </span>-in<span class="w"> </span>client.csr<span class="w"> </span>-out<span class="w"> </span>client.crt<span class="w"> </span>-days<span class="w"> </span><span class="m">365</span><span class="w"> </span>-CAcreateserial
+</span></code></pre></div>
+   This signs the client CSR with the Root CA, creating a certificate valid for 365 days.</p>
+</li>
+<li>
+<p><strong>Create a PKCS12 keystore for the client</strong>:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>openssl<span class="w"> </span>pkcs12<span class="w"> </span>-export<span class="w"> </span>-out<span class="w"> </span>client.p12<span class="w"> </span>-name<span class="w"> </span><span class="s2">&quot;client&quot;</span><span class="w"> </span>-inkey<span class="w"> </span>client.key<span class="w"> </span>-in<span class="w"> </span>client.crt
+</span></code></pre></div>
+   This bundles the client certificate and private key into a PKCS12 format for use in browsers or client applications.</p>
+</li>
+<li>
+<p><strong>Create a Java keystore using keytool</strong> (PKCS12 format, compatible with modern Java):
+    <div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>keytool<span class="w"> </span>-importkeystore<span class="w"> </span>-destkeystore<span class="w"> </span>keystore.jks<span class="w"> </span>-deststoretype<span class="w"> </span>PKCS12<span class="w"> </span>-srckeystore<span class="w"> </span>localhost.p12<span class="w"> </span>-srcstoretype<span class="w"> </span>PKCS12<span class="w"> </span>-alias<span class="w"> </span><span class="s2">&quot;localhost&quot;</span>
+</span></code></pre></div>
+    This converts the PKCS12 keystore. Note: Despite the <code>.jks</code> extension, modern keytool creates PKCS12 format by default, which is more secure and standard.</p>
+</li>
+<li>
+<p><strong>Create a Java truststore using keytool</strong> (PKCS12 format):
+    <div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>keytool<span class="w"> </span>-import<span class="w"> </span>-trustcacerts<span class="w"> </span>-noprompt<span class="w"> </span>-alias<span class="w"> </span>ca<span class="w"> </span>-ext<span class="w"> </span><span class="nv">san</span><span class="o">=</span>dns:localhost,ip:127.0.0.1<span class="w"> </span>-file<span class="w"> </span>rootCA.crt<span class="w"> </span>-keystore<span class="w"> </span>truststore.jks<span class="w"> </span>-storetype<span class="w"> </span>PKCS12
+</span></code></pre></div>
+    This creates a truststore containing the Root CA certificate in PKCS12 format, which will be used to validate client certificates.</p>
+</li>
+<li>
+<p><strong>Verify the truststore</strong> (optional but recommended):
+    <div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>keytool<span class="w"> </span>-list<span class="w"> </span>-keystore<span class="w"> </span>truststore.jks<span class="w"> </span>-storetype<span class="w"> </span>PKCS12<span class="w"> </span>-storepass<span class="w"> </span>changeit
+</span></code></pre></div>
+    This verifies that the Root CA is properly imported into the truststore.</p>
+</li>
+</ol>
+<h3 id="certificate-placement-and-configuration">Certificate Placement and Configuration</h3>
+<p>After generating the certificates, place them in the appropriate locations:</p>
+<p>if you've followed the above then follow with
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>cp<span class="w"> </span>keystore.jks<span class="w"> </span>../keystore.jks
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>cp<span class="w"> </span>truststore.jks<span class="w"> </span>../truststore.jks
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>cp<span class="w"> </span>client.crt<span class="w"> </span>../client.crt
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>cp<span class="w"> </span>client.key<span class="w"> </span>../client.key
+</span></code></pre></div></p>
+<p>This copies the necessary files to the management-node root directory:
+- <code>keystore.jks</code> - Used by the Management Node application for its SSL server configuration
+- <code>truststore.jks</code> - Used by the Management Node to validate client certificates
+- <code>client.crt</code> and <code>client.key</code> - Used for testing API endpoints with mTLS authentication</p>
+<ol>
+<li><strong>For Keycloak</strong>:</li>
+<li>All the certificate files should now be in the <code>docker</code> directory</li>
+<li>The docker-compose.yml maps these files into the Keycloak container:
+     <div class="language-yaml highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="nt">volumes</span><span class="p">:</span>
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./localhost.p12:/keystores/localhost.p12</span>
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./localhost.crt:/cert/localhost.crt</span>
+</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./localhost.key:/key/localhost.key</span>
+</span><span id="__span-22-5"><a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./keystore.jks:/cert/keystore.jks</span>
+</span><span id="__span-22-6"><a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./truststore.jks:/cert/truststore.jks</span>
+</span></code></pre></div></li>
+<li>
+<p>Keycloak uses these certificates for:</p>
+<ul>
+<li>Securing its HTTPS endpoint (port 8443)</li>
+<li>Validating client certificates for MTLS</li>
+</ul>
+</li>
+<li>
+<p><strong>For Management Node</strong>:</p>
+</li>
+<li>The application.yml references the certificate files:
+     <div class="language-yaml highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="nt">server</span><span class="p">:</span>
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="w">  </span><span class="nt">ssl</span><span class="p">:</span>
+</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="w">    </span><span class="nt">key-store</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/keystore.jks</span>
+</span><span id="__span-23-4"><a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="w">    </span><span class="nt">key-store-password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">changeit</span>
+</span><span id="__span-23-5"><a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a><span class="w">    </span><span class="nt">trust-store</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/truststore.jks</span>
+</span><span id="__span-23-6"><a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a><span class="w">    </span><span class="nt">trust-store-password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">changeit</span>
+</span></code></pre></div></li>
+<li>
+<p>When running in Docker, the Dockerfile copies these files:
+     <div class="language-dockerfile highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="k">COPY</span><span class="w"> </span>docker/keystore.jks<span class="w"> </span>/app/docker/keystore.jks
+</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="k">COPY</span><span class="w"> </span>docker/truststore.jks<span class="w"> </span>/app/docker/truststore.jks
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>For Client Applications</strong>:</p>
+</li>
+<li>Client applications connecting to the Management Node need:<ul>
+<li>The client certificate and private key for authentication</li>
+<li>The server's certificate in their truststore to validate the server</li>
+</ul>
+</li>
+</ol>
+<h3 id="certificate-password-management">Certificate Password Management</h3>
+<p>All certificates use the password "changeit" for development. These passwords are configured in the <code>.env</code> file:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>SERVER_SSL_KEY_STORE_PASSWORD=changeit
+</span><span id="__span-25-2"><a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>SERVER_SSL_TRUST_STORE_PASSWORD=changeit
+</span><span id="__span-25-3"><a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a>KC_HTTPS_KEY_STORE_PASSWORD=changeit
+</span><span id="__span-25-4"><a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a>KC_HTTPS_TRUST_STORE_PASSWORD=changeit
+</span><span id="__span-25-5"><a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a>KC_SPI_TRUSTSTORE_FILE_PASSWORD=changeit
+</span></code></pre></div>
+<p>For production environments, use strong, unique passwords and secure storage solutions for managing these credentials.</p>
+<h3 id="setting-up-keycloak-with-docker-compose">Setting up Keycloak with Docker Compose</h3>
+<h4 id="configuration">Configuration</h4>
+<p>For Docker Compose to run successfully, you need to create a <code>.env</code> file in the <code>docker/keycloak</code> directory with the following settings:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>POSTGRES_DB=keycloak_db
+</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>POSTGRES_USER=keycloak_db_user
+</span><span id="__span-26-3"><a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a>POSTGRES_PASSWORD=keycloak_db_user_password
+</span><span id="__span-26-4"><a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a>KEYCLOAK_ADMIN=admin
+</span><span id="__span-26-5"><a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a>KEYCLOAK_ADMIN_PASSWORD=password
+</span><span id="__span-26-6"><a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a>KC_HOSTNAME_STRICT_BACKCHANNEL=false
+</span><span id="__span-26-7"><a id="__codelineno-26-7" name="__codelineno-26-7" href="#__codelineno-26-7"></a>SERVER_SSL_KEY_STORE_PASSWORD=changeit
+</span><span id="__span-26-8"><a id="__codelineno-26-8" name="__codelineno-26-8" href="#__codelineno-26-8"></a>SERVER_SSL_TRUST_STORE_PASSWORD=changeit
+</span><span id="__span-26-9"><a id="__codelineno-26-9" name="__codelineno-26-9" href="#__codelineno-26-9"></a>KC_HTTPS_KEY_STORE_PASSWORD=changeit
+</span><span id="__span-26-10"><a id="__codelineno-26-10" name="__codelineno-26-10" href="#__codelineno-26-10"></a>KC_HTTPS_TRUST_STORE_PASSWORD=changeit
+</span><span id="__span-26-11"><a id="__codelineno-26-11" name="__codelineno-26-11" href="#__codelineno-26-11"></a>KC_SPI_TRUSTSTORE_FILE_PASSWORD=changeit
+</span><span id="__span-26-12"><a id="__codelineno-26-12" name="__codelineno-26-12" href="#__codelineno-26-12"></a>KC_HOSTNAME=keycloak
+</span><span id="__span-26-13"><a id="__codelineno-26-13" name="__codelineno-26-13" href="#__codelineno-26-13"></a>KC_HOSTNAME_PORT=8080
+</span><span id="__span-26-14"><a id="__codelineno-26-14" name="__codelineno-26-14" href="#__codelineno-26-14"></a>KC_HTTP_ENABLED=false
+</span><span id="__span-26-15"><a id="__codelineno-26-15" name="__codelineno-26-15" href="#__codelineno-26-15"></a>KC_HOSTNAME_STRICT_HTTPS=false
+</span><span id="__span-26-16"><a id="__codelineno-26-16" name="__codelineno-26-16" href="#__codelineno-26-16"></a>KC_HEALTH_ENABLED=true
+</span><span id="__span-26-17"><a id="__codelineno-26-17" name="__codelineno-26-17" href="#__codelineno-26-17"></a>KC_DB=postgres
+</span><span id="__span-26-18"><a id="__codelineno-26-18" name="__codelineno-26-18" href="#__codelineno-26-18"></a>KC_HTTPS_CLIENT_AUTH=required
+</span><span id="__span-26-19"><a id="__codelineno-26-19" name="__codelineno-26-19" href="#__codelineno-26-19"></a>KC_HTTPS_ENABLED=true
+</span><span id="__span-26-20"><a id="__codelineno-26-20" name="__codelineno-26-20" href="#__codelineno-26-20"></a>KC_HTTPS_PORT=8443
+</span><span id="__span-26-21"><a id="__codelineno-26-21" name="__codelineno-26-21" href="#__codelineno-26-21"></a>KC_LOG_LEVEL=INFO
+</span></code></pre></div>
+<p>This file contains essential environment variables for both PostgreSQL and Keycloak configuration. You can modify these values as needed for your environment, but make sure to create this file before running Docker Compose.</p>
+<p>The application uses Keycloak for authentication and authorization. Follow these steps to set up Keycloak using Docker Compose:</p>
+<ol>
+<li>
+<p>Navigate to the docker directory:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="nb">cd</span><span class="w"> </span>docker
+</span></code></pre></div></p>
+</li>
+<li>
+<p>Make sure you have the required certificates in the <code>docker</code> directory: see lower for local certificate setup </p>
+</li>
+<li><code>keystore.jks</code> - Java keystore containing the server certificate</li>
+<li><code>truststore.jks</code> - Java truststore containing trusted certificates</li>
+<li><code>localhost.p12</code> - PKCS12 keystore for client authentication</li>
+<li><code>localhost.crt</code> - Certificate file</li>
+<li><code>localhost.key</code> - Private key file</li>
+</ol>
+<p>If you need to generate these files for development, see the <a href="#certificate-setup">Certificate Setup</a> section.</p>
+<ol>
+<li>
+<p>Start Keycloak and PostgreSQL using Docker Compose:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>keycloak/docker-compose.yml<span class="w"> </span>up<span class="w"> </span>-d
+</span></code></pre></div></p>
+</li>
+<li>
+<p>Verify that Keycloak is running:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>curl<span class="w"> </span>-k<span class="w"> </span>https://localhost:8443/realms/master<span class="w"> </span>--cert<span class="w"> </span>client.crt<span class="w"> </span>--key<span class="w"> </span>client.key
+</span></code></pre></div>
+   Note: Keycloak takes about 30 seconds before its ready and the client certificate files (client.crt and client.key) must be in your current directory or provide the full path. If you haven't generated these yet, see the <a href="#certificate-setup">Certificate Setup</a> section.</p>
+</li>
+<li>
+<p>Access the Keycloak admin console at https://localhost:8443/admin with the following credentials:</p>
+</li>
+<li>Username: <code>admin</code></li>
+<li>Password: <code>password</code>  </li>
+</ol>
+<p>you will need to first import your client.p12 digital certificate file into your local browser, else the request will be rejected. for chrome got to. settings - privacy and security - security - manage certificate - manage imported certificates from windows, then import and follow the wizard.</p>
+<h2 id="keycloak-realm-setup">Keycloak Realm Setup</h2>
+<p>After starting Keycloak, you need to set up a realm for the Management Node. You can either import the pre-configured realm or create it manually. To access the administrative interface at https://localhost:8443/admin.</p>
+<h3 id="option-1-import-the-realm-configuration-recommended">Option 1: Import the Realm Configuration (Recommended)</h3>
+<ol>
+<li>Log in to the Keycloak admin console at https://localhost:8443/admin</li>
+<li>Click on the dropdown menu in the top-left corner (it may show "master" if you haven't created any realms yet)</li>
+<li>Click on "Manage realms"</li>
+<li>Click on "Create Realm" or "Add realm" button</li>
+<li>Click on the "Browse" or "Select file" button</li>
+<li>Navigate to and select the <code>docker/keycloak/management-node.json</code> file from your project directory</li>
+<li>Click "Create" or "Import"</li>
+<li>After the import is complete, verify that the <code>management-node</code> realm has been created with all the necessary configurations</li>
+<li>Note the client secret for the <code>management-node</code> client from the Credentials tab (Clients → management-node → Credentials) click regenerate, view it and do <code>export KEYCLOAK_CLIENTID=*************</code> </li>
+</ol>
+<h3 id="option-2-manual-configuration">Option 2: Manual Configuration</h3>
+<p>If you prefer to set up the realm manually (updated for Keycloak 26.x):</p>
+<ol>
+<li>
+<p>Log in to the Keycloak admin console at https://localhost:8443/admin (you must first import your <code>client.p12</code> certificate into your browser)</p>
+</li>
+<li>
+<p>Create a new realm named <code>management-node</code> by clicking the dropdown in the top-left and selecting "Create Realm"</p>
+</li>
+<li>
+<p>Create the <strong>management-node</strong> client:</p>
+</li>
+<li>In the <code>management-node</code> realm, navigate to <strong>Clients</strong> and click <strong>Create client</strong></li>
+</ol>
+<p><strong>General Settings:</strong>
+   - Client type: <code>OpenID Connect</code>
+   - Client ID: <code>management-node</code>
+   - Click <strong>Next</strong></p>
+<p><strong>Capability config:</strong>
+   - Client authentication: <strong>ON</strong> (this enables the Credentials tab)
+   - Authorization: <strong>OFF</strong>
+   - Authentication flow: Enable <strong>Service accounts roles</strong>
+   - Click <strong>Next</strong></p>
+<p><strong>Login settings:</strong>
+   - Valid redirect URIs: <code>https://localhost:8090/*</code>
+   - Valid post logout redirect URIs: <code>+</code>
+   - Web origins: <code>+</code>
+   - Click <strong>Save</strong></p>
+<ol>
+<li>
+<p>After saving, click on the <strong>Credentials</strong> tab to view the <strong>Client Secret</strong>. Copy this secret.</p>
+</li>
+<li>
+<p>Add required roles to the client:</p>
+</li>
+<li>Go to <strong>Clients</strong> → <strong>management-node</strong> → <strong>Roles</strong> tab</li>
+<li>
+<p>Click <strong>Create role</strong> and add the following roles:</p>
+<ul>
+<li><code>access_producer_configurations</code></li>
+<li><code>access_consumer_configurations</code></li>
+</ul>
+</li>
+<li>
+<p>Assign roles to the service account:</p>
+</li>
+<li>Go to <strong>Clients</strong> → <strong>management-node</strong> → <strong>Service accounts roles</strong> tab</li>
+<li>Click <strong>Assign role</strong></li>
+<li>Filter by <strong>Filter by clients</strong> and select <strong>management-node</strong></li>
+<li>Check both roles (<code>access_producer_configurations</code> and <code>access_consumer_configurations</code>)</li>
+<li>
+<p>Click <strong>Assign</strong></p>
+</li>
+<li>
+<p>Update your <code>application.yml</code> with the client configuration, if needed (or do <code>export KEYCLOAK_CLIENTID=*************</code>):
+   <div class="language-yaml highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="nt">spring</span><span class="p">:</span>
+</span><span id="__span-30-2"><a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a><span class="w">  </span><span class="nt">security</span><span class="p">:</span>
+</span><span id="__span-30-3"><a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a><span class="w">    </span><span class="nt">oauth2</span><span class="p">:</span>
+</span><span id="__span-30-4"><a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a><span class="w">      </span><span class="nt">resourceserver</span><span class="p">:</span>
+</span><span id="__span-30-5"><a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a><span class="w">        </span><span class="nt">jwt</span><span class="p">:</span>
+</span><span id="__span-30-6"><a id="__codelineno-30-6" name="__codelineno-30-6" href="#__codelineno-30-6"></a><span class="w">          </span><span class="nt">issuer-uri</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://localhost:8443/realms/management-node</span>
+</span><span id="__span-30-7"><a id="__codelineno-30-7" name="__codelineno-30-7" href="#__codelineno-30-7"></a><span class="w">          </span><span class="nt">jwk-set-uri</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://localhost:8443/realms/management-node/protocol/openid-connect/certs</span>
+</span><span id="__span-30-8"><a id="__codelineno-30-8" name="__codelineno-30-8" href="#__codelineno-30-8"></a><span class="w">          </span><span class="nt">audiences</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">account</span>
+</span><span id="__span-30-9"><a id="__codelineno-30-9" name="__codelineno-30-9" href="#__codelineno-30-9"></a><span class="w">        </span><span class="nt">opaquetoken</span><span class="p">:</span>
+</span><span id="__span-30-10"><a id="__codelineno-30-10" name="__codelineno-30-10" href="#__codelineno-30-10"></a><span class="w">          </span><span class="nt">introspection-uri</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://localhost:8443/realms/management-node/protocol/openid-connect/token/introspect</span>
+</span><span id="__span-30-11"><a id="__codelineno-30-11" name="__codelineno-30-11" href="#__codelineno-30-11"></a><span class="w">          </span><span class="nt">client-secret</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;client_secret=${KEYCLOAK_CLIENTID}&quot;</span>
+</span><span id="__span-30-12"><a id="__codelineno-30-12" name="__codelineno-30-12" href="#__codelineno-30-12"></a><span class="w">          </span><span class="nt">client-id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">management-node</span>
+</span><span id="__span-30-13"><a id="__codelineno-30-13" name="__codelineno-30-13" href="#__codelineno-30-13"></a>
+</span><span id="__span-30-14"><a id="__codelineno-30-14" name="__codelineno-30-14" href="#__codelineno-30-14"></a><span class="nt">application</span><span class="p">:</span>
+</span><span id="__span-30-15"><a id="__codelineno-30-15" name="__codelineno-30-15" href="#__codelineno-30-15"></a><span class="w">  </span><span class="nt">client</span><span class="p">:</span>
+</span><span id="__span-30-16"><a id="__codelineno-30-16" name="__codelineno-30-16" href="#__codelineno-30-16"></a><span class="w">    </span><span class="nt">key-store</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keystore.jks</span>
+</span><span id="__span-30-17"><a id="__codelineno-30-17" name="__codelineno-30-17" href="#__codelineno-30-17"></a><span class="w">    </span><span class="nt">key-store-password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">changeit</span>
+</span><span id="__span-30-18"><a id="__codelineno-30-18" name="__codelineno-30-18" href="#__codelineno-30-18"></a><span class="w">    </span><span class="nt">keyStoreType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">JKS</span>
+</span></code></pre></div></p>
+</li>
+</ol>
+<h3 id="testing-mtls-connectivity">Testing mTLS connectivity:</h3>
+<p>Once Keycloak is running and configured, you can test mTLS connectivity using the command below. Replace <code>YOUR_CLIENT_SECRET</code> with the actual client secret obtained from the Keycloak Credentials tab (step 4 in the manual configuration above):</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">KEYCLOAK_CLIENTID</span><span class="o">=</span><span class="sb">`</span>YOUR_CLIENT_SECRET<span class="sb">`</span>
+</span><span id="__span-31-2"><a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a><span class="nb">cd</span><span class="w"> </span>docker<span class="w"> </span><span class="c1"># or where your certificates are stored</span>
+</span></code></pre></div>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-32-1"><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a>curl<span class="w"> </span>-k<span class="w"> </span>--location<span class="w"> </span><span class="s1">&#39;https://localhost:8443/realms/management-node/protocol/openid-connect/token&#39;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-32-2"><a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a><span class="w">  </span>--cert<span class="w"> </span>client.crt<span class="w"> </span>--key<span class="w"> </span>client.key<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-32-3"><a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a><span class="w">  </span>--header<span class="w"> </span><span class="s1">&#39;Content-Type: application/x-www-form-urlencoded&#39;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-32-4"><a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a><span class="w">  </span>--data-urlencode<span class="w"> </span><span class="s1">&#39;client_id=management-node&#39;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-32-5"><a id="__codelineno-32-5" name="__codelineno-32-5" href="#__codelineno-32-5"></a><span class="w">  </span>--data-urlencode<span class="w"> </span><span class="s2">&quot;client_secret=</span><span class="si">${</span><span class="nv">KEYCLOAK_CLIENTID</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-32-6"><a id="__codelineno-32-6" name="__codelineno-32-6" href="#__codelineno-32-6"></a><span class="w">  </span>--data-urlencode<span class="w"> </span><span class="s1">&#39;grant_type=client_credentials&#39;</span>
+</span></code></pre></div>
+<p><strong>Note:</strong> The <code>client_secret</code> parameter is required for confidential clients. Make sure to:
+1. Copy the client secret from Keycloak admin console: <strong>Clients</strong> → <strong>management-node</strong> → <strong>Credentials</strong> tab
+2. Replace <code>YOUR_CLIENT_SECRET</code> in the command above with your actual client secret
+3. The <code>-k</code> flag is used to allow insecure connections (self-signed certificates) for development</p>
+<p>If successful, you will receive a JSON response containing an <code>access_token</code> with the assigned roles in the <code>resource_access.management-node.roles</code> claim. This confirms that:
+- ✅ mTLS authentication is working (client certificates validated)
+- ✅ Client credentials are correct
+- ✅ Keycloak is properly configured
+- ✅ Service account has the required roles assigned</p>
+<h2 id="building-and-running-with-maven">Building and Running with Maven</h2>
+<h3 id="building-the-application">Building the Application</h3>
+<p>The Management Node Module uses Maven for dependency management and build automation. To build the application:</p>
+<ol>
+<li>
+<p>Ensure you have Maven 3.9+ installed:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-33-1"><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>mvn<span class="w"> </span>--version
+</span></code></pre></div></p>
+</li>
+<li>
+<p>Build the application:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-34-1"><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a><span class="nb">cd</span><span class="w"> </span>management-node<span class="w"> </span><span class="c1"># change to suit, if following along do cd ../ (from the docker folder)</span>
+</span><span id="__span-34-2"><a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a>mvn<span class="w"> </span>clean<span class="w"> </span>package
+</span></code></pre></div>
+   This command will:</p>
+</li>
+<li>Clean the target directory</li>
+<li>Compile the source code</li>
+<li>Run the tests</li>
+<li>
+<p>Package the application into a JAR file</p>
+</li>
+<li>
+<p>If you want to skip tests during the build:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-35-1"><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a>mvn<span class="w"> </span>clean<span class="w"> </span>package<span class="w"> </span>-DskipTests
+</span></code></pre></div></p>
+</li>
+</ol>
+<h3 id="running-the-application">Running the Application</h3>
+<p>After building, you can run the application using one of these methods:  </p>
+<p>Note: if running with defaults export your passwords first.eg
+   <div class="language-text highlight"><pre><span></span><code><span id="__span-36-1"><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a>export POSTGRES_PASSWORD=keycloak_db_user_password
+</span><span id="__span-36-2"><a id="__codelineno-36-2" name="__codelineno-36-2" href="#__codelineno-36-2"></a>export CERTPASSWORD=changeit
+</span></code></pre></div>
+Ensure certificate files are in the management-node root directory (if not already there from certificate setup):
+<div class="language-sh highlight"><pre><span></span><code><span id="__span-37-1"><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a>cp<span class="w"> </span>docker/keystore.jks<span class="w"> </span>keystore.jks
+</span><span id="__span-37-2"><a id="__codelineno-37-2" name="__codelineno-37-2" href="#__codelineno-37-2"></a>cp<span class="w"> </span>docker/truststore.jks<span class="w"> </span>truststore.jks
+</span><span id="__span-37-3"><a id="__codelineno-37-3" name="__codelineno-37-3" href="#__codelineno-37-3"></a>cp<span class="w"> </span>docker/client.crt<span class="w"> </span>client.crt
+</span><span id="__span-37-4"><a id="__codelineno-37-4" name="__codelineno-37-4" href="#__codelineno-37-4"></a>cp<span class="w"> </span>docker/client.key<span class="w"> </span>client.key
+</span></code></pre></div></p>
+<ol>
+<li>
+<p>Using the Java command:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-38-1"><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a>java<span class="w"> </span>-jar<span class="w"> </span>target/management-node-1.0.1.jar
+</span></code></pre></div></p>
+</li>
+<li>
+<p>Using the Maven Spring Boot plugin:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-39-1"><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a>mvn<span class="w"> </span>spring-boot:run
+</span></code></pre></div></p>
+</li>
+</ol>
+<p>The application will be available at https://localhost:8090</p>
+<h3 id="testing-api-endpoints">Testing API Endpoints:</h3>
+<p>Once you have a valid token, you can test the protected API endpoints:</p>
+<p><strong>Step 1: Get your Keycloak Client Secret</strong></p>
+<ol>
+<li>Log in to Keycloak admin console at https://localhost:8443/admin</li>
+<li>Navigate to: <strong>management-node realm</strong> → <strong>Clients</strong> → <strong>management-node</strong> → <strong>Credentials</strong> tab</li>
+<li>Copy the <strong>Client Secret</strong> value (you can regenerate if needed)</li>
+<li>Export it as an environment variable:</li>
+</ol>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-40-1"><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">KEYCLOAK_CLIENTID</span><span class="o">=</span>your_actual_client_secret_here
+</span></code></pre></div>
+<p><strong>Step 2: Get a JWT token and test the endpoints</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-41-1"><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a><span class="c1"># Navigate to the root directory where client certificates are located</span>
+</span><span id="__span-41-2"><a id="__codelineno-41-2" name="__codelineno-41-2" href="#__codelineno-41-2"></a><span class="nb">cd</span><span class="w"> </span>/path/to/management-node
+</span><span id="__span-41-3"><a id="__codelineno-41-3" name="__codelineno-41-3" href="#__codelineno-41-3"></a>
+</span><span id="__span-41-4"><a id="__codelineno-41-4" name="__codelineno-41-4" href="#__codelineno-41-4"></a><span class="c1"># First, verify you can get a token (view the full response)</span>
+</span><span id="__span-41-5"><a id="__codelineno-41-5" name="__codelineno-41-5" href="#__codelineno-41-5"></a>curl<span class="w"> </span>-k<span class="w"> </span>https://localhost:8443/realms/management-node/protocol/openid-connect/token<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-41-6"><a id="__codelineno-41-6" name="__codelineno-41-6" href="#__codelineno-41-6"></a><span class="w">  </span>--cert<span class="w"> </span>client.crt<span class="w"> </span>--key<span class="w"> </span>client.key<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-41-7"><a id="__codelineno-41-7" name="__codelineno-41-7" href="#__codelineno-41-7"></a><span class="w">  </span>--data-urlencode<span class="w"> </span><span class="s1">&#39;grant_type=client_credentials&#39;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-41-8"><a id="__codelineno-41-8" name="__codelineno-41-8" href="#__codelineno-41-8"></a><span class="w">  </span>--data-urlencode<span class="w"> </span><span class="s1">&#39;client_id=management-node&#39;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-41-9"><a id="__codelineno-41-9" name="__codelineno-41-9" href="#__codelineno-41-9"></a><span class="w">  </span>--data-urlencode<span class="w"> </span><span class="s2">&quot;client_secret=</span><span class="si">${</span><span class="nv">KEYCLOAK_CLIENTID</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-41-10"><a id="__codelineno-41-10" name="__codelineno-41-10" href="#__codelineno-41-10"></a><span class="w">  </span>-s<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>.
+</span><span id="__span-41-11"><a id="__codelineno-41-11" name="__codelineno-41-11" href="#__codelineno-41-11"></a>
+</span><span id="__span-41-12"><a id="__codelineno-41-12" name="__codelineno-41-12" href="#__codelineno-41-12"></a><span class="c1"># Get a token and save it</span>
+</span><span id="__span-41-13"><a id="__codelineno-41-13" name="__codelineno-41-13" href="#__codelineno-41-13"></a><span class="nv">TOKEN</span><span class="o">=</span><span class="k">$(</span>curl<span class="w"> </span>-k<span class="w"> </span>https://localhost:8443/realms/management-node/protocol/openid-connect/token<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-41-14"><a id="__codelineno-41-14" name="__codelineno-41-14" href="#__codelineno-41-14"></a><span class="w">  </span>--cert<span class="w"> </span>client.crt<span class="w"> </span>--key<span class="w"> </span>client.key<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-41-15"><a id="__codelineno-41-15" name="__codelineno-41-15" href="#__codelineno-41-15"></a><span class="w">  </span>--data-urlencode<span class="w"> </span><span class="s1">&#39;grant_type=client_credentials&#39;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-41-16"><a id="__codelineno-41-16" name="__codelineno-41-16" href="#__codelineno-41-16"></a><span class="w">  </span>--data-urlencode<span class="w"> </span><span class="s1">&#39;client_id=management-node&#39;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-41-17"><a id="__codelineno-41-17" name="__codelineno-41-17" href="#__codelineno-41-17"></a><span class="w">  </span>--data-urlencode<span class="w"> </span><span class="s2">&quot;client_secret=</span><span class="si">${</span><span class="nv">KEYCLOAK_CLIENTID</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-41-18"><a id="__codelineno-41-18" name="__codelineno-41-18" href="#__codelineno-41-18"></a><span class="w">  </span>-s<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>-r<span class="w"> </span><span class="s1">&#39;.access_token&#39;</span><span class="k">)</span>
+</span><span id="__span-41-19"><a id="__codelineno-41-19" name="__codelineno-41-19" href="#__codelineno-41-19"></a>
+</span><span id="__span-41-20"><a id="__codelineno-41-20" name="__codelineno-41-20" href="#__codelineno-41-20"></a><span class="c1"># Verify the token was retrieved successfully</span>
+</span><span id="__span-41-21"><a id="__codelineno-41-21" name="__codelineno-41-21" href="#__codelineno-41-21"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Token (first 50 chars): </span><span class="si">${</span><span class="nv">TOKEN</span><span class="p">:</span><span class="nv">0</span><span class="p">:</span><span class="nv">50</span><span class="si">}</span><span class="s2">...&quot;</span>
+</span><span id="__span-41-22"><a id="__codelineno-41-22" name="__codelineno-41-22" href="#__codelineno-41-22"></a>
+</span><span id="__span-41-23"><a id="__codelineno-41-23" name="__codelineno-41-23" href="#__codelineno-41-23"></a><span class="c1"># If TOKEN is &quot;null&quot;, check that KEYCLOAK_CLIENTID is set correctly</span>
+</span><span id="__span-41-24"><a id="__codelineno-41-24" name="__codelineno-41-24" href="#__codelineno-41-24"></a>
+</span><span id="__span-41-25"><a id="__codelineno-41-25" name="__codelineno-41-25" href="#__codelineno-41-25"></a><span class="c1"># Test the producer endpoint</span>
+</span><span id="__span-41-26"><a id="__codelineno-41-26" name="__codelineno-41-26" href="#__codelineno-41-26"></a>curl<span class="w"> </span>-k<span class="w"> </span>https://localhost:8090/api/v1/configuration/producer<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-41-27"><a id="__codelineno-41-27" name="__codelineno-41-27" href="#__codelineno-41-27"></a><span class="w">  </span>--cert<span class="w"> </span>client.crt<span class="w"> </span>--key<span class="w"> </span>client.key<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-41-28"><a id="__codelineno-41-28" name="__codelineno-41-28" href="#__codelineno-41-28"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>.
+</span><span id="__span-41-29"><a id="__codelineno-41-29" name="__codelineno-41-29" href="#__codelineno-41-29"></a>
+</span><span id="__span-41-30"><a id="__codelineno-41-30" name="__codelineno-41-30" href="#__codelineno-41-30"></a><span class="c1"># Test the consumer endpoint</span>
+</span><span id="__span-41-31"><a id="__codelineno-41-31" name="__codelineno-41-31" href="#__codelineno-41-31"></a>curl<span class="w"> </span>-k<span class="w"> </span>https://localhost:8090/api/v1/configuration/consumer<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-41-32"><a id="__codelineno-41-32" name="__codelineno-41-32" href="#__codelineno-41-32"></a><span class="w">  </span>--cert<span class="w"> </span>client.crt<span class="w"> </span>--key<span class="w"> </span>client.key<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-41-33"><a id="__codelineno-41-33" name="__codelineno-41-33" href="#__codelineno-41-33"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>.
+</span></code></pre></div>
+<p>Expected response (if no configuration data exists yet):
+<div class="language-json highlight"><pre><span></span><code><span id="__span-42-1"><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a><span class="p">{</span>
+</span><span id="__span-42-2"><a id="__codelineno-42-2" name="__codelineno-42-2" href="#__codelineno-42-2"></a><span class="w">  </span><span class="nt">&quot;clientId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;management-node&quot;</span><span class="p">,</span>
+</span><span id="__span-42-3"><a id="__codelineno-42-3" name="__codelineno-42-3" href="#__codelineno-42-3"></a><span class="w">  </span><span class="nt">&quot;producers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
+</span><span id="__span-42-4"><a id="__codelineno-42-4" name="__codelineno-42-4" href="#__codelineno-42-4"></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p>If successful, you will receive a JSON response containing an <code>access_token</code>. This confirms that:
+- ✅ mTLS authentication is working (client certificates validated)
+- ✅ Client credentials are correct
+- ✅ Keycloak is properly configured</p>
+<h3 id="using-profile-specific-configuration-files">Using Profile-Specific Configuration Files</h3>
+<p>Spring Boot supports profile-specific property files, which are essential for local development environments where you need to configure sensitive information like passwords and URLs without committing them to version control.</p>
+<h4 id="why-use-profile-specific-configuration">Why Use Profile-Specific Configuration?</h4>
+<ol>
+<li><strong>Security</strong>: Keep sensitive information like passwords and API keys out of version control</li>
+<li><strong>Environment-Specific Settings</strong>: Configure different settings for development, testing, and production</li>
+<li><strong>Local Development</strong>: Each developer can have their own configuration without affecting others</li>
+</ol>
+<h4 id="creating-a-profile-specific-yaml-file">Creating a Profile-Specific YAML File</h4>
+<ol>
+<li>
+<p>Create a file named <code>application-{profile}.yml</code> in the <code>src/main/resources</code> directory, where <code>{profile}</code> is the name of your profile (e.g., <code>application-local.yml</code> for a "local" profile)</p>
+</li>
+<li>
+<p>Add your environment-specific configuration to this file. For example:</p>
+</li>
+</ol>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-43-1"><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a><span class="nt">spring</span><span class="p">:</span>
+</span><span id="__span-43-2"><a id="__codelineno-43-2" name="__codelineno-43-2" href="#__codelineno-43-2"></a><span class="w">  </span><span class="nt">security</span><span class="p">:</span>
+</span><span id="__span-43-3"><a id="__codelineno-43-3" name="__codelineno-43-3" href="#__codelineno-43-3"></a><span class="w">    </span><span class="nt">oauth2</span><span class="p">:</span>
+</span><span id="__span-43-4"><a id="__codelineno-43-4" name="__codelineno-43-4" href="#__codelineno-43-4"></a><span class="w">      </span><span class="nt">resourceserver</span><span class="p">:</span>
+</span><span id="__span-43-5"><a id="__codelineno-43-5" name="__codelineno-43-5" href="#__codelineno-43-5"></a><span class="w">        </span><span class="nt">opaquetoken</span><span class="p">:</span>
+</span><span id="__span-43-6"><a id="__codelineno-43-6" name="__codelineno-43-6" href="#__codelineno-43-6"></a><span class="w">          </span><span class="nt">client-secret</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">your-client-secret-here</span>
+</span><span id="__span-43-7"><a id="__codelineno-43-7" name="__codelineno-43-7" href="#__codelineno-43-7"></a><span class="w">          </span><span class="nt">client-id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ztf-client</span>
+</span><span id="__span-43-8"><a id="__codelineno-43-8" name="__codelineno-43-8" href="#__codelineno-43-8"></a><span class="w">  </span><span class="nt">datasource</span><span class="p">:</span>
+</span><span id="__span-43-9"><a id="__codelineno-43-9" name="__codelineno-43-9" href="#__codelineno-43-9"></a><span class="w">    </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">your-database-password-here</span>
+</span><span id="__span-43-10"><a id="__codelineno-43-10" name="__codelineno-43-10" href="#__codelineno-43-10"></a>
+</span><span id="__span-43-11"><a id="__codelineno-43-11" name="__codelineno-43-11" href="#__codelineno-43-11"></a><span class="nt">server</span><span class="p">:</span>
+</span><span id="__span-43-12"><a id="__codelineno-43-12" name="__codelineno-43-12" href="#__codelineno-43-12"></a><span class="w">  </span><span class="nt">ssl</span><span class="p">:</span>
+</span><span id="__span-43-13"><a id="__codelineno-43-13" name="__codelineno-43-13" href="#__codelineno-43-13"></a><span class="w">    </span><span class="nt">key-store-password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">your-keystore-password-here</span>
+</span><span id="__span-43-14"><a id="__codelineno-43-14" name="__codelineno-43-14" href="#__codelineno-43-14"></a><span class="w">    </span><span class="nt">trust-store-password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">your-truststore-password-here</span>
+</span><span id="__span-43-15"><a id="__codelineno-43-15" name="__codelineno-43-15" href="#__codelineno-43-15"></a><span class="w">    </span><span class="nt">key-store</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/your/local/keystore.jks</span>
+</span><span id="__span-43-16"><a id="__codelineno-43-16" name="__codelineno-43-16" href="#__codelineno-43-16"></a><span class="w">    </span><span class="nt">trust-store</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/your/local/truststore.jks</span>
+</span></code></pre></div>
+<ol>
+<li>Make sure not to commit this file to version control by adding it to your <code>.gitignore</code> file:
+   <div class="language-text highlight"><pre><span></span><code><span id="__span-44-1"><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a>src/main/resources/application-local.yml
+</span></code></pre></div></li>
+</ol>
+<h4 id="running-the-application-with-a-specific-profile">Running the Application with a Specific Profile</h4>
+<p>To run the application with your profile, use one of these methods:</p>
+<ol>
+<li>
+<p>Using the Java command with the <code>spring.profiles.active</code> parameter:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-45-1"><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a>java<span class="w"> </span>-jar<span class="w"> </span>target/management-node-0.0.1.jar<span class="w"> </span>--spring.profiles.active<span class="o">=</span><span class="nb">local</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p>Using the Maven Spring Boot plugin:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-46-1"><a id="__codelineno-46-1" name="__codelineno-46-1" href="#__codelineno-46-1"></a>mvn<span class="w"> </span>spring-boot:run<span class="w"> </span>-Dspring-boot.run.profiles<span class="o">=</span><span class="nb">local</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p>Using environment variables:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-47-1"><a id="__codelineno-47-1" name="__codelineno-47-1" href="#__codelineno-47-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">SPRING_PROFILES_ACTIVE</span><span class="o">=</span><span class="nb">local</span>
+</span><span id="__span-47-2"><a id="__codelineno-47-2" name="__codelineno-47-2" href="#__codelineno-47-2"></a>java<span class="w"> </span>-jar<span class="w"> </span>target/management-node-0.0.1.jar
+</span></code></pre></div></p>
+</li>
+<li>
+<p>When running with Docker, you can pass the profile as an environment variable:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-48-1"><a id="__codelineno-48-1" name="__codelineno-48-1" href="#__codelineno-48-1"></a>docker<span class="w"> </span>run<span class="w"> </span>-p<span class="w"> </span><span class="m">8090</span>:8090<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;SPRING_PROFILES_ACTIVE=local&quot;</span><span class="w"> </span>management-node
+</span></code></pre></div></p>
+</li>
+</ol>
+<p>The application will load both the default <code>application.yml</code> and your profile-specific <code>application-local.yml</code>, with the latter overriding any duplicate properties.</p>
+<h2 id="code-coverage-with-jacoco">Code Coverage with JaCoCo</h2>
+<p>The project uses JaCoCo for code coverage analysis. For detailed information about the JaCoCo setup, thresholds, and recommendations, see the <a href="docs/JACOCO_COVERAGE.md">JaCoCo Coverage Documentation</a>.</p>
+<h3 id="running-code-coverage">Running Code Coverage</h3>
+<p>To generate code coverage reports:</p>
+<ol>
+<li>
+<p>Run the Maven verify goal:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-49-1"><a id="__codelineno-49-1" name="__codelineno-49-1" href="#__codelineno-49-1"></a>mvn<span class="w"> </span>clean<span class="w"> </span>verify
+</span></code></pre></div></p>
+</li>
+<li>
+<p>The JaCoCo report will be generated in the <code>target/site/jacoco</code> directory.</p>
+</li>
+<li>
+<p>Open <code>target/site/jacoco/index.html</code> in a web browser to view the detailed coverage report.</p>
+</li>
+</ol>
+<p>The current configuration aims for 80% code coverage across instructions, branches, lines, methods, and 50% for classes.</p>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="common-issues">Common Issues</h3>
+<ol>
+<li><strong>Certificate Issues</strong>:</li>
+<li><strong>Error</strong>: <code>SSL routines::sslv3 alert certificate unknown</code><ul>
+<li>The server doesn't trust your client certificate</li>
+<li><strong>Solution</strong>: Regenerate the truststore with the current rootCA:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-50-1"><a id="__codelineno-50-1" name="__codelineno-50-1" href="#__codelineno-50-1"></a><span class="nb">cd</span><span class="w"> </span>docker
+</span><span id="__span-50-2"><a id="__codelineno-50-2" name="__codelineno-50-2" href="#__codelineno-50-2"></a>mv<span class="w"> </span>truststore.jks<span class="w"> </span>truststore.jks.old
+</span><span id="__span-50-3"><a id="__codelineno-50-3" name="__codelineno-50-3" href="#__codelineno-50-3"></a>keytool<span class="w"> </span>-import<span class="w"> </span>-trustcacerts<span class="w"> </span>-noprompt<span class="w"> </span>-alias<span class="w"> </span>ca<span class="w"> </span>-file<span class="w"> </span>rootCA.crt<span class="w"> </span>-keystore<span class="w"> </span>truststore.jks<span class="w"> </span>-storepass<span class="w"> </span>changeit
+</span><span id="__span-50-4"><a id="__codelineno-50-4" name="__codelineno-50-4" href="#__codelineno-50-4"></a><span class="c1"># Rebuild the Docker image</span>
+</span><span id="__span-50-5"><a id="__codelineno-50-5" name="__codelineno-50-5" href="#__codelineno-50-5"></a><span class="nb">cd</span><span class="w"> </span>..
+</span><span id="__span-50-6"><a id="__codelineno-50-6" name="__codelineno-50-6" href="#__codelineno-50-6"></a>docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>management-node<span class="w"> </span>-f<span class="w"> </span>docker/Dockerfile-dev<span class="w"> </span>.
+</span></code></pre></div></li>
+</ul>
+</li>
+<li>Ensure that the paths to the keystore and truststore files in application.yml are correct</li>
+<li>Verify that the certificate passwords match those in the .env file</li>
+<li>
+<p>If certificates were regenerated, ensure the truststore contains the new rootCA</p>
+</li>
+<li>
+<p><strong>Keycloak Connection Issues</strong>:</p>
+</li>
+<li><strong>Error</strong>: <code>Connection refused</code> when trying to reach Keycloak<ul>
+<li><strong>From Docker container</strong>: Use <code>--network keycloak_keycloak_network</code> and connect to <code>keycloak:8443</code></li>
+<li><strong>From host machine</strong>: Use <code>localhost:8443</code> or <code>host.docker.internal:8443</code></li>
+</ul>
+</li>
+<li><strong>Error</strong>: Token validation fails with 401 Unauthorized<ul>
+<li>Check that <code>KEYCLOAK_CLIENTID</code> environment variable is set correctly</li>
+<li>Verify the token contains required roles using: <code>echo $TOKEN | cut -d. -f2 | base64 -d | jq .</code></li>
+</ul>
+</li>
+<li>Check that Keycloak is running: <code>docker ps | grep keycloak</code></li>
+<li>
+<p>Verify that the client secret matches the one in Keycloak admin console</p>
+</li>
+<li>
+<p><strong>Database Connection Issues</strong>:</p>
+</li>
+<li><strong>Error</strong>: <code>Connection to localhost:5433 refused</code> from Docker container<ul>
+<li>Docker containers can't reach <code>localhost</code> on the host</li>
+<li><strong>Solution</strong>: Use <code>--network keycloak_keycloak_network</code> and <code>jdbc:postgresql://keycloak-postgres-1:5432/keycloak_db</code></li>
+<li>Or use <code>--add-host=host.docker.internal:host-gateway</code> and <code>jdbc:postgresql://host.docker.internal:5433/keycloak_db</code></li>
+</ul>
+</li>
+<li>Ensure PostgreSQL is running: <code>docker ps | grep postgres</code></li>
+<li>Check the database credentials match those in the .env file</li>
+<li>
+<p>Verify you can connect manually: <code>docker exec -it keycloak-postgres-1 psql -U keycloak_db_user -d keycloak_db</code></p>
+</li>
+<li>
+<p><strong>Docker-Specific Issues</strong>:</p>
+</li>
+<li><strong>Issue</strong>: Management Node can't fetch JWKs from Keycloak (SSL trust issues between containers)<ul>
+<li><strong>Symptom</strong>: Application starts but JWT validation fails silently</li>
+<li><strong>Workaround</strong>: Run the application directly using Maven instead of Docker for local development</li>
+<li><strong>Alternative</strong>: Use docker-compose to set up all services with proper SSL configuration</li>
+</ul>
+</li>
+<li><strong>Issue</strong>: Environment variables not being passed to container<ul>
+<li>Ensure you use <code>-e</code> flag for each environment variable</li>
+<li>Verify with: <code>docker exec &lt;container_id&gt; env | grep VARIABLE_NAME</code></li>
+</ul>
+</li>
+</ol>
+<h2 id="security-considerations">Security Considerations</h2>
+<p>This setup implements a zero-trust security model with:
+- MTLS for all service-to-service communication
+- JWT-based authentication and authorization via Keycloak
+- HTTPS for all endpoints
+- Client certificate authentication</p>
+<p>For production deployments, consider:
+- Using properly signed certificates from a trusted CA
+- Implementing network segmentation
+- Regularly rotating secrets and certificates
+- Setting up monitoring and alerting for security events</p>
+<h2 id="api-documentation">API Documentation</h2>
+<p>The project includes interactive API documentation powered by Springdoc OpenAPI (OAS 3.1). This exposes both a human-friendly Swagger UI and machine-readable OpenAPI definitions.</p>
+<p>How to access locally (default settings):
+- Swagger UI: https://localhost:8090/swagger-ui.html 
+- OpenAPI JSON: https://localhost:8090/v3/api-docs</p>
+<p>Notes
+- HTTPS: The application serves over HTTPS by default (see server.ssl in application.yml). If you use development certificates, your browser may warn about trust; proceed after trusting the dev CA as described in Certificate Setup.
+- Security: The security configuration explicitly permits unauthenticated access to the documentation endpoints (/v3/api-docs/<strong>, /swagger-ui/</strong>, /swagger-ui.html) while keeping all other endpoints protected via OAuth2 Resource Server (JWT). See src/main/java/.../config/SecurityConfig.java for details.
+- Port/environment: If you run on a different port or behind a reverse proxy, adjust the base URL accordingly.</p>
+<p>How Springdoc OpenAPI works in this project
+- Auto-scanning: The springdoc-openapi-starter-webmvc-ui dependency scans Spring MVC controllers at startup and automatically builds an OpenAPI 3.1 specification from your request mappings, parameters, request/response bodies, and status codes.
+- Annotations (optional but recommended):
+  - @Operation(summary = "...", description = "...") adds summaries, descriptions, and operation-level metadata.
+  - @Tag(name = "...") groups endpoints in the UI.
+  - @Parameter, @Schema, @ApiResponse add fine-grained control over params, models, and responses.
+- Security schema: Because this app is an OAuth2 Resource Server (JWT), you can declare a bearerAuth security scheme to document Authorization: Bearer <token>. Example:</p>
+<p>@io.swagger.v3.oas.annotations.security.SecurityScheme(
+      name = "bearerAuth",
+      type = io.swagger.v3.oas.annotations.enums.SecuritySchemeType.HTTP,
+      scheme = "bearer",
+      bearerFormat = "JWT"
+  )</p>
+<p>Then add @SecurityRequirement(name = "bearerAuth") on secured controllers or operations.
+- Global metadata: You can set title, version, and contact details using @OpenAPIDefinition on a @Configuration class if desired.</p>
+<h2 id="authentication-requirements">Authentication Requirements</h2>
+<p>All protected endpoints require JWT bearer tokens. Tokens must:
+- Include the audience (aud) claim with value <code>account</code> (default Keycloak audience for service accounts).
+- Contain a <code>resource_access</code> claim with client-specific roles under <code>resource_access.management-node.roles</code>.</p>
+<p><strong>Required Client Roles:</strong>
+- <code>access_producer_configurations</code> - Required to access <code>/api/v1/configuration/producer</code> endpoint
+- <code>access_consumer_configurations</code> - Required to access <code>/api/v1/configuration/consumer</code> endpoint</p>
+<p><strong>Token Structure Example:</strong>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-51-1"><a id="__codelineno-51-1" name="__codelineno-51-1" href="#__codelineno-51-1"></a><span class="p">{</span>
+</span><span id="__span-51-2"><a id="__codelineno-51-2" name="__codelineno-51-2" href="#__codelineno-51-2"></a><span class="w">  </span><span class="nt">&quot;aud&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;account&quot;</span><span class="p">,</span>
+</span><span id="__span-51-3"><a id="__codelineno-51-3" name="__codelineno-51-3" href="#__codelineno-51-3"></a><span class="w">  </span><span class="nt">&quot;resource_access&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-51-4"><a id="__codelineno-51-4" name="__codelineno-51-4" href="#__codelineno-51-4"></a><span class="w">    </span><span class="nt">&quot;management-node&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-51-5"><a id="__codelineno-51-5" name="__codelineno-51-5" href="#__codelineno-51-5"></a><span class="w">      </span><span class="nt">&quot;roles&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-51-6"><a id="__codelineno-51-6" name="__codelineno-51-6" href="#__codelineno-51-6"></a><span class="w">        </span><span class="s2">&quot;access_producer_configurations&quot;</span><span class="p">,</span>
+</span><span id="__span-51-7"><a id="__codelineno-51-7" name="__codelineno-51-7" href="#__codelineno-51-7"></a><span class="w">        </span><span class="s2">&quot;access_consumer_configurations&quot;</span>
+</span><span id="__span-51-8"><a id="__codelineno-51-8" name="__codelineno-51-8" href="#__codelineno-51-8"></a><span class="w">      </span><span class="p">]</span>
+</span><span id="__span-51-9"><a id="__codelineno-51-9" name="__codelineno-51-9" href="#__codelineno-51-9"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-51-10"><a id="__codelineno-51-10" name="__codelineno-51-10" href="#__codelineno-51-10"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-51-11"><a id="__codelineno-51-11" name="__codelineno-51-11" href="#__codelineno-51-11"></a><span class="w">  </span><span class="nt">&quot;client_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;management-node&quot;</span>
+</span><span id="__span-51-12"><a id="__codelineno-51-12" name="__codelineno-51-12" href="#__codelineno-51-12"></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p>These roles must be:
+1. Created as client roles in the Keycloak <code>management-node</code> client
+2. Assigned to the service account of the <code>management-node</code> client</p>
+<p>Read the full details, examples, and Keycloak mapping guidance in <a href="docs/AUTHENTICATION_REQUIREMENTS.md">Authentication Requirements</a>.</p>
+<h2 id="public-funding-acknowledgment">Public Funding Acknowledgment</h2>
+<p>This repository has been developed with public funding as part of the National Digital Twin Programme (NDTP), a UK Government initiative. NDTP, alongside its partners, has invested in this work to advance open, secure, and reusable digital twin technologies for any organisation, whether from the public or private sector, irrespective of size.</p>
+<h2 id="license">License</h2>
+<p>This repository contains both source code and documentation, which are covered by different licenses:
+- <strong>Code:</strong> Developed and maintained by National Digital Twin Programme. Licensed under the Apache License 2.0.
+- <strong>Documentation:</strong> Licensed under the Open Government Licence v3.0.<br />
+  See <code>LICENSE.md</code>, <code>OGL_LICENCE.md</code>, and <code>NOTICE.md</code> for details.</p>
+<h2 id="security-and-responsible-disclosure">Security and Responsible Disclosure</h2>
+<p>We take security seriously. If you believe you have found a security vulnerability in this repository, please follow our responsible disclosure process outlined in <code>SECURITY.md</code>.</p>
+<h2 id="software-bill-of-materials-sbom">Software Bill of Materials (SBOM)</h2>
+<p>This project provides a Software Bill of Materials (SBOM) to help users and integrators understand its dependencies.</p>
+<h3 id="current-sbom">Current SBOM</h3>
+<p>Download the <a href="https://github.com/National-digital-twin/management-node/dependency-graph/sbom">latest SBOM for this codebase</a> to view the current list of components used in this repository.</p>
+<h2 id="contributing">Contributing</h2>
+<p>We welcome contributions that align with the Programme’s objectives. Please read our <code>CONTRIBUTING.md</code> guidelines before submitting pull requests.</p>
+<h2 id="acknowledgements">Acknowledgements</h2>
+<p>This repository has benefited from collaboration with various organisations. For a list of acknowledgments, see <code>ACKNOWLEDGEMENTS.md</code>.</p>
+<h2 id="support-and-contact">Support and Contact</h2>
+<p>For questions or support, check our Issues or contact the NDTP team on ndtp@businessandtrade.gov.uk.    </p>
+<p><strong>Maintained by the National Digital Twin Programme (NDTP).</strong> <br />
+© Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally attributed to the Department for Business and Trade (UK) as the governing entityright 2025. This work has been developed by the National Digital Twin Programme and is legally attributed to the Department for Business and Trade (UK) as the governing entity.</p>
+
+
+
+
+
+
+
+  
+    
+  
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="December 30, 2025 15:12:18 UTC">December 30, 2025</span>
+  </span>
+
+    
+    
+    
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      &copy;Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally attributed to the Department for Business and Trade (UK) as the governing entity.  
+
+    </div>
+  
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["content.code.annotate", "content.code.copy", "content.code.select", "content.tooltips", "navigation.indexes", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "search.share", "navigation.instant", "navigation.instant.prefetch", "navigation.instant", "navigation.instant.progress", "navigation.path", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
