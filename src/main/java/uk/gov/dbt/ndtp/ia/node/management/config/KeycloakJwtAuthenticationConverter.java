@@ -85,7 +85,7 @@ public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, Abstra
      * @return JwtToken containing the introspection data
      * @throws TokenIntrospectionException If the introspection request fails or returns invalid data
      */
-    private JwtToken performTokenIntrospection(String tokenValue,String clientId) throws TokenIntrospectionException {
+    private JwtToken performTokenIntrospection(String tokenValue, String clientId) throws TokenIntrospectionException {
         try {
             // Prepare headers for the introspection request
             HttpHeaders headers = new HttpHeaders();
@@ -127,15 +127,15 @@ public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, Abstra
     @Override
     public AbstractAuthenticationToken convert(Jwt jwt) {
         try {
-            String client_id = jwt.getClaimAsString(CLAIM_AZP);
-            log.debug("Converting JWT to authentication token:{}", client_id);
+            String clientId = jwt.getClaimAsString(CLAIM_AZP);
+            log.debug("Converting JWT to authentication token:{}", clientId);
             // Perform token introspection
-            JwtToken introspectionData = performTokenIntrospection(jwt.getTokenValue(),client_id);
+            JwtToken introspectionData = performTokenIntrospection(jwt.getTokenValue(), clientId);
 
             // Extract authorities from the introspection data
             Collection<GrantedAuthority> authorities = extractAuthoritiesFromIntrospection(introspectionData);
 
-            // Extract client_id from introspection data
+            // Extract clientId from introspection data
             String tokenClientId = extractClientIdFromIntrospection(introspectionData);
 
             // Extract subject from introspection data
