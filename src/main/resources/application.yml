@@ -5,13 +5,13 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://localhost:8443/realms/management-node
-          jwk-set-uri: https://localhost:8443/realms/management-node/protocol/openid-connect/certs
-          audiences: account
+          issuer-uri: https://localhost:8443/realms/mng-node
+          jwk-set-uri: https://localhost:8443/realms/mng-node/protocol/openid-connect/certs
+          audiences: management-node
         opaquetoken:
-          introspection-uri: https://localhost:8443/realms/management-node/protocol/openid-connect/token/introspect
-          client-secret: ${KEYCLOAK_CLIENTID:} # Client secret from keycloak
-          client-id: management-node # MANAGEMENT_NODE_CLIENT  required client id for introspect endpoint
+          introspection-uri: https://localhost:8443/realms/mng-node/protocol/openid-connect/token/introspect
+          client-id: management-node
+          client-secret:
   flyway:
     create-schemas: on
     default-schema: mn
@@ -26,7 +26,7 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        show_sql: true
+        show_sql: false
         default_schema: mn
 
 # Server configuration
