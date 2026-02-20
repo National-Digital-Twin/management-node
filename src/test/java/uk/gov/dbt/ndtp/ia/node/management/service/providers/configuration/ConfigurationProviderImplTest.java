@@ -1,3 +1,9 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ * © Crown Copyright 2026. This work has been developed by the National Digital Twin Programme and is legally
+ * attributed to the Department for Business and Trade (UK) as the governing entity.
+ */
+
 package uk.gov.dbt.ndtp.ia.node.management.service.providers.configuration;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -198,5 +204,65 @@ class ConfigurationProviderImplTest {
         assertThat(pr1.getConsumers()).containsExactly(c501);
         // pr2 has none
         assertThat(pr2.getConsumers()).isEmpty();
+    }
+    @Test
+    void getProducerConfigByClientId_withValidValidity_includesConsumer() {
+        String clientId = "producerClient";
+        ProductDTO p1 = product(100L, "p1");
+        ProducerDTO pr1 = producer(1L, true, p1);
+        when(producerService.getProducersByClientId(clientId)).thenReturn(List.of(pr1));
+        
+        // Consumer with valid validity
+        ProductConsumerDTO pc1 = productConsumer(100L, 1L, new BigDecimal("20"), Instant.now().minusSeconds(86400 * 10));
+        when(productConsumerService.findByDataProviderId(100L)).thenReturn(List.of(pc1));
+        when(consumerService.findById(1L)).thenReturn(Optional.of(consumer(1L, "c1", "c1", null, null)));
+        
+        ProducerConfigDTO cfg = configurationProvider.getProducerConfigByClientId(clientId, Optional.empty());
+        
+        assertThat(cfg.getProducers().get(0).getProducts().get(0).getConsumers()).hasSize(1);
+    }
+
+    @Test
+    void getConsumerConfigByClientId_withConsumerId_filtersByConsumerId() {
+        String clientId = "clientA";
+        ConsumerDTO c1 = consumer(1L, clientId, "c1", "CRON", "@hourly");
+        ConsumerDTO c2 = consumer(2L, clientId, "c2", "CRON", "@daily");
+        when(consumerService.findByIdpClientId(clientId)).thenReturn(List.of(c1, c2));
+
+        ConsumerConfigDTO cfg = configurationProvider.getConsumerConfigByClientId(clientId, Optional.of(1L));
+
+        assertThat(cfg.getName()).isEqualTo("c1");
+    }
+
+    @Test
+    void getProducerConfigByClientId_withProducerId_filtersByProducerId() {
+        String clientId = "producerClient";
+        ProductDTO p1 = product(100L, "p1");
+        ProductDTO p2 = product(101L, "p2");
+        ProducerDTO pr1 = producer(1L, true, p1);
+        ProducerDTO pr2 = producer(2L, true, p2);
+        
+        when(producerService.getProducersByClientId(clientId)).thenReturn(List.of(pr1, pr2));
+        
+        ProducerConfigDTO cfg = configurationProvider.getProducerConfigByClientId(clientId, Optional.of(1L));
+        
+        assertThat(cfg.getProducers()).hasSize(1);
+        assertThat(cfg.getProducers().get(0).getId()).isEqualTo(1L);
+    }
+
+    @Test
+    void getProducerConfigByClientId_withInvalidValidity_filtersOutConsumer() {
+        String clientId = "producerClient";
+        ProductDTO p1 = product(100L, "p1");
+        ProducerDTO pr1 = producer(1L, true, p1);
+        when(producerService.getProducersByClientId(clientId)).thenReturn(List.of(pr1));
+        
+        // Consumer with expired validity
+        ProductConsumerDTO pc1 = productConsumer(100L, 1L, new BigDecimal("5"), Instant.now().minusSeconds(86400 * 10));
+        when(productConsumerService.findByDataProviderId(100L)).thenReturn(List.of(pc1));
+        
+        ProducerConfigDTO cfg = configurationProvider.getProducerConfigByClientId(clientId, Optional.empty());
+        
+        assertThat(cfg.getProducers().get(0).getProducts().get(0).getConsumers()).isEmpty();
     }
 }
