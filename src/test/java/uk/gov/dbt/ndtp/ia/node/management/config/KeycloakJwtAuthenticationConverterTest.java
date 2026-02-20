@@ -1,6 +1,6 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
- * © Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally
+ * © Crown Copyright 2026. This work has been developed by the National Digital Twin Programme and is legally
  * attributed to the Department for Business and Trade (UK) as the governing entity.
  */
 
@@ -50,8 +50,6 @@ class KeycloakJwtAuthenticationConverterTest {
                 converter,
                 "introspectionUri",
                 "http://localhost:8080/realms/management-node/protocol/openid-connect/token/introspect");
-        ReflectionTestUtils.setField(converter, "clientId", "management-node");
-        ReflectionTestUtils.setField(converter, "clientSecret", "0T5S4wNAPaaOUzFVFQyenorSEC6zxcb0");
 
         // Create a mock JWT with the sample token data
         Map<String, Object> headers = new HashMap<>();
