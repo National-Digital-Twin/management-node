@@ -55,7 +55,7 @@ class CustomJwtAuthenticationTokenTest {
         // Equals
         assertEquals(token1, token2);
         assertNotEquals(token1, token3);
-        assertNotEquals(token1, null);
+        assertNotEquals(null, token1);
 
         // HashCode
         assertEquals(token1.hashCode(), token2.hashCode());
