@@ -1,6 +1,6 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
- * © Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally
+ * © Crown Copyright 2026. This work has been developed by the National Digital Twin Programme and is legally
  * attributed to the Department for Business and Trade (UK) as the governing entity.
  */
 
@@ -15,8 +15,10 @@ import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import uk.gov.dbt.ndtp.ia.node.management.exception.AuthenticationProcessingException;
 import uk.gov.dbt.ndtp.ia.node.management.exception.ErrorResponse;
+import uk.gov.dbt.ndtp.ia.node.management.exception.PkiException;
 
 /**
  * Global exception handler for the application.
@@ -63,6 +65,39 @@ public class GlobalExceptionHandler {
                 new ErrorResponse(HttpStatus.UNAUTHORIZED.value(), "Authentication error: " + ex.getMessage(), errorId);
 
         return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+    }
+
+    /**
+     * Handles NoResourceFoundException.
+     *
+     * @param ex      the exception
+     * @param request the current request
+     * @return a ResponseEntity with a 404 error message
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNoResourceFoundException(
+            NoResourceFoundException ex, WebRequest request) {
+
+        String errorId = generateErrorId();
+        log.debug("Resource not found, error_id={}, path={}: ", errorId, request.getContextPath(), ex);
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(), "Resource not found: " + ex.getResourcePath(), errorId);
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(PkiException.class)
+    public ResponseEntity<ErrorResponse> handlePkiException(
+            PkiException ex, WebRequest request) {
+
+        String errorId = generateErrorId();
+        log.error("PKI exception occurred, error_id={}, path={}: {}", errorId, request.getDescription(false), ex.getMessage(), ex);
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(), "PKI/Certificate error: " + ex.getMessage(), errorId);
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     /**
