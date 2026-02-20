@@ -55,6 +55,11 @@
     <modelmapper.version>3.2.0</modelmapper.version>
     <mockito-junit-jupiter.version>5.10.0</mockito-junit-jupiter.version>
     <springdoc-openapi-starter-webmvc-ui.version>2.8.13</springdoc-openapi-starter-webmvc-ui.version>
+    <sonar.coverage.exclusions>**/config/**,
+      **/exception/**,
+      **/dto/**,
+      **/entity/**,
+      **/ManagementNodeApplication.java</sonar.coverage.exclusions>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -250,11 +255,11 @@
         <version>${jacoco-maven-plugin.version}</version>
         <configuration>
           <excludes>
-            <exclude>**/dto/**</exclude>
-            <exclude>**/entity/**</exclude>
-            <exclude>**/config/**</exclude>
-            <exclude>**/exception/**</exclude>
-            <exclude>**/ManagementNodeApplication.java</exclude>
+            <exclude>uk/gov/dbt/ndtp/ia/node/management/model/dto/**</exclude>
+            <exclude>uk/gov/dbt/ndtp/ia/node/management/entity/**</exclude>
+            <exclude>uk/gov/dbt/ndtp/ia/node/management/config/**</exclude>
+            <exclude>uk/gov/dbt/ndtp/ia/node/management/exception/**</exclude>
+            <exclude>uk/gov/dbt/ndtp/ia/node/management/ManagementNodeApplication.java</exclude>
           </excludes>
         </configuration>
         <executions>
