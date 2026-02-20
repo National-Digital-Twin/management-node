@@ -205,21 +205,24 @@ class ConfigurationProviderImplTest {
         // pr2 has none
         assertThat(pr2.getConsumers()).isEmpty();
     }
+
     @Test
     void getProducerConfigByClientId_withValidValidity_includesConsumer() {
         String clientId = "producerClient";
         ProductDTO p1 = product(100L, "p1");
         ProducerDTO pr1 = producer(1L, true, p1);
         when(producerService.getProducersByClientId(clientId)).thenReturn(List.of(pr1));
-        
+
         // Consumer with valid validity
-        ProductConsumerDTO pc1 = productConsumer(100L, 1L, new BigDecimal("20"), Instant.now().minusSeconds(86400 * 10));
+        ProductConsumerDTO pc1 =
+                productConsumer(100L, 1L, new BigDecimal("20"), Instant.now().minusSeconds(86400 * 10));
         when(productConsumerService.findByDataProviderId(100L)).thenReturn(List.of(pc1));
         when(consumerService.findById(1L)).thenReturn(Optional.of(consumer(1L, "c1", "c1", null, null)));
-        
+
         ProducerConfigDTO cfg = configurationProvider.getProducerConfigByClientId(clientId, Optional.empty());
-        
-        assertThat(cfg.getProducers().get(0).getProducts().get(0).getConsumers()).hasSize(1);
+
+        assertThat(cfg.getProducers().get(0).getProducts().get(0).getConsumers())
+                .hasSize(1);
     }
 
     @Test
@@ -241,11 +244,11 @@ class ConfigurationProviderImplTest {
         ProductDTO p2 = product(101L, "p2");
         ProducerDTO pr1 = producer(1L, true, p1);
         ProducerDTO pr2 = producer(2L, true, p2);
-        
+
         when(producerService.getProducersByClientId(clientId)).thenReturn(List.of(pr1, pr2));
-        
+
         ProducerConfigDTO cfg = configurationProvider.getProducerConfigByClientId(clientId, Optional.of(1L));
-        
+
         assertThat(cfg.getProducers()).hasSize(1);
         assertThat(cfg.getProducers().get(0).getId()).isEqualTo(1L);
     }
@@ -256,13 +259,15 @@ class ConfigurationProviderImplTest {
         ProductDTO p1 = product(100L, "p1");
         ProducerDTO pr1 = producer(1L, true, p1);
         when(producerService.getProducersByClientId(clientId)).thenReturn(List.of(pr1));
-        
+
         // Consumer with expired validity
-        ProductConsumerDTO pc1 = productConsumer(100L, 1L, new BigDecimal("5"), Instant.now().minusSeconds(86400 * 10));
+        ProductConsumerDTO pc1 =
+                productConsumer(100L, 1L, new BigDecimal("5"), Instant.now().minusSeconds(86400 * 10));
         when(productConsumerService.findByDataProviderId(100L)).thenReturn(List.of(pc1));
-        
+
         ProducerConfigDTO cfg = configurationProvider.getProducerConfigByClientId(clientId, Optional.empty());
-        
-        assertThat(cfg.getProducers().get(0).getProducts().get(0).getConsumers()).isEmpty();
+
+        assertThat(cfg.getProducers().get(0).getProducts().get(0).getConsumers())
+                .isEmpty();
     }
 }
