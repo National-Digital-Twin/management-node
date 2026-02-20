@@ -30,7 +30,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
      * @param ids a list of product IDs for which the {@link Product} entities are to be retrieved
      * @return a list of {@link Product} entities matching the provided IDs
      */
-    @Query("SELECT o FROM Product o WHERE o.id IN :ids")
+    @Query("SELECT o FROM Product o " + "JOIN FETCH o.productType t " + "WHERE o.id IN :ids")
     List<Product> findByIds(List<Long> ids);
 
     /**
@@ -39,6 +39,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
      * @param producers a list of producer IDs whose associated {@link Product} entities need to be retrieved
      * @return a list of {@link Product} entities linked to the specified producer IDs
      */
-    @Query("SELECT o FROM Product o WHERE o.producer.id IN :producers")
+    @Query("SELECT o FROM Product o " + "JOIN FETCH o.productType t " + " WHERE o.producer.id IN :producers")
     List<Product> findByProducerIds(List<Long> producers);
 }

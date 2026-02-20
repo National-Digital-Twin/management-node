@@ -30,6 +30,15 @@ public class ProductConsumer {
     @Column(name = "validity", nullable = false)
     private BigDecimal validity;
 
+    @Column(name = "schedule_type", nullable = false)
+    private String scheduleType;
+
+    @Column(name = "schedule_expression")
+    private String scheduleExpression;
+
+    @Column(name = "destination")
+    private String destination;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;

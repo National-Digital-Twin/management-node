@@ -1,6 +1,6 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
- * © Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally
+ * © Crown Copyright 2026. This work has been developed by the National Digital Twin Programme and is legally
  * attributed to the Department for Business and Trade (UK) as the governing entity.
  */
 
@@ -259,7 +259,7 @@ class ProducerConverterTest {
     }
 
     @Test
-    void toEntity_withValidDTO_shouldReturnCorrectEntity() {
+    void toEntity_withValidDTO_shouldMapBasicFields() {
         // Arrange
         when(organisationRepository.findById(orgId)).thenReturn(Optional.of(organisation));
 
@@ -276,35 +276,62 @@ class ProducerConverterTest {
         assertEquals(port, result.getPort());
         assertEquals(tls, result.getTls());
         assertEquals(idpClientId, result.getIdpClientId());
+    }
+
+    @Test
+    void toEntity_withValidDTO_shouldMapOrganisation() {
+        // Arrange
+        when(organisationRepository.findById(orgId)).thenReturn(Optional.of(organisation));
+
+        // Act
+        Producer result = converter.toEntity(dto);
+
+        // Assert
         assertNotNull(result.getOrg());
         assertEquals(orgId, result.getOrg().getId());
         assertEquals(orgName, result.getOrg().getName());
+    }
 
-        // Verify dataProviders mapping
+    @Test
+    void toEntity_withValidDTO_shouldMapProductsAndBackReference() {
+        // Arrange
+        when(organisationRepository.findById(orgId)).thenReturn(Optional.of(organisation));
+
+        // Act
+        Producer result = converter.toEntity(dto);
+
+        // Assert
         assertNotNull(result.getProducts());
         assertEquals(2, result.getProducts().size());
 
-        // Verify first data provider
-        Product dataProvider1 = result.getProducts().get(0);
-        assertEquals(dataProviderId1, dataProvider1.getId());
-        assertEquals(dataProviderName1, dataProvider1.getName());
-        assertEquals(topic1, dataProvider1.getTopic());
-        assertNotNull(dataProvider1.getProducer());
-        assertEquals(result, dataProvider1.getProducer());
+        // Verify first product
+        Product product1 = result.getProducts().get(0);
+        assertEquals(dataProviderId1, product1.getId());
+        assertEquals(dataProviderName1, product1.getName());
+        assertEquals(topic1, product1.getTopic());
+        assertNotNull(product1.getProducer());
+        assertEquals(result, product1.getProducer());
 
-        // Verify second data provider
-        Product dataProvider2 = result.getProducts().get(1);
-        assertEquals(dataProviderId2, dataProvider2.getId());
-        assertEquals(dataProviderName2, dataProvider2.getName());
-        assertEquals(topic2, dataProvider2.getTopic());
-        assertNotNull(dataProvider2.getProducer());
-        assertEquals(result, dataProvider2.getProducer());
+        // Verify second product
+        Product product2 = result.getProducts().get(1);
+        assertEquals(dataProviderId2, product2.getId());
+        assertEquals(dataProviderName2, product2.getName());
+        assertEquals(topic2, product2.getTopic());
+        assertNotNull(product2.getProducer());
+        assertEquals(result, product2.getProducer());
+    }
 
-        // Verify productConverter was called for each data provider DTO
+    @Test
+    void toEntity_withValidDTO_shouldInvokeDependencies() {
+        // Arrange
+        when(organisationRepository.findById(orgId)).thenReturn(Optional.of(organisation));
+
+        // Act
+        converter.toEntity(dto);
+
+        // Assert / Verify
         verify(productConverter, times(1)).toEntity(dataProviderDTOs.get(0));
         verify(productConverter, times(1)).toEntity(dataProviderDTOs.get(1));
-
-        // Verify organisation repository was called
         verify(organisationRepository, times(1)).findById(orgId);
     }
 
@@ -414,5 +441,31 @@ class ProducerConverterTest {
 
         // Verify only one data provider was added
         assertEquals(dataProviderId1, result.getProducts().get(0).getId());
+    }
+
+    @Test
+    void toEntity_withNullId_shouldNotSetProducerId() {
+        // Arrange
+        dto.setId(null);
+        dataProviderDTOs.get(0).setProducerId(null);
+
+        // Act
+        converter.toEntity(dto);
+
+        // Assert
+        assertNull(dataProviderDTOs.get(0).getProducerId());
+    }
+
+    @Test
+    void toEntity_withExistingProducerId_shouldNotOverwrite() {
+        // Arrange
+        Long existingId = 999L;
+        dataProviderDTOs.get(0).setProducerId(existingId);
+
+        // Act
+        converter.toEntity(dto);
+
+        // Assert
+        assertEquals(existingId, dataProviderDTOs.get(0).getProducerId());
     }
 }

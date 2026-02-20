@@ -1,13 +1,12 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
- * © Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally
+ * © Crown Copyright 2026. This work has been developed by the National Digital Twin Programme and is legally
  * attributed to the Department for Business and Trade (UK) as the governing entity.
  */
 
 package uk.gov.dbt.ndtp.ia.node.management.config;
 
 import java.util.*;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.converter.Converter;
@@ -61,10 +60,7 @@ public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, Abstra
     private static final String CLAIM_AZP = "azp";
     private static final String CLAIM_CLIENT_ID = "client_id";
     private static final String CLAIM_RESOURCE_ACCESS = "resource_access";
-    private static final String CLAIM_REALM_ACCESS = "realm_access";
     private static final String CLAIM_ROLES = "roles";
-    private static final String CLAIM_SUB = "sub";
-    private static final String CLAIM_ACTIVE = "active";
 
     // Constants for role prefixes and default values
     private static final String ROLE_PREFIX = "ROLE_";
@@ -73,7 +69,6 @@ public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, Abstra
 
     // Form data keys
     private static final String FORM_CLIENT_ID = "client_id";
-    private static final String FORM_CLIENT_SECRET = "client_secret";
     private static final String FORM_TOKEN = "token";
 
     private final JwtGrantedAuthoritiesConverter defaultGrantedAuthoritiesConverter =
@@ -83,12 +78,6 @@ public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, Abstra
     @Value("${spring.security.oauth2.resourceserver.opaquetoken.introspection-uri}")
     private String introspectionUri;
 
-    @Value("${spring.security.oauth2.resourceserver.opaquetoken.client-id}")
-    private String clientId;
-
-    @Value("${spring.security.oauth2.resourceserver.opaquetoken.client-secret}")
-    private String clientSecret;
-
     /**
      * Performs token introspection by making an HTTP call to the introspection endpoint.
      *
@@ -96,7 +85,7 @@ public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, Abstra
      * @return JwtToken containing the introspection data
      * @throws TokenIntrospectionException If the introspection request fails or returns invalid data
      */
-    private JwtToken performTokenIntrospection(String tokenValue) throws TokenIntrospectionException {
+    private JwtToken performTokenIntrospection(String tokenValue, String clientId) throws TokenIntrospectionException {
         try {
             // Prepare headers for the introspection request
             HttpHeaders headers = new HttpHeaders();
@@ -105,7 +94,6 @@ public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, Abstra
             // Prepare form data for the introspection request
             MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
             formData.add(FORM_CLIENT_ID, clientId);
-            formData.add(FORM_CLIENT_SECRET, clientSecret);
             formData.add(FORM_TOKEN, tokenValue);
 
             // Create the request entity
@@ -139,15 +127,15 @@ public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, Abstra
     @Override
     public AbstractAuthenticationToken convert(Jwt jwt) {
         try {
-            log.debug("Converting JWT to authentication token");
-
+            String clientId = jwt.getClaimAsString(CLAIM_AZP);
+            log.debug("Converting JWT to authentication token:{}", clientId);
             // Perform token introspection
-            JwtToken introspectionData = performTokenIntrospection(jwt.getTokenValue());
+            JwtToken introspectionData = performTokenIntrospection(jwt.getTokenValue(), clientId);
 
             // Extract authorities from the introspection data
             Collection<GrantedAuthority> authorities = extractAuthoritiesFromIntrospection(introspectionData);
 
-            // Extract client_id from introspection data
+            // Extract clientId from introspection data
             String tokenClientId = extractClientIdFromIntrospection(introspectionData);
 
             // Extract subject from introspection data
@@ -235,28 +223,28 @@ public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, Abstra
      */
     private Collection<GrantedAuthority> extractAuthoritiesFromIntrospection(JwtToken jwtToken) {
         Collection<GrantedAuthority> authorities = new ArrayList<>();
-        String clientId = extractClientIdFromIntrospection(jwtToken);
+        String extractedClientId = extractClientIdFromIntrospection(jwtToken);
 
         try {
-            log.debug("Extracting authorities from introspection data for client ID: {}", clientId);
+            log.debug("Extracting authorities from introspection data for client ID: {}", extractedClientId);
 
             // Process resource_access
             if (jwtToken.getResourceAccess() != null) {
                 jwtToken.getResourceAccess().forEach((resource, resourceAccess) -> {
                     if (resourceAccess != null && resourceAccess.getRoles() != null) {
-                        resourceAccess.getRoles().forEach(role -> {
-                            authorities.add(new SimpleGrantedAuthority(
-                                    ROLE_PREFIX + resource + RESOURCE_ROLE_SEPARATOR + role));
-                        });
+                        resourceAccess
+                                .getRoles()
+                                .forEach(role -> authorities.add(new SimpleGrantedAuthority(
+                                        ROLE_PREFIX + resource + RESOURCE_ROLE_SEPARATOR + role)));
                     }
                 });
             }
 
-            log.trace("Successfully extracted {} authorities for client ID: {}", authorities.size(), clientId);
+            log.trace("Successfully extracted {} authorities for client ID: {}", authorities.size(), extractedClientId);
         } catch (Exception e) {
-            log.error("Error extracting authorities from introspection data for client ID: {}", clientId, e);
+            log.error("Error extracting authorities from introspection data for client ID: {}", extractedClientId, e);
             throw new ResourceAccessParsingException(
-                    "Failed to parse resource access from introspection data", e, clientId);
+                    "Failed to parse resource access from introspection data", e, extractedClientId);
         }
 
         return authorities;
@@ -330,17 +318,17 @@ public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, Abstra
                             }
                         })
                         .<GrantedAuthority>map(authority -> authority)
-                        .collect(Collectors.toList()))
+                        .toList())
                 .orElse(Collections.emptyList());
     }
 
     private Collection<GrantedAuthority> extractAuthorities(Jwt jwt) {
         // Add default authorities if any
         Collection<GrantedAuthority> authorities = new ArrayList<>(defaultGrantedAuthoritiesConverter.convert(jwt));
-        String clientId = extractClientId(jwt);
+        String extractClientId = extractClientId(jwt);
 
         try {
-            log.trace("Extracting authorities from JWT for client ID: {}", clientId);
+            log.trace("Extracting authorities from JWT for client ID: {}", extractClientId);
 
             // Extract and process resource_access claim
             extractMap(jwt.getClaim(CLAIM_RESOURCE_ACCESS))
@@ -349,9 +337,12 @@ public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, Abstra
                                     .ifPresent(resourceData ->
                                             authorities.addAll(processResourceRoles(resource, resourceData)))));
 
-            log.trace("Successfully extracted {} authorities from JWT for client ID: {}", authorities.size(), clientId);
+            log.trace(
+                    "Successfully extracted {} authorities from JWT for client ID: {}",
+                    authorities.size(),
+                    extractClientId);
         } catch (Exception e) {
-            log.error("Error extracting authorities from JWT for client ID: {}", clientId, e);
+            log.error("Error extracting authorities from JWT for client ID: {}", extractClientId, e);
             // We're not throwing the exception here because we want to continue with default authorities
             // This is a fallback method, so we want to be more lenient
         }

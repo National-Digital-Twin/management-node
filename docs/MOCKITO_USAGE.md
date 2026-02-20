@@ -1,5 +1,9 @@
 # Mockito Testing Tool Usage Guide
+**Repository:** `management-node`  
+**Description:** `Provides APIs to be accessed by Consumer and Producer Federators for the purpose of dynamic configuration management `  
+**SPDX-License-Identifier:** `Apache-2.0 AND OGL-UK-3.0 `
 
+---
 ## Overview
 
 Mockito is a popular mocking framework for Java that allows you to create and configure mock objects. Using Mockito, you can verify that certain methods are called with certain parameters, stub method calls to return specific values, and more.

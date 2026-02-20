@@ -39,9 +39,9 @@ class ConfigurationControllerTest {
     @InjectMocks
     private ConfigurationController configurationController;
 
-    private final String CLIENT_ID = "test-client-id";
-    private final Long PRODUCER_ID = 1L;
-    private final Long CONSUMER_ID = 2L;
+    private final String clientId = "test-client-id";
+    private final Long producerId = 1L;
+    private final Long consumerId = 2L;
 
     private ProducerConfigDTO producerConfigDTO;
     private ConsumerConfigDTO consumerConfigDTO;
@@ -52,19 +52,19 @@ class ConfigurationControllerTest {
 
         // Set up producer config
         ProducerDTO producerDTO = ProducerDTO.builder()
-                .id(PRODUCER_ID)
+                .id(producerId)
                 .name("Test Producer")
                 .active(true)
                 .build();
 
         producerConfigDTO = ProducerConfigDTO.builder()
-                .clientId(CLIENT_ID)
+                .clientId(clientId)
                 .producers(Collections.singletonList(producerDTO))
                 .build();
 
         // Set up consumer config
         consumerConfigDTO = ConsumerConfigDTO.builder()
-                .clientId(CLIENT_ID)
+                .clientId(clientId)
                 .producers(new ArrayList<>())
                 .build();
     }
@@ -86,7 +86,7 @@ class ConfigurationControllerTest {
         // Act & Assert
         mockMvc.perform(get("/api/v1/configuration/producer").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.clientId").value(CLIENT_ID));
+                .andExpect(jsonPath("$.clientId").value(clientId));
     }
 
     @Test
@@ -96,10 +96,10 @@ class ConfigurationControllerTest {
 
         // Act & Assert
         mockMvc.perform(get("/api/v1/configuration/producer")
-                        .param("producer_id", PRODUCER_ID.toString())
+                        .param("producer_id", producerId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.clientId").value(CLIENT_ID));
+                .andExpect(jsonPath("$.clientId").value(clientId));
     }
 
     @Test
@@ -110,7 +110,7 @@ class ConfigurationControllerTest {
         // Act & Assert
         mockMvc.perform(get("/api/v1/configuration/consumer").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.clientId").value(CLIENT_ID));
+                .andExpect(jsonPath("$.clientId").value(clientId));
     }
 
     @Test
@@ -120,9 +120,9 @@ class ConfigurationControllerTest {
 
         // Act & Assert
         mockMvc.perform(get("/api/v1/configuration/consumer")
-                        .param("consumer_id", CONSUMER_ID.toString())
+                        .param("consumer_id", consumerId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.clientId").value(CLIENT_ID));
+                .andExpect(jsonPath("$.clientId").value(clientId));
     }
 }

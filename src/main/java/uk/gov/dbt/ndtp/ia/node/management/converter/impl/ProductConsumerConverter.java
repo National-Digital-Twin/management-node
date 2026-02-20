@@ -39,6 +39,10 @@ public class ProductConsumerConverter implements EntityDtoConverter<ProductConsu
                 .consumerId(entity.getConsumer() != null ? entity.getConsumer().getId() : null)
                 .grantedTs(entity.getGrantedTs())
                 .validity(entity.getValidity())
+                .destination(entity.getDestination())
+                .scheduleExpression(entity.getScheduleExpression())
+                .scheduleType(entity.getScheduleType())
+                .destination(entity.getDestination())
                 .build();
 
         // Map attributes if available
@@ -72,7 +76,9 @@ public class ProductConsumerConverter implements EntityDtoConverter<ProductConsu
 
         entity.setGrantedTs(dto.getGrantedTs());
         entity.setValidity(dto.getValidity());
-
+        entity.setDestination(dto.getDestination());
+        entity.setScheduleExpression(dto.getScheduleExpression());
+        entity.setScheduleType(dto.getScheduleType());
         if (dto.getProductId() != null) {
             Product product = new Product();
             product.setId(dto.getProductId());
