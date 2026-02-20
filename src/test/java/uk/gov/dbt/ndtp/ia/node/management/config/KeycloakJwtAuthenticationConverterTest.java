@@ -28,6 +28,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.dbt.ndtp.ia.node.management.exception.TokenIntrospectionException;
 import uk.gov.dbt.ndtp.ia.node.management.model.jwt.EnhancedPrincipal;
 import uk.gov.dbt.ndtp.ia.node.management.model.jwt.JwtToken;
 
@@ -392,5 +393,190 @@ class KeycloakJwtAuthenticationConverterTest {
         assertNotNull(principal);
         assertEquals("86a41a8a-ab2e-465e-8b48-a09d3275f842", principal.subject());
         assertEquals("management-node", principal.clientId());
+    }
+
+    @Test
+    void convert_withTokenNotActive_shouldFallbackToJwtParsing() {
+        // Arrange
+        Map<String, Object> response = new HashMap<>(mockIntrospectionResponse);
+        response.put("active", false);
+        setupMockIntrospectionResponse(response);
+
+        // Act
+        AbstractAuthenticationToken token = converter.convert(mockJwt);
+
+        // Assert
+        assertNotNull(token);
+        assertTrue(token instanceof CustomJwtAuthenticationToken);
+        assertEquals(
+                "management-node",
+                ((CustomJwtAuthenticationToken) token).getPrincipal().clientId());
+    }
+
+    @Test
+    void convert_withNullIntrospectionBody_shouldFallbackToJwtParsing() {
+        // Arrange
+        when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), Mockito.eq(JwtToken.class)))
+                .thenReturn(new ResponseEntity<>(null, HttpStatus.OK));
+
+        // Act
+        AbstractAuthenticationToken token = converter.convert(mockJwt);
+
+        // Assert
+        assertNotNull(token);
+        assertTrue(token instanceof CustomJwtAuthenticationToken);
+    }
+
+    @Test
+    void convert_withIntrospectionException_shouldFallbackToJwtParsing() {
+        // Arrange
+        when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), Mockito.eq(JwtToken.class)))
+                .thenThrow(new TokenIntrospectionException("Introspection failed", "test-client"));
+
+        // Act
+        AbstractAuthenticationToken token = converter.convert(mockJwt);
+
+        // Assert
+        assertNotNull(token);
+    }
+
+    @Test
+    void extractClientId_variousScenarios() {
+        // azp is missing, client_id is present
+        Map<String, Object> claims1 = new HashMap<>();
+        claims1.put("sub", "test-sub");
+        claims1.put("client_id", "direct-client");
+        Jwt jwt1 =
+                new Jwt("v", Instant.now(), Instant.now().plusSeconds(30), Collections.singletonMap("a", "b"), claims1);
+
+        when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), Mockito.eq(JwtToken.class)))
+                .thenThrow(new RuntimeException());
+
+        AbstractAuthenticationToken token1 = converter.convert(jwt1);
+        assertEquals(
+                "direct-client",
+                ((CustomJwtAuthenticationToken) token1).getPrincipal().clientId());
+
+        // azp is empty, client_id is present
+        Map<String, Object> claims2 = new HashMap<>();
+        claims2.put("sub", "test-sub");
+        claims2.put("azp", "");
+        claims2.put("client_id", "direct-client");
+        Jwt jwt2 =
+                new Jwt("v", Instant.now(), Instant.now().plusSeconds(30), Collections.singletonMap("a", "b"), claims2);
+        AbstractAuthenticationToken token2 = converter.convert(jwt2);
+        assertEquals(
+                "direct-client",
+                ((CustomJwtAuthenticationToken) token2).getPrincipal().clientId());
+
+        // azp is null, client_id is missing
+        Map<String, Object> claims3 = new HashMap<>();
+        claims3.put("sub", "test-sub");
+        Jwt jwt3 =
+                new Jwt("v", Instant.now(), Instant.now().plusSeconds(30), Collections.singletonMap("a", "b"), claims3);
+        AbstractAuthenticationToken token3 = converter.convert(jwt3);
+        assertEquals(
+                "unknown",
+                ((CustomJwtAuthenticationToken) token3).getPrincipal().clientId());
+    }
+
+    @Test
+    void extractAuthorities_withVariousData() {
+        // Mock fallback path
+        when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), Mockito.eq(JwtToken.class)))
+                .thenThrow(new RuntimeException());
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("sub", "test-sub");
+
+        Map<String, Object> resourceAccess = new HashMap<>();
+        // Resource with no roles field
+        resourceAccess.put("no-roles", new HashMap<String, Object>());
+        // Resource with roles that is not a collection
+        Map<String, Object> invalidRoles = new HashMap<>();
+        invalidRoles.put("roles", "not-a-collection");
+        resourceAccess.put("invalid-roles", invalidRoles);
+
+        claims.put("resource_access", resourceAccess);
+
+        Jwt jwt =
+                new Jwt("v", Instant.now(), Instant.now().plusSeconds(30), Collections.singletonMap("a", "b"), claims);
+        AbstractAuthenticationToken token = converter.convert(jwt);
+
+        assertNotNull(token);
+        // Should have 0 authorities besides default ones (none in this case)
+        assertEquals(0, token.getAuthorities().size());
+    }
+
+    @Test
+    void extractAuthoritiesFromIntrospection_withException_shouldThrowResourceAccessParsingException() {
+        // Arrange
+        JwtToken jwtToken = Mockito.mock(JwtToken.class);
+        when(jwtToken.getAzp()).thenReturn("client-id");
+        when(jwtToken.getResourceAccess()).thenThrow(new RuntimeException("Simulated error"));
+
+        // Act & Assert
+        assertThrows(
+                uk.gov.dbt.ndtp.ia.node.management.exception.ResourceAccessParsingException.class,
+                () -> ReflectionTestUtils.invokeMethod(converter, "extractAuthoritiesFromIntrospection", jwtToken));
+    }
+
+    @Test
+    void extractAuthorities_withException_shouldLogAndReturnDefaultAuthorities() {
+        // Arrange
+        Jwt jwt = Mockito.mock(Jwt.class);
+        when(jwt.getClaimAsString(anyString())).thenReturn("client-id");
+        when(jwt.getClaim(anyString())).thenThrow(new RuntimeException("Simulated error"));
+
+        // Act
+        Collection<org.springframework.security.core.GrantedAuthority> authorities =
+                ReflectionTestUtils.invokeMethod(converter, "extractAuthorities", jwt);
+
+        // Assert
+        assertNotNull(authorities);
+    }
+
+    @Test
+    void processResourceRoles_realmRoles() {
+        // Test processResourceRoles with resourceName = null (Realm roles)
+        Map<String, Object> resourceData = new HashMap<>();
+        resourceData.put("roles", List.of("role1", "role2"));
+
+        Collection<org.springframework.security.core.GrantedAuthority> authorities =
+                ReflectionTestUtils.invokeMethod(converter, "processResourceRoles", null, resourceData);
+
+        assertNotNull(authorities);
+        assertEquals(2, authorities.size());
+        assertTrue(authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_role1")));
+        assertTrue(authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_role2")));
+    }
+
+    @Test
+    void convert_withGeneralException_shouldFallbackToJwtParsing() {
+        // Arrange
+        // This will cause a NullPointerException in performTokenIntrospection or convert
+        Mockito.reset(restTemplate);
+        when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), Mockito.eq(JwtToken.class)))
+                .thenReturn(null);
+
+        // Act
+        AbstractAuthenticationToken token = converter.convert(mockJwt);
+
+        // Assert
+        assertNotNull(token);
+    }
+
+    @Test
+    void convert_introspectionNoSubject_shouldFallbackToJwtSubject() {
+        // Arrange
+        Map<String, Object> response = new HashMap<>(mockIntrospectionResponse);
+        response.remove("sub");
+        setupMockIntrospectionResponse(response);
+
+        // Act
+        AbstractAuthenticationToken token = converter.convert(mockJwt);
+
+        // Assert
+        assertEquals("86a41a8a-ab2e-465e-8b48-a09d3275f842", token.getName());
     }
 }

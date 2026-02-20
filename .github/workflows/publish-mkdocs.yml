@@ -6,9 +6,6 @@ on:
       - develop
       - main
   workflow_dispatch:
-permissions:
-  contents: write
-  pages: write
 jobs:
   versioning:
     if: ${{ github.event.pull_request.merged == true && (github.event.pull_request.base.ref == 'develop' || github.event.pull_request.base.ref == 'main') }}
@@ -66,6 +63,9 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: [ versioning ]
+    permissions:
+      contents: write
+      pages: write
     steps:
       - uses: actions/checkout@v6
         with:
