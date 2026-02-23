@@ -1,6 +1,6 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
- * © Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally
+ * © Crown Copyright 2026. This work has been developed by the National Digital Twin Programme and is legally
  * attributed to the Department for Business and Trade (UK) as the governing entity.
  */
 
@@ -441,5 +441,31 @@ class ProducerConverterTest {
 
         // Verify only one data provider was added
         assertEquals(dataProviderId1, result.getProducts().get(0).getId());
+    }
+
+    @Test
+    void toEntity_withNullId_shouldNotSetProducerId() {
+        // Arrange
+        dto.setId(null);
+        dataProviderDTOs.get(0).setProducerId(null);
+
+        // Act
+        converter.toEntity(dto);
+
+        // Assert
+        assertNull(dataProviderDTOs.get(0).getProducerId());
+    }
+
+    @Test
+    void toEntity_withExistingProducerId_shouldNotOverwrite() {
+        // Arrange
+        Long existingId = 999L;
+        dataProviderDTOs.get(0).setProducerId(existingId);
+
+        // Act
+        converter.toEntity(dto);
+
+        // Assert
+        assertEquals(existingId, dataProviderDTOs.get(0).getProducerId());
     }
 }

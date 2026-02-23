@@ -4,8 +4,7 @@
   ~ © Crown Copyright 2026. This work has been developed by the National Digital Twin Programme and is legally
   ~ attributed to the Department for Business and Trade (UK) as the governing entity.
   -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -15,7 +14,7 @@
     </parent>
     <groupId>uk.gov.dbt.ndtp.ia.management.node</groupId>
     <artifactId>management-node</artifactId>
-    <version>1.0.1</version>
+    <version>1.1.0</version>
     <packaging>jar</packaging>
     <name>management-node</name>
     <description>Provides Management capabilities over IA Node Net</description>
@@ -57,6 +56,11 @@
         <mockito-junit-jupiter.version>5.10.0</mockito-junit-jupiter.version>
         <springdoc-openapi-starter-webmvc-ui.version>2.8.13</springdoc-openapi-starter-webmvc-ui.version>
         <bouncycastle.version>1.83</bouncycastle.version>
+        <sonar.coverage.exclusions>**/config/**,
+            **/exception/**,
+            **/dto/**,
+            **/entity/**,
+            **/ManagementNodeApplication.java</sonar.coverage.exclusions>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -129,9 +133,9 @@
             <version>${bouncycastle.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk18on</artifactId>
-            <version>${bouncycastle.version}</version>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bcprov-jdk18on</artifactId>
+        <version>${bouncycastle.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -266,11 +270,11 @@
                 <version>${jacoco-maven-plugin.version}</version>
                 <configuration>
                     <excludes>
-                        <exclude>**/dto/**</exclude>
-                        <exclude>**/entity/**</exclude>
-                        <exclude>**/config/**</exclude>
-                        <exclude>**/exception/**</exclude>
-                        <exclude>**/ManagementNodeApplication.java</exclude>
+                        <exclude>uk/gov/dbt/ndtp/ia/node/management/model/dto/**</exclude>
+                        <exclude>uk/gov/dbt/ndtp/ia/node/management/entity/**</exclude>
+                        <exclude>uk/gov/dbt/ndtp/ia/node/management/config/**</exclude>
+                        <exclude>uk/gov/dbt/ndtp/ia/node/management/exception/**</exclude>
+                        <exclude>uk/gov/dbt/ndtp/ia/node/management/ManagementNodeApplication.java</exclude>
                     </excludes>
                 </configuration>
                 <executions>
@@ -333,5 +337,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

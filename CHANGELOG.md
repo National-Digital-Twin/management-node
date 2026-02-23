@@ -19,7 +19,29 @@ This project follows **Semantic Versioning (SemVer)** ([semver.org](https://semv
 
 ---
 
+## [1.1.0] - 2026-02-20
 
+### Added
+- Support for job scheduling with `schedule_type` and `schedule_expression` fields in configurations.
+- `ProductType` domain entity and expanded `Product`, `Consumer`, and `ProductConsumer` models.
+- Comprehensive documentation site using MkDocs, including setup guides, architecture overview, and API documentation.
+- GitHub Actions workflows for:
+    - SonarCloud static code analysis and quality gate verification.
+    - Automated Docker image builds and deployment to GitHub Container Registry (GHCR).
+    - MkDocs documentation publishing.
+    - Automated release processes and tagging.
+- Keycloak realm configuration for local development and testing.
+
+### Changed
+- Refactored `KeycloakJwtAuthenticationConverter` to remove client secret dependency and improve security.
+- Updated Maven workflow to include SonarCloud analysis and optimized JaCoCo reporting phases.
+- Enhanced GitHub workflows with job-level permission definitions for improved security.
+- Standardized pull request templates and repository metadata.
+- Improved local development setup documentation and scripts.
+
+### Removed
+- `OrganisationServiceImpl` and related tests, streamlining the service layer.
+- Redundant Maven settings references in CI workflows.
 
 ## [1.0.1] - 2025-10-1
 
