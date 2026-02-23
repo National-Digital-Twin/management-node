@@ -6,6 +6,13 @@
 
 package uk.gov.dbt.ndtp.ia.node.management.service.providers.certificate;
 
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
+import java.time.Instant;
+import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
@@ -26,14 +33,6 @@ import uk.gov.dbt.ndtp.ia.node.management.exception.PkiException;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.certificates.*;
 import uk.gov.dbt.ndtp.ia.node.management.utils.cryptography.PemUtil;
 
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
-import java.time.Instant;
-import java.util.*;
-
 /**
  * Service for managing PKI operations using HashiCorp Vault.
  * Provides functionality for creating key pairs, CSRs, signing CSRs, and retrieving intermediate certificates.
@@ -43,6 +42,8 @@ import java.util.*;
 public class VaultPkiService {
 
     private final VaultTemplate vault;
+    private final String defaultRole;
+    private final String defaultTtl;
 
     // Vault paths
     private final String pathSign;
@@ -61,8 +62,14 @@ public class VaultPkiService {
     private static final String PARAM_TTL = "ttl";
     private static final String PARAM_FORMAT = "format";
 
-    public VaultPkiService(VaultTemplate vault, @Value("${application.vault.pki-mount:pki-int}") String pkiMount) {
+    public VaultPkiService(
+            VaultTemplate vault,
+            @Value("${application.vault.pki-mount:pki-int}") String pkiMount,
+            @Value("${application.vault.default-role:default-role}") String defaultRole,
+            @Value("${application.vault.default-ttl:24h}") String defaultTtl) {
         this.vault = vault;
+        this.defaultRole = defaultRole;
+        this.defaultTtl = defaultTtl;
         this.pathSign = pkiMount + "/sign/";
         this.pathCertCa = pkiMount + "/cert/ca";
         this.pathCertCaChain = pkiMount + "/cert/ca_chain";
@@ -120,30 +127,26 @@ public class VaultPkiService {
             var publicKey = PemUtil.parsePublicKey(publicKeyPem);
 
             // Build subject
-            String subject = String.format("CN=%s, OU=%s, O=%s, C=%s",
+            String subject = String.format(
+                    "CN=%s, OU=%s, O=%s, C=%s",
                     safe(req.getCommonName()),
                     safe(req.getOrganizationalUnit()),
                     safe(req.getOrganization()),
-                    safe(req.getCountry())
-            );
+                    safe(req.getCountry()));
             X500Name x500 = new X500Name(subject);
 
             // CSR builder
-            JcaPKCS10CertificationRequestBuilder csrBuilder =
-                    new JcaPKCS10CertificationRequestBuilder(x500, publicKey);
+            JcaPKCS10CertificationRequestBuilder csrBuilder = new JcaPKCS10CertificationRequestBuilder(x500, publicKey);
 
             // SANs
             if (req.getDnsSans() != null && !req.getDnsSans().isEmpty()) {
                 log.debug("Adding DNS SANs to CSR: {}", req.getDnsSans());
-                GeneralNames sans = new GeneralNames(
-                        req.getDnsSans().stream().map(d -> new GeneralName(GeneralName.dNSName, d)).toArray(GeneralName[]::new)
-                );
+                GeneralNames sans = new GeneralNames(req.getDnsSans().stream()
+                        .map(d -> new GeneralName(GeneralName.dNSName, d))
+                        .toArray(GeneralName[]::new));
                 csrBuilder.addAttribute(
                         PKCSObjectIdentifiers.pkcs_9_at_extensionRequest,
-                        new Extensions(new Extension(
-                                Extension.subjectAlternativeName, false, sans.getEncoded()
-                        ))
-                );
+                        new Extensions(new Extension(Extension.subjectAlternativeName, false, sans.getEncoded())));
             }
 
             ContentSigner signer = new JcaContentSignerBuilder("SHA256withRSA").build(privateKey);
@@ -168,52 +171,60 @@ public class VaultPkiService {
      * @return a DTO containing the signed certificate and its chain
      * @throws PkiException if signing fails or Vault returns an empty response
      */
-    public SignCertResponseDTO signCsr(String csrPem, String role, String ttl) {
-        log.info("Signing CSR with role: {} and TTL: {}", role, ttl);
+    public SignCertResponseDTO signCsr(String csrPem, Optional<String> role, Optional<String> ttl) {
+        String effectiveRole = role.filter(StringUtils::isNotBlank).orElse(defaultRole);
+        String effectiveTtl = ttl.filter(StringUtils::isNotBlank).orElse(defaultTtl);
+        log.info("Signing CSR with role: {} and TTL: {}", effectiveRole, effectiveTtl);
 
         if (StringUtils.isEmpty(csrPem)) {
             log.warn("Sign CSR request failed: CSR PEM is empty");
             throw new PkiException("CSR PEM cannot be empty");
         }
-        if (StringUtils.isEmpty(role)) {
+        if (StringUtils.isEmpty(effectiveRole)) {
             log.warn("Sign CSR request failed: Role is empty");
             throw new PkiException("Role cannot be empty");
         }
 
-        String path = pathSign + role;
+        String path = pathSign + effectiveRole;
 
         Map<String, Object> body = new HashMap<>();
         body.put(PARAM_CSR, csrPem);
-        if (ttl != null && !ttl.isBlank()) {
-            body.put(PARAM_TTL, ttl);
+        if (effectiveTtl != null && !effectiveTtl.isBlank()) {
+            body.put(PARAM_TTL, effectiveTtl);
         }
         body.put(PARAM_FORMAT, "pem");
 
         try {
             VaultResponse resp = vault.write(path, body);
-            if (resp == null || resp.getData() == null) {
+            if (Optional.ofNullable(resp).map(VaultResponse::getData).isEmpty()) {
                 log.error("Vault returned empty response for CSR signing at path: {}", path);
                 throw new PkiException("No response from Vault PKI sign endpoint");
             }
 
-            log.info("Successfully signed CSR with role: {}", role);
+            log.info("Successfully signed CSR with role: {}", effectiveRole);
+            Object caChainObj = resp.getData().get(KEY_CA_CHAIN);
+            List<String> caChain = Collections.emptyList();
+            if (caChainObj instanceof List<?> list) {
+                caChain = list.stream()
+                        .filter(String.class::isInstance)
+                        .map(String.class::cast)
+                        .toList();
+            }
+
             return new SignCertResponseDTO(
-                    (String) resp.getData().get(KEY_CERTIFICATE),
-                    (List<String>) resp.getData().get(KEY_CA_CHAIN),
-                    (String) resp.getData().get(KEY_ISSUING_CA),
-                    (String) resp.getData().get(KEY_SERIAL_NUMBER),
-                    (Number) resp.getData().get(KEY_EXPIRATION)
-            );
+                     resp.getData().get(KEY_CERTIFICATE).toString(),
+                    caChain,
+                    resp.getData().get(KEY_ISSUING_CA).toString(),
+                    resp.getData().get(KEY_SERIAL_NUMBER).toString(),
+                    (Number) resp.getData().get(KEY_EXPIRATION));
         } catch (Exception e) {
             if (e instanceof PkiException) {
                 throw e;
             }
-            log.error("Error occurred while signing CSR with role: {}", role, e);
+            log.error("Error occurred while signing CSR with role: {}", effectiveRole, e);
             throw new PkiException("Failed to sign CSR via Vault", e);
         }
     }
-
-
 
     /**
      * Retrieves the intermediate certificate and its chain from Vault.
@@ -226,14 +237,14 @@ public class VaultPkiService {
         log.info("Retrieving intermediate certificate from Vault");
         String path = pathCertCa;
         VaultResponse resp = vault.read(path);
-        if (resp == null || resp.getData() == null) {
+        if (Optional.ofNullable(resp).map(VaultResponse::getData).isEmpty()) {
             log.error("Failed to retrieve intermediate certificate from path: {}", path);
             throw new PkiException("Could not retrieve intermediate certificate from Vault");
         }
 
         String pathToCaChain = pathCertCaChain;
         VaultResponse caChainResp = vault.read(pathToCaChain);
-        if (caChainResp == null || caChainResp.getData() == null) {
+        if (Optional.ofNullable(caChainResp).map(VaultResponse::getData).isEmpty()) {
             log.error("Failed to retrieve CA chain from path: {}", pathToCaChain);
             throw new PkiException("Could not retrieve CA Chain certificate from Vault");
         }

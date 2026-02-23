@@ -6,10 +6,8 @@
 
 package uk.gov.dbt.ndtp.ia.node.management.model.dto.certificates;
 
-
-import lombok.*;
-
 import java.util.List;
+import lombok.*;
 
 @Builder
 @Getter
@@ -20,7 +18,7 @@ public class CreateCsrRequestDTO {
     private String publicKeyPem;
     private String privateKeyPem;
     private String commonName;
-    private  String organization;
+    private String organization;
     private String organizationalUnit;
     private String country;
     private List<String> dnsSans;

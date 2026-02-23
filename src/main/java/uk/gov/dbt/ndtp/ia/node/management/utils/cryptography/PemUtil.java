@@ -6,8 +6,6 @@
 
 package uk.gov.dbt.ndtp.ia.node.management.utils.cryptography;
 
-import uk.gov.dbt.ndtp.ia.node.management.exception.PkiException;
-
 import java.io.ByteArrayInputStream;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
@@ -20,7 +18,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
-
+import uk.gov.dbt.ndtp.ia.node.management.exception.PkiException;
 
 /**
  * Utility class for PEM (Privacy-Enhanced Mail) format operations.
@@ -30,7 +28,7 @@ public class PemUtil {
 
     private static final String KEY_ALG = "RSA";
 
-    private PemUtil(){}
+    private PemUtil() {}
     /**
      * Parses a PKCS#8 encoded private key from a PEM string.
      *
@@ -70,8 +68,7 @@ public class PemUtil {
      * @return the decoded byte array
      */
     private static byte[] decodePem(String pem) {
-        String cleaned = pem
-                .replaceAll("-----BEGIN ([A-Z ]+)-----", "")
+        String cleaned = pem.replaceAll("-----BEGIN ([A-Z ]+)-----", "")
                 .replaceAll("-----END ([A-Z ]+)-----", "")
                 .replaceAll("\\s", "");
         return Base64.getDecoder().decode(cleaned);
@@ -85,7 +82,7 @@ public class PemUtil {
      * @return the PEM formatted string
      */
     public static String toPem(String type, byte[] der) {
-        String b64 = Base64.getMimeEncoder(64, new byte[]{'\n'}).encodeToString(der);
+        String b64 = Base64.getMimeEncoder(64, new byte[] {'\n'}).encodeToString(der);
         return "-----BEGIN " + type + "-----\n" + b64 + "\n-----END " + type + "-----\n";
     }
 

@@ -6,31 +6,30 @@
 
 package uk.gov.dbt.ndtp.ia.node.management.service.providers.certificate;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.MockedStatic;
-import org.springframework.vault.core.VaultTemplate;
-import org.springframework.vault.support.VaultResponse;
-import uk.gov.dbt.ndtp.ia.node.management.exception.PkiException;
-import uk.gov.dbt.ndtp.ia.node.management.model.dto.certificates.*;
-import uk.gov.dbt.ndtp.ia.node.management.utils.cryptography.PemUtil;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 import java.math.BigInteger;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
+import java.util.Optional;
 import javax.security.auth.x500.X500Principal;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.vault.core.VaultTemplate;
+import org.springframework.vault.support.VaultResponse;
+import uk.gov.dbt.ndtp.ia.node.management.exception.PkiException;
+import uk.gov.dbt.ndtp.ia.node.management.model.dto.certificates.*;
+import uk.gov.dbt.ndtp.ia.node.management.utils.cryptography.PemUtil;
 
 @ExtendWith(MockitoExtension.class)
 class VaultPkiServiceTest {
@@ -42,9 +41,13 @@ class VaultPkiServiceTest {
 
     private static final String PKI_MOUNT = "pki-int";
 
+    private static final String DEFAULT_ROLE = "default-role";
+
+    private static final String DEFAULT_TTL = "24h";
+
     @BeforeEach
     void setUp() {
-        vaultPkiService = new VaultPkiService(vaultTemplate, PKI_MOUNT);
+        vaultPkiService = new VaultPkiService(vaultTemplate, PKI_MOUNT, DEFAULT_ROLE, DEFAULT_TTL);
     }
 
     @Test
@@ -114,12 +117,11 @@ class VaultPkiServiceTest {
                 "ca_chain", List.of("CA1", "CA2"),
                 "issuing_ca", "ISSUING_CA",
                 "serial_number", "SERIAL_123",
-                "expiration", 123456789
-        );
+                "expiration", 123456789);
         when(vaultResponse.getData()).thenReturn(data);
         when(vaultTemplate.write(eq(PKI_MOUNT + "/sign/" + role), anyMap())).thenReturn(vaultResponse);
 
-        SignCertResponseDTO response = vaultPkiService.signCsr(csrPem, role, ttl);
+        SignCertResponseDTO response = vaultPkiService.signCsr(csrPem, Optional.of(role), Optional.of(ttl));
 
         assertNotNull(response);
         assertEquals("SIGNED_CERT", response.getCertificate());
@@ -134,25 +136,75 @@ class VaultPkiServiceTest {
     }
 
     @Test
+    void signCsr_withNullRole_shouldUseDefaultRole() {
+        String csrPem = "-----BEGIN CERTIFICATE REQUEST-----\n...\n-----END CERTIFICATE REQUEST-----";
+        String ttl = "24h";
+
+        VaultResponse vaultResponse = mock(VaultResponse.class);
+        Map<String, Object> data = Map.of(
+                "certificate", "SIGNED_CERT",
+                "ca_chain", List.of("CA1", "CA2"),
+                "issuing_ca", "ISSUING_CA",
+                "serial_number", "SERIAL_123",
+                "expiration", 123456789);
+        when(vaultResponse.getData()).thenReturn(data);
+        when(vaultTemplate.write(eq(PKI_MOUNT + "/sign/" + DEFAULT_ROLE), anyMap())).thenReturn(vaultResponse);
+
+        SignCertResponseDTO response = vaultPkiService.signCsr(csrPem, Optional.empty(), Optional.of(ttl));
+
+        assertNotNull(response);
+        verify(vaultTemplate).write(eq(PKI_MOUNT + "/sign/" + DEFAULT_ROLE), anyMap());
+    }
+
+    @Test
+    void signCsr_withNullTtl_shouldUseDefaultTtl() {
+        String csrPem = "-----BEGIN CERTIFICATE REQUEST-----\n...\n-----END CERTIFICATE REQUEST-----";
+        String role = "test-role";
+
+        VaultResponse vaultResponse = mock(VaultResponse.class);
+        Map<String, Object> data = Map.of(
+                "certificate", "SIGNED_CERT",
+                "ca_chain", List.of("CA1", "CA2"),
+                "issuing_ca", "ISSUING_CA",
+                "serial_number", "SERIAL_123",
+                "expiration", 123456789);
+        when(vaultResponse.getData()).thenReturn(data);
+        when(vaultTemplate.write(eq(PKI_MOUNT + "/sign/" + role), anyMap())).thenReturn(vaultResponse);
+
+        SignCertResponseDTO response = vaultPkiService.signCsr(csrPem, Optional.of(role), Optional.empty());
+
+        assertNotNull(response);
+        verify(vaultTemplate)
+                .write(eq(PKI_MOUNT + "/sign/" + role),
+                        argThat((Map<String, Object> m) -> DEFAULT_TTL.equals(m.get("ttl"))));
+    }
+
+    @Test
     void signCsr_withEmptyCsr_shouldThrowPkiException() {
-        assertThrows(PkiException.class, () -> vaultPkiService.signCsr("", "role", "24h"));
+        Optional<String> role = Optional.of("role");
+        Optional<String> ttl = Optional.of("24h");
+        assertThrows(PkiException.class, () -> vaultPkiService.signCsr("", role, ttl));
     }
 
     @Test
     void signCsr_withEmptyRole_shouldThrowPkiException() {
-        assertThrows(PkiException.class, () -> vaultPkiService.signCsr("csr", "", "24h"));
+        Optional<String> role = Optional.of("");
+        Optional<String> ttl = Optional.of("24h");
+        assertThrows(PkiException.class, () -> vaultPkiService.signCsr("csr", role, ttl));
     }
 
     @Test
     void signCsr_whenVaultReturnsNull_shouldThrowPkiException() {
         when(vaultTemplate.write(anyString(), anyMap())).thenReturn(null);
-        assertThrows(PkiException.class, () -> vaultPkiService.signCsr("csr", "role", "24h"));
+        Optional<String> role = Optional.of("role");
+        Optional<String> ttl = Optional.of("24h");
+        assertThrows(PkiException.class, () -> vaultPkiService.signCsr("csr", role, ttl));
     }
 
     @Test
-    void getIntermediateCertificate_shouldReturnCertAndChain()  {
+    void getIntermediateCertificate_shouldReturnCertAndChain() {
         String certPem = "-----BEGIN CERTIFICATE-----\nFAKE_CERT\n-----END CERTIFICATE-----";
-        
+
         VaultResponse certResp = mock(VaultResponse.class);
         when(certResp.getData()).thenReturn(Map.of("certificate", certPem));
 

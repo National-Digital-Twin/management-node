@@ -45,6 +45,8 @@ server:
 application:
   vault:
     pki-mount: pki-int # mount point for intermediate CA
+    default-role: default-role # default role for signing CSRs
+    default-ttl: 24h # default TTL for signing CSRs
   client:
     key-store: keystore.jks # path to MTLS client keystore
     key-store-password: ${CERTPASSWORD:} # MTLS client keystore password

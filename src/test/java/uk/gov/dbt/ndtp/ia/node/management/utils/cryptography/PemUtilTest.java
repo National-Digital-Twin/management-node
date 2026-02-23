@@ -6,15 +6,14 @@
 
 package uk.gov.dbt.ndtp.ia.node.management.utils.cryptography;
 
-import org.junit.jupiter.api.Test;
-import uk.gov.dbt.ndtp.ia.node.management.exception.PkiException;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+import uk.gov.dbt.ndtp.ia.node.management.exception.PkiException;
 
 class PemUtilTest {
 
@@ -29,8 +28,6 @@ class PemUtilTest {
         String invalidPem = "-----BEGIN CERTIFICATE-----\nINVALID\n-----END CERTIFICATE-----\n";
         assertThrows(PkiException.class, () -> PemUtil.parseCertificate(invalidPem));
     }
-
-
 
     @Test
     void roundTripKeyParsing_shouldSucceed() throws Exception {

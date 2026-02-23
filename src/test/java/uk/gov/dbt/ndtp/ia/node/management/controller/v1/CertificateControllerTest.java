@@ -6,6 +6,13 @@
 
 package uk.gov.dbt.ndtp.ia.node.management.controller.v1;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,20 +22,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import uk.gov.dbt.ndtp.ia.node.management.model.dto.certificates.CertificateInfoDTO;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.certificates.CreateCsrRequestDTO;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.certificates.CreateCsrResponseDTO;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.certificates.CreateKeyResponseDTO;
-import uk.gov.dbt.ndtp.ia.node.management.model.dto.certificates.SignCertResponseDTO;
-import uk.gov.dbt.ndtp.ia.node.management.model.dto.certificates.CertificateInfoDTO;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.certificates.IntermediateCertResponseDTO;
+import uk.gov.dbt.ndtp.ia.node.management.model.dto.certificates.SignCertResponseDTO;
 import uk.gov.dbt.ndtp.ia.node.management.service.providers.certificate.VaultPkiService;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
 class CertificateControllerTest {
@@ -55,8 +55,7 @@ class CertificateControllerTest {
                 .build();
         when(pkiService.createKeyPair(anyString(), any())).thenReturn(response);
 
-        mockMvc.perform(get("/api/v1/certificate/keyPair")
-                .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/v1/certificate/keyPair").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.algorithm").value("RSA"));
     }
@@ -69,8 +68,8 @@ class CertificateControllerTest {
         String jsonRequest = "{\"commonName\":\"test\"}";
 
         mockMvc.perform(post("/api/v1/certificate/csr/create")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonRequest))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.csrPem").value("CSR_PEM"));
     }
@@ -81,13 +80,13 @@ class CertificateControllerTest {
                 .certificate("CERT")
                 .serialNumber("123")
                 .build();
-        when(pkiService.signCsr(anyString(), anyString(), any())).thenReturn(response);
+        when(pkiService.signCsr(anyString(), any(), any())).thenReturn(response);
 
-        String jsonRequest = "{\"csr\":\"CSR\", \"role\":\"role\"}";
+        String jsonRequest = "{\"csr\":\"CSR\"}";
 
         mockMvc.perform(post("/api/v1/certificate/csr/sign")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonRequest))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.certificate").value("CERT"));
     }
@@ -107,8 +106,7 @@ class CertificateControllerTest {
                 .build();
         when(pkiService.getIntermediateCertificate()).thenReturn(responseDTO);
 
-        mockMvc.perform(get("/api/v1/certificate/intermediate")
-                .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/v1/certificate/intermediate").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.certificate").value(mockCert))
                 .andExpect(jsonPath("$.info.subject").value("CN=Test"))

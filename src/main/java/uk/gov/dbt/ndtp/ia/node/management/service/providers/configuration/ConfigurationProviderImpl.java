@@ -185,7 +185,6 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
         return producers;
     }
 
-
     /**
      * Collects data provider IDs from a list of producers.
      *

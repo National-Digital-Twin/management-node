@@ -81,18 +81,22 @@ public class GlobalExceptionHandler {
         String errorId = generateErrorId();
         log.debug("Resource not found, error_id={}, path={}: ", errorId, request.getContextPath(), ex);
 
-        ErrorResponse errorResponse = new ErrorResponse(
-                HttpStatus.NOT_FOUND.value(), "Resource not found: " + ex.getResourcePath(), errorId);
+        ErrorResponse errorResponse =
+                new ErrorResponse(HttpStatus.NOT_FOUND.value(), "Resource not found: " + ex.getResourcePath(), errorId);
 
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(PkiException.class)
-    public ResponseEntity<ErrorResponse> handlePkiException(
-            PkiException ex, WebRequest request) {
+    public ResponseEntity<ErrorResponse> handlePkiException(PkiException ex, WebRequest request) {
 
         String errorId = generateErrorId();
-        log.error("PKI exception occurred, error_id={}, path={}: {}", errorId, request.getDescription(false), ex.getMessage(), ex);
+        log.error(
+                "PKI exception occurred, error_id={}, path={}: {}",
+                errorId,
+                request.getDescription(false),
+                ex.getMessage(),
+                ex);
 
         ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(), "PKI/Certificate error: " + ex.getMessage(), errorId);

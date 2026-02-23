@@ -6,7 +6,6 @@
 
 package uk.gov.dbt.ndtp.ia.node.management.model.dto.certificates;
 
-
 import lombok.*;
 
 @Builder
