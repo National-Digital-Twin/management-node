@@ -212,7 +212,7 @@ public class VaultPkiService {
             }
 
             return new SignCertResponseDTO(
-                     resp.getData().get(KEY_CERTIFICATE).toString(),
+                    resp.getData().get(KEY_CERTIFICATE).toString(),
                     caChain,
                     resp.getData().get(KEY_ISSUING_CA).toString(),
                     resp.getData().get(KEY_SERIAL_NUMBER).toString(),
@@ -237,14 +237,14 @@ public class VaultPkiService {
         log.info("Retrieving intermediate certificate from Vault");
         String path = pathCertCa;
         VaultResponse resp = vault.read(path);
-        if (Optional.ofNullable(resp).map(VaultResponse::getData).isEmpty()) {
+        if (Optional.of(resp).map(VaultResponse::getData).isEmpty()) {
             log.error("Failed to retrieve intermediate certificate from path: {}", path);
             throw new PkiException("Could not retrieve intermediate certificate from Vault");
         }
 
         String pathToCaChain = pathCertCaChain;
         VaultResponse caChainResp = vault.read(pathToCaChain);
-        if (Optional.ofNullable(caChainResp).map(VaultResponse::getData).isEmpty()) {
+        if (Optional.of(caChainResp).map(VaultResponse::getData).isEmpty()) {
             log.error("Failed to retrieve CA chain from path: {}", pathToCaChain);
             throw new PkiException("Could not retrieve CA Chain certificate from Vault");
         }

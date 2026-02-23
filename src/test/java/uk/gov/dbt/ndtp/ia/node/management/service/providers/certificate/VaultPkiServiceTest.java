@@ -148,7 +148,8 @@ class VaultPkiServiceTest {
                 "serial_number", "SERIAL_123",
                 "expiration", 123456789);
         when(vaultResponse.getData()).thenReturn(data);
-        when(vaultTemplate.write(eq(PKI_MOUNT + "/sign/" + DEFAULT_ROLE), anyMap())).thenReturn(vaultResponse);
+        when(vaultTemplate.write(eq(PKI_MOUNT + "/sign/" + DEFAULT_ROLE), anyMap()))
+                .thenReturn(vaultResponse);
 
         SignCertResponseDTO response = vaultPkiService.signCsr(csrPem, Optional.empty(), Optional.of(ttl));
 
@@ -175,7 +176,8 @@ class VaultPkiServiceTest {
 
         assertNotNull(response);
         verify(vaultTemplate)
-                .write(eq(PKI_MOUNT + "/sign/" + role),
+                .write(
+                        eq(PKI_MOUNT + "/sign/" + role),
                         argThat((Map<String, Object> m) -> DEFAULT_TTL.equals(m.get("ttl"))));
     }
 

@@ -95,7 +95,8 @@ public class CertificateController {
     @PostMapping("/csr/sign")
     @Operation(
             summary = "Sign CSR",
-            description = "Signs the provided CSR using the PKI service. Uses the provided role or default if not specified. Uses default TTL if not specified.",
+            description =
+                    "Signs the provided CSR using the PKI service. Uses the provided role or default if not specified. Uses default TTL if not specified.",
             security = {@SecurityRequirement(name = "bearerAuth")})
     @ApiResponse(
             responseCode = "200",
