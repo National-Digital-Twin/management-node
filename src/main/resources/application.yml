@@ -1,6 +1,11 @@
 spring:
   application:
     name: management-node
+  cloud:
+    vault:
+      uri: http://localhost:8200
+      token:  # access token to vault
+      authentication: token
   security:
     oauth2:
       resourceserver:
@@ -36,9 +41,9 @@ server:
     key-alias: localhost
     key-store: keystore.jks #path to ssl keystore
     key-store-type: PKCS12
-    key-store-password: ${CERTPASSWORD:} #keystore password
+    key-store-password: ${CERTPASSWORD:defaultpassword} #keystore password
     trust-store: truststore.jks #path to ssl truststore
-    trust-store-password: ${CERTPASSWORD:} #truststore password
+    trust-store-password: ${CERTPASSWORD:defaultpassword} #truststore password
     trust-store-type: PKCS12
     client-auth: need
     enabled: true # disable for local development Only
