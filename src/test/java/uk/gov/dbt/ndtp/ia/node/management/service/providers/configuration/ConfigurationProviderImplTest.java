@@ -1,9 +1,3 @@
-/*
- * SPDX-License-Identifier: Apache-2.0
- * © Crown Copyright 2026. This work has been developed by the National Digital Twin Programme and is legally
- * attributed to the Department for Business and Trade (UK) as the governing entity.
- */
-
 package uk.gov.dbt.ndtp.ia.node.management.service.providers.configuration;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -204,6 +198,33 @@ class ConfigurationProviderImplTest {
         assertThat(pr1.getConsumers()).containsExactly(c501);
         // pr2 has none
         assertThat(pr2.getConsumers()).isEmpty();
+    }
+
+    @Test
+    void getProducerConfigByClientId_whenNoProducersFound_returnsEmptyConfig() {
+        String clientId = "nonExistentClient";
+        when(producerService.getProducersByClientId(clientId)).thenReturn(List.of());
+
+        ProducerConfigDTO cfg = configurationProvider.getProducerConfigByClientId(clientId, Optional.empty());
+
+        assertThat(cfg).isNotNull();
+        assertThat(cfg.getClientId()).isEqualTo(clientId);
+        assertThat(cfg.getProducers()).isEmpty();
+    }
+
+    @Test
+    void getConsumerConfigByClientId_whenNoConsumersFound_returnsEmptyConfig() {
+        String clientId = "nonExistentClient";
+        when(consumerService.findByIdpClientId(clientId)).thenReturn(List.of());
+
+        ConsumerConfigDTO cfg = configurationProvider.getConsumerConfigByClientId(clientId, Optional.empty());
+
+        assertThat(cfg).isNotNull();
+        assertThat(cfg.getClientId()).isEqualTo(clientId);
+        assertThat(cfg.getProducers()).isEmpty();
+        assertThat(cfg.getName()).isNull();
+        assertThat(cfg.getScheduleType()).isNull();
+        assertThat(cfg.getScheduleExpression()).isNull();
     }
 
     @Test

@@ -1,6 +1,6 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
- * © Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally
+ * © Crown Copyright 2026. This work has been developed by the National Digital Twin Programme and is legally
  * attributed to the Department for Business and Trade (UK) as the governing entity.
  */
 
@@ -18,6 +18,9 @@ import uk.gov.dbt.ndtp.ia.node.management.service.data.ConsumerService;
 import uk.gov.dbt.ndtp.ia.node.management.service.data.ProducerService;
 import uk.gov.dbt.ndtp.ia.node.management.service.data.ProductConsumerService;
 
+/**
+ * Implementation of {@link ConfigurationProvider} that retrieves configuration from database services.
+ */
 @Service
 public class ConfigurationProviderImpl implements ConfigurationProvider {
 
@@ -27,6 +30,13 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
 
     private final ProducerService producerService;
 
+    /**
+     * Constructs a new ConfigurationProviderImpl with required services.
+     *
+     * @param consumerService the consumer service
+     * @param consumerAllowedDataProviders the product consumer service
+     * @param producerService the producer service
+     */
     public ConfigurationProviderImpl(
             ConsumerService consumerService,
             ProductConsumerService consumerAllowedDataProviders,
@@ -37,6 +47,13 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
         this.producerService = producerService;
     }
 
+    /**
+     * Checks if a granted timestamp is still valid based on the validity period.
+     *
+     * @param grantedTs the timestamp when access was granted
+     * @param validity the validity period in days
+     * @return true if valid, false otherwise
+     */
     private static boolean isValidGrantedTs(Timestamp grantedTs, BigDecimal validity) {
         return grantedTs != null
                 && grantedTs
@@ -76,7 +93,12 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
                     .toList();
             product.setConfigurations(configs);
         }));
-
+        if (consumers.isEmpty()) {
+            return ConsumerConfigDTO.builder()
+                    .clientId(clientId)
+                    .producers(List.of())
+                    .build();
+        }
         ConsumerDTO firstConsumer = consumers.getFirst();
         return ConsumerConfigDTO.builder()
                 .scheduleExpression(firstConsumer.getScheduleExpression())
@@ -87,6 +109,12 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
                 .build();
     }
 
+    /**
+     * Retrieves valid product consumers for a list of consumers.
+     *
+     * @param consumers the list of consumers
+     * @return a list of valid product consumer DTOs
+     */
     private List<ProductConsumerDTO> getValidProductConsumers(List<ConsumerDTO> consumers) {
         List<ProductConsumerDTO> validProductIds = new ArrayList<>();
 
@@ -120,9 +148,9 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
     /**
      * Filters consumers by client ID and optional consumer ID.
      *
-     * @param clientId   the client ID to filter by
-     * @param consumerId optional consumer ID for additional filtering
-     * @return filtered list of consumers
+     * @param clientId the client ID
+     * @param consumerId the optional consumer ID
+     * @return a list of filtered consumers
      */
     private List<ConsumerDTO> getFilteredConsumers(String clientId, Optional<Long> consumerId) {
         List<ConsumerDTO> consumers = consumerService.findByIdpClientId(clientId);
@@ -139,9 +167,9 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
     /**
      * Filters active producers by client ID and optional producer ID.
      *
-     * @param clientId   the client ID to filter by
-     * @param producerId optional producer ID for additional filtering
-     * @return filtered list of active producers
+     * @param clientId the client ID
+     * @param producerId the optional producer ID
+     * @return a list of filtered active producers
      */
     private List<ProducerDTO> getFilteredActiveProducers(String clientId, Optional<Long> producerId) {
         List<ProducerDTO> producers = producerService.getProducersByClientId(clientId).stream()
@@ -158,10 +186,10 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
     }
 
     /**
-     * Collects all data provider IDs from the given producers.
+     * Collects data provider IDs from a list of producers.
      *
-     * @param producers list of producers
-     * @return list of data provider IDs
+     * @param producers the list of producers
+     * @return a list of data provider IDs
      */
     private List<Long> collectDataProviderIds(List<ProducerDTO> producers) {
         List<Long> dataProviderIds = new ArrayList<>();
@@ -180,6 +208,11 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
      *
      * @param producers list of producers to process
      */
+    /**
+     * Processes consumers for a list of producers.
+     *
+     * @param producers the list of producers
+     */
     private void processConsumersForProducers(List<ProducerDTO> producers) {
         for (ProducerDTO producer : producers) {
             for (ProductDTO provider : producer.getProducts()) {
@@ -192,6 +225,11 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
      * Processes consumers for a specific provider.
      *
      * @param provider the provider to process consumers for
+     */
+    /**
+     * Processes consumers for a specific provider.
+     *
+     * @param provider the product provider DTO
      */
     private void processConsumersForProvider(ProductDTO provider) {
 
@@ -208,6 +246,12 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
      * @param consumerProviders list of consumer-provider relationships
      * @param provider          the provider to add consumers to
      */
+    /**
+     * Adds valid consumers to a provider.
+     *
+     * @param consumerProviders the list of product consumer DTOs
+     * @param provider the product provider DTO
+     */
     private void addValidConsumersToProvider(List<ProductConsumerDTO> consumerProviders, ProductDTO provider) {
         if (provider.getConsumers() == null) {
             provider.setConsumers(new ArrayList<>());
@@ -218,6 +262,12 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
         });
     }
 
+    /**
+     * Checks if a provider (product consumer) is valid based on its granted date and validity period.
+     *
+     * @param provider the product consumer DTO
+     * @return true if valid, false otherwise
+     */
     private boolean isValidProvider(ProductConsumerDTO provider) {
 
         if (provider.getValidity() == null || provider.getValidity().equals(BigDecimal.ZERO)) return true;

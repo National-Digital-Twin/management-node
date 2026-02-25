@@ -4,8 +4,9 @@
  * attributed to the Department for Business and Trade (UK) as the governing entity.
  */
 
-package uk.gov.dbt.ndtp.ia.node.management.model.dto;
+package uk.gov.dbt.ndtp.ia.node.management.model.dto.certificates;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,9 +18,12 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class AttributesDTO {
-
-    private String name;
-    private String value;
-    private String type;
+public class CreateCsrRequestDTO {
+    private String publicKeyPem;
+    private String privateKeyPem;
+    private String commonName;
+    private String organization;
+    private String organizationalUnit;
+    private String country;
+    private List<String> dnsSans;
 }

@@ -1,6 +1,6 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
- * © Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally
+ * © Crown Copyright 2026. This work has been developed by the National Digital Twin Programme and is legally
  * attributed to the Department for Business and Trade (UK) as the governing entity.
  */
 
@@ -51,8 +51,6 @@ class KeycloakJwtAuthenticationConverterExceptionTest {
                 converter,
                 "introspectionUri",
                 "http://localhost:8080/realms/management-node/protocol/openid-connect/token/introspect");
-        ReflectionTestUtils.setField(converter, "clientId", "management-node");
-        ReflectionTestUtils.setField(converter, "clientSecret", "0T5S4wNAPaaOUzFVFQyenorSEC6zxcb0");
 
         // Create a mock JWT with the sample token data
         Map<String, Object> headers = new HashMap<>();
@@ -93,38 +91,11 @@ class KeycloakJwtAuthenticationConverterExceptionTest {
     void convert_withRestClientException_shouldFallbackToJwtParsing() {
         // Arrange
         // Configure RestTemplate to throw a RestClientException
-        when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), Mockito.<Class<Map>>any()))
+        when(restTemplate.postForEntity(
+                        anyString(),
+                        any(HttpEntity.class),
+                        Mockito.<Class<uk.gov.dbt.ndtp.ia.node.management.model.jwt.JwtToken>>any()))
                 .thenThrow(new RestClientException("Connection refused"));
-
-        // Act
-        AbstractAuthenticationToken token = converter.convert(mockJwt);
-
-        // Assert
-        assertNotNull(token);
-        assertTrue(token instanceof CustomJwtAuthenticationToken);
-
-        // Verify the token has the correct principal
-        EnhancedPrincipal principal = ((CustomJwtAuthenticationToken) token).getPrincipal();
-        assertEquals("86a41a8a-ab2e-465e-8b48-a09d3275f842", principal.subject());
-        assertEquals("management-node", principal.clientId());
-    }
-
-    @Test
-    void convert_withMalformedIntrospectionResponse_shouldFallbackToJwtParsing() {
-        // Arrange
-        // Create a malformed introspection response that will cause a ResourceAccessParsingException
-        Map<String, Object> malformedResponse = new HashMap<>();
-        malformedResponse.put("active", true);
-        malformedResponse.put("sub", "86a41a8a-ab2e-465e-8b48-a09d3275f842");
-        malformedResponse.put("client_id", "management-node");
-
-        // Add malformed resource_access (not a map but a string)
-        malformedResponse.put("resource_access", "not-a-map");
-
-        // Configure RestTemplate to return the malformed response
-        ResponseEntity<Map> responseEntity = new ResponseEntity<>(malformedResponse, HttpStatus.OK);
-        when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), Mockito.<Class<Map>>any()))
-                .thenReturn(responseEntity);
 
         // Act
         AbstractAuthenticationToken token = converter.convert(mockJwt);
@@ -143,12 +114,17 @@ class KeycloakJwtAuthenticationConverterExceptionTest {
     void convert_withInactiveToken_shouldFallbackToJwtParsing() {
         // Arrange
         // Create an introspection response with inactive token
-        Map<String, Object> inactiveTokenResponse = new HashMap<>();
-        inactiveTokenResponse.put("active", false);
+        uk.gov.dbt.ndtp.ia.node.management.model.jwt.JwtToken inactiveTokenResponse =
+                new uk.gov.dbt.ndtp.ia.node.management.model.jwt.JwtToken();
+        inactiveTokenResponse.setActive(false);
 
         // Configure RestTemplate to return the inactive token response
-        ResponseEntity<Map> responseEntity = new ResponseEntity<>(inactiveTokenResponse, HttpStatus.OK);
-        when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), Mockito.<Class<Map>>any()))
+        ResponseEntity<uk.gov.dbt.ndtp.ia.node.management.model.jwt.JwtToken> responseEntity =
+                new ResponseEntity<>(inactiveTokenResponse, HttpStatus.OK);
+        when(restTemplate.postForEntity(
+                        anyString(),
+                        any(HttpEntity.class),
+                        Mockito.<Class<uk.gov.dbt.ndtp.ia.node.management.model.jwt.JwtToken>>any()))
                 .thenReturn(responseEntity);
 
         // Act
@@ -168,8 +144,12 @@ class KeycloakJwtAuthenticationConverterExceptionTest {
     void convert_withNullIntrospectionResponse_shouldFallbackToJwtParsing() {
         // Arrange
         // Configure RestTemplate to return null response body
-        ResponseEntity<Map> responseEntity = new ResponseEntity<>(null, HttpStatus.OK);
-        when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), Mockito.<Class<Map>>any()))
+        ResponseEntity<uk.gov.dbt.ndtp.ia.node.management.model.jwt.JwtToken> responseEntity =
+                new ResponseEntity<>(null, HttpStatus.OK);
+        when(restTemplate.postForEntity(
+                        anyString(),
+                        any(HttpEntity.class),
+                        Mockito.<Class<uk.gov.dbt.ndtp.ia.node.management.model.jwt.JwtToken>>any()))
                 .thenReturn(responseEntity);
 
         // Act

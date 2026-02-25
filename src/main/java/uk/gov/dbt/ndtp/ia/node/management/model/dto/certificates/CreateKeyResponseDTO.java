@@ -4,7 +4,7 @@
  * attributed to the Department for Business and Trade (UK) as the governing entity.
  */
 
-package uk.gov.dbt.ndtp.ia.node.management.model.dto;
+package uk.gov.dbt.ndtp.ia.node.management.model.dto.certificates;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,9 +17,9 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class AttributesDTO {
-
-    private String name;
-    private String value;
-    private String type;
+public class CreateKeyResponseDTO {
+    private String privateKeyPem;
+    private String publicKeyPem;
+    private String algorithm;
+    private String createdAt;
 }
