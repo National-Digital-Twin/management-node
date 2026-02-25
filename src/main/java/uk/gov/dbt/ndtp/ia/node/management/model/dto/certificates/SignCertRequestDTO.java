@@ -7,10 +7,12 @@
 package uk.gov.dbt.ndtp.ia.node.management.model.dto.certificates;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@Builder
 @Getter
 @Setter
 @NoArgsConstructor
