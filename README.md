@@ -551,7 +551,6 @@ TOKEN=$(curl -k https://localhost:8443/realms/management-node/protocol/openid-co
   --cert client.crt --key client.key \
   --data-urlencode 'grant_type=client_credentials' \
   --data-urlencode 'client_id=management-node' \
-  --data-urlencode "client_secret=${KEYCLOAK_CLIENTID}" \
   -s | jq -r '.access_token')
 
 # Verify the token was retrieved successfully

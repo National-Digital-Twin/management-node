@@ -48,4 +48,5 @@ build/
 .terraform/
 *.tfstate
 *.tfstate.backup
-*.hcl
+
+!**/src/main/resources/application-local.yml
