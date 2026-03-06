@@ -50,6 +50,3 @@ build/
 *.tfstate
 *.tfstate.backup
 *.hcl
-
-### application local file
-**src/main/resources/application-local.yml
