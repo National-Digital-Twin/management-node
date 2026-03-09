@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import uk.gov.dbt.ndtp.ia.node.management.config.AllowBootstrapCertificates;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.certificates.*;
 import uk.gov.dbt.ndtp.ia.node.management.service.providers.certificate.VaultPkiService;
 
@@ -24,6 +25,7 @@ import uk.gov.dbt.ndtp.ia.node.management.service.providers.certificate.VaultPki
  */
 @RestController
 @RequestMapping("/api/v1/certificate")
+@AllowBootstrapCertificates
 @Slf4j
 @Tag(name = "Certificate", description = "Endpoints for certificate management.")
 public class CertificateController {
