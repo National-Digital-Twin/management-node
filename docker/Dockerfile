@@ -38,11 +38,15 @@ COPY --from=build /build/target/${JAR_NAME}.jar /app/app.jar
 
 RUN chown app:app /app/app.jar
 
+RUN apk add --no-cache curl
+
 # Use non-root user from here on
 USER app:app
 
 # Expose HTTPS port
 EXPOSE 8443
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 CMD curl -f -k https://localhost:8443 || exit 1
 
 # Helpful defaults for Java in containers
 ENV JAVA_OPTS="-Djava.security.egd=file:/dev/./urandom -XX:MaxRAMPercentage=75.0 -Djava.io.tmpdir=/app/tmp"

@@ -9,6 +9,15 @@ services:
     image: postgres:16.2
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+      - DAC_OVERRIDE
+    security_opt:
+      - no-new-privileges:true
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -16,12 +25,22 @@ services:
     networks:
       - keycloak_network
     ports:
-      - "5433:5432"
+      - "127.0.0.1:5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
   keycloak:
     image: quay.io/keycloak/keycloak:26.3.2
     command: start --verbose
     hostname: localhost
     container_name: keycloak
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     environment:
       KC_HOSTNAME: localhost
       KC_HOSTNAME_PORT: ${KC_HOSTNAME_PORT}
@@ -51,10 +70,16 @@ services:
       KC_LOG_LEVEL: ${KC_LOG_LEVEL}
 
     ports:
-      - "8080:8080"
-      - "8443:8443"
-      - "9000:9000"
+      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:8443:8443"
+      - "127.0.0.1:9000:9000"
     restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "exec 6<>/dev/tcp/localhost/9000 && echo -e 'GET /health/ready HTTP/1.1\\r\\nhost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&6 && timeout 5 cat <&6 > /dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     depends_on:
       - postgres
     networks:
