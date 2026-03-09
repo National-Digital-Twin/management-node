@@ -6,7 +6,7 @@
 #
 
 # Build stage
-ARG JAR_FILE=management-node-1.0.1.jar
+ARG JAR_FILE=management-node-1.1.0.jar
 FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
 ARG JAR_FILE
 WORKDIR /build
@@ -22,12 +22,21 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:23-jdk-alpine
 ARG JAR_FILE
 
+RUN addgroup -S app && adduser -S -G app -u 10001 app
+
 WORKDIR /app
+
+RUN chown -R app:app /app
 
 # Copy application jar from build stage and certificates
 COPY --from=build /build/target/${JAR_FILE} /app/app.jar
 COPY docker/keystore.jks /app/keystore.jks
 COPY docker/truststore.jks /app/truststore.jks
+
+RUN chown app:app /app/app.jar
+
+# Use non-root user from here on
+USER app:app
 
 # Set default certificate password
 ENV CERTPASSWORD=changeit

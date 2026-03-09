@@ -432,6 +432,63 @@ If you prefer to set up the realm manually (updated for Keycloak 26.x):
        keyStoreType: JKS
    ```
 
+### Setting up vault with Docker compose
+
+Follow these steps to setup vault using Docker compose:
+
+1. Create a directory called `config` in the `docker/vault` directory
+
+```sh
+mkdir docker/vault/config
+```
+
+2. Create a file called `vault.hcl` in the `docker/vault/config` directory with the following content:
+
+```
+ui = true
+
+listener "tcp" {
+  address     = "0.0.0.0:8200"
+  tls_disable = 1
+}
+
+storage "file" {
+  path = "/vault/file"
+}
+
+# Optional but helpful: disables mlock warnings in containers
+disable_mlock = true
+```
+
+3. Start vault using Docker compose:
+
+```sh
+docker compose -f docker/vault/docker-compose.yaml up -d
+```
+
+4. Verify that vault is running
+
+```sh
+docker exec vault vault status -format=json
+```
+
+5. initialize vault & generate unseal keys and root token:
+
+```sh
+# copy the Keys and root token to somewhere safe
+docker exec vault vault operator init -key-shares=5 -key-threshold=3 -format=json
+```
+
+6. unseal vault using the unseal key in the previous step:
+
+```sh
+docker exec vault vault operator unseal <unseal_key_1>
+docker exec vault vault operator unseal <unseal_key_2>
+docker exec vault vault operator unseal <unseal_key_3>
+```
+
+You can then access vault using the Web UI and the root token at `http://localhost:8200`. Dont forget to add your vault root token to the application file.
+
 ### Testing mTLS connectivity:
 
 Once Keycloak is running and configured, you can test mTLS connectivity using the command below. Replace `YOUR_CLIENT_SECRET` with the actual client secret obtained from the Keycloak Credentials tab (step 4 in the manual configuration above):

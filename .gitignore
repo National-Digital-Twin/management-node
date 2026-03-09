@@ -40,6 +40,7 @@ build/
 *.jks
 *.ext
 *.pem
+*.srl
 
 ### Env files ###
 .env
@@ -49,3 +50,6 @@ build/
 *.tfstate
 *.tfstate.backup
 *.hcl
+
+### application local file
+**src/main/resources/application-local.yml
