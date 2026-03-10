@@ -131,4 +131,24 @@ class OrganisationCertificateServiceImplTest {
 
         assertThat(result).isEmpty();
     }
+
+    @Test
+    void save_convertsAndPersists() {
+        OrganisationCertificateDTO inputDto =
+                OrganisationCertificateDTO.builder().id(1L).serialNumber("abc").build();
+        OrganisationCertificate entity = new OrganisationCertificate();
+        entity.setId(1L);
+        entity.setSerialNumber("abc");
+        OrganisationCertificateDTO outputDto =
+                OrganisationCertificateDTO.builder().id(1L).serialNumber("abc").build();
+
+        when(converter.toEntity(inputDto)).thenReturn(entity);
+        when(repository.save(entity)).thenReturn(entity);
+        when(converter.toDto(entity)).thenReturn(outputDto);
+
+        OrganisationCertificateDTO result = service.save(inputDto);
+
+        assertThat(result.getSerialNumber()).isEqualTo("abc");
+        verify(repository).save(entity);
+    }
 }

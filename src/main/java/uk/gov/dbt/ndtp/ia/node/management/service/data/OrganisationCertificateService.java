@@ -39,4 +39,12 @@ public interface OrganisationCertificateService {
      * @return a list of certificate DTOs
      */
     List<OrganisationCertificateDTO> findAllByOrganisationIds(Collection<Long> orgIds);
+
+    /**
+     * Save or update a certificate record.
+     *
+     * @param certificate the certificate DTO to save
+     * @return the saved certificate DTO
+     */
+    OrganisationCertificateDTO save(OrganisationCertificateDTO certificate);
 }

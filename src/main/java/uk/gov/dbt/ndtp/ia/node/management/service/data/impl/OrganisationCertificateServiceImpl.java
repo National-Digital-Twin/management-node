@@ -44,4 +44,9 @@ public class OrganisationCertificateServiceImpl implements OrganisationCertifica
         }
         return converter.toDtoList(repository.findAllWithOrganisationByOrganisationIdIn(orgIds));
     }
+
+    @Override
+    public OrganisationCertificateDTO save(OrganisationCertificateDTO dto) {
+        return converter.toDto(repository.save(converter.toEntity(dto)));
+    }
 }

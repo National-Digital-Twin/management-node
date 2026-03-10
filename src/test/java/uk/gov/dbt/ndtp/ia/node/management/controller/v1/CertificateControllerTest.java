@@ -19,15 +19,23 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.bind.support.WebDataBinderFactory;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.method.support.ModelAndViewContainer;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.certificates.CertificateInfoDTO;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.certificates.CreateCsrRequestDTO;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.certificates.CreateCsrResponseDTO;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.certificates.CreateKeyResponseDTO;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.certificates.IntermediateCertResponseDTO;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.certificates.SignCertResponseDTO;
+import uk.gov.dbt.ndtp.ia.node.management.model.jwt.EnhancedPrincipal;
+import uk.gov.dbt.ndtp.ia.node.management.service.providers.certificate.CertificateSigningProvider;
 import uk.gov.dbt.ndtp.ia.node.management.service.providers.certificate.VaultPkiService;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,12 +46,33 @@ class CertificateControllerTest {
     @Mock
     private VaultPkiService pkiService;
 
+    @Mock
+    private CertificateSigningProvider signingProvider;
+
     @InjectMocks
     private CertificateController certificateController;
 
+    private static final EnhancedPrincipal TEST_PRINCIPAL = new EnhancedPrincipal("subject", "client-1");
+
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(certificateController).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(certificateController)
+                .setCustomArgumentResolvers(new HandlerMethodArgumentResolver() {
+                    @Override
+                    public boolean supportsParameter(MethodParameter parameter) {
+                        return parameter.hasParameterAnnotation(AuthenticationPrincipal.class);
+                    }
+
+                    @Override
+                    public Object resolveArgument(
+                            MethodParameter parameter,
+                            ModelAndViewContainer mavContainer,
+                            NativeWebRequest webRequest,
+                            WebDataBinderFactory binderFactory) {
+                        return TEST_PRINCIPAL;
+                    }
+                })
+                .build();
     }
 
     @Test
@@ -75,18 +104,16 @@ class CertificateControllerTest {
     }
 
     @Test
-    void signCsr_shouldReturnSignedCert() throws Exception {
+    void signCsr_shouldDelegateToSigningProvider() throws Exception {
         SignCertResponseDTO response = SignCertResponseDTO.builder()
                 .certificate("CERT")
                 .serialNumber("123")
                 .build();
-        when(pkiService.signCsr(anyString(), any(), any())).thenReturn(response);
-
-        String jsonRequest = "{\"csr\":\"CSR\"}";
+        when(signingProvider.signAndRecord("CSR", "client-1")).thenReturn(response);
 
         mockMvc.perform(post("/api/v1/certificate/csr/sign")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonRequest))
+                        .content("{\"csr\":\"CSR\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.certificate").value("CERT"));
     }

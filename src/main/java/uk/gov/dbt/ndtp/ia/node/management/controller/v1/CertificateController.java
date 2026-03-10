@@ -7,16 +7,19 @@
 package uk.gov.dbt.ndtp.ia.node.management.controller.v1;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.dbt.ndtp.ia.node.management.config.AllowBootstrapCertificates;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.certificates.*;
+import uk.gov.dbt.ndtp.ia.node.management.model.jwt.EnhancedPrincipal;
+import uk.gov.dbt.ndtp.ia.node.management.service.providers.certificate.CertificateSigningProvider;
 import uk.gov.dbt.ndtp.ia.node.management.service.providers.certificate.VaultPkiService;
 
 /**
@@ -31,9 +34,11 @@ import uk.gov.dbt.ndtp.ia.node.management.service.providers.certificate.VaultPki
 public class CertificateController {
 
     private final VaultPkiService pkiService;
+    private final CertificateSigningProvider signingProvider;
 
-    public CertificateController(VaultPkiService pkiService) {
+    public CertificateController(VaultPkiService pkiService, CertificateSigningProvider signingProvider) {
         this.pkiService = pkiService;
+        this.signingProvider = signingProvider;
     }
 
     /**
@@ -89,9 +94,10 @@ public class CertificateController {
     }
 
     /**
-     * Signs a CSR using the default role and TTL.
+     * Signs a CSR and records the result against the caller's organisation.
      *
      * @param req the sign request DTO containing the CSR PEM
+     * @param principal the authenticated caller's identity
      * @return a DTO containing the signed certificate and its chain
      */
     @PostMapping("/csr/sign")
@@ -111,8 +117,10 @@ public class CertificateController {
     @ApiResponse(responseCode = "401", description = "Unauthorized")
     @ApiResponse(responseCode = "403", description = "Forbidden")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    public SignCertResponseDTO signCsr(@RequestBody SignCertRequestDTO req) {
-        return pkiService.signCsr(req.getCsr(), Optional.empty(), Optional.empty());
+    public SignCertResponseDTO signCsr(
+            @RequestBody SignCertRequestDTO req,
+            @Parameter(hidden = true) @AuthenticationPrincipal EnhancedPrincipal principal) {
+        return signingProvider.signAndRecord(req.getCsr(), principal.clientId());
     }
 
     /**

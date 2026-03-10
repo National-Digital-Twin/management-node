@@ -103,7 +103,8 @@ public class CertificateValidationInterceptor implements HandlerInterceptor {
             return "Client certificate required";
         }
         String presentedSerial = certs[0].getSerialNumber().toString(16);
-        if (!presentedSerial.equalsIgnoreCase(cert.getSerialNumber())) {
+        String storedSerial = cert.getSerialNumber().replace(":", "");
+        if (!presentedSerial.equalsIgnoreCase(storedSerial)) {
             log.warn(
                     "Serial mismatch for client {}: expected={}, presented={}",
                     clientId,

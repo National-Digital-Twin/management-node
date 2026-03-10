@@ -222,6 +222,21 @@ class CertificateValidationInterceptorTest {
     }
 
     @Test
+    void colonSeparatedSerialNumber_matchesPlainHex() throws Exception {
+        setupAuthentication("client-1");
+        OrganisationCertificateDTO cert = certDto(CertificateType.AUTOMATED, "ab:c1:23");
+        when(validationProvider.findByClientId("client-1")).thenReturn(Optional.of(cert));
+        when(validationProvider.isActive(cert)).thenReturn(true);
+
+        X509Certificate mockCert = mock(X509Certificate.class);
+        when(mockCert.getSerialNumber()).thenReturn(new BigInteger("abc123", 16));
+        when(request.getAttribute("jakarta.servlet.request.X509Certificate"))
+                .thenReturn(new X509Certificate[] {mockCert});
+
+        assertThat(interceptor.preHandle(request, response, handlerMethod)).isTrue();
+    }
+
+    @Test
     void nullSerialNumber_skipsCheck() throws Exception {
         setupAuthentication("client-1");
         OrganisationCertificateDTO cert = certDto(CertificateType.AUTOMATED, null);
