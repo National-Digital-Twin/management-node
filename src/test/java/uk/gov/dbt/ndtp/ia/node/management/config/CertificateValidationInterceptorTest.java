@@ -20,9 +20,14 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.Authentication;
@@ -138,10 +143,13 @@ class CertificateValidationInterceptorTest {
         verify(response).setStatus(403);
     }
 
-    @Test
-    void activeCert_passesThrough() throws Exception {
+    @ParameterizedTest
+    @EnumSource(
+            value = CertificateType.class,
+            names = {"AUTOMATED", "MANUAL"})
+    void activeCert_passesThrough(CertificateType type) throws Exception {
         setupAuthentication("client-1");
-        OrganisationCertificateDTO cert = certDto(CertificateType.AUTOMATED, null);
+        OrganisationCertificateDTO cert = certDto(type, null);
         when(validationProvider.findByClientId("client-1")).thenReturn(Optional.of(cert));
         when(validationProvider.isActive(cert)).thenReturn(true);
 
@@ -161,10 +169,18 @@ class CertificateValidationInterceptorTest {
         verify(response).setStatus(403);
     }
 
-    @Test
-    void matchingSerialNumber_passesThrough() throws Exception {
+    static Stream<Arguments> serialNumberFormats() {
+        return Stream.of(
+                Arguments.of("abc123", "plain hex match"),
+                Arguments.of("ABC123", "case-insensitive match"),
+                Arguments.of("ab:c1:23", "colon-separated match"));
+    }
+
+    @ParameterizedTest(name = "{1}")
+    @MethodSource("serialNumberFormats")
+    void matchingSerialNumber_passesThrough(String storedSerial, String description) throws Exception {
         setupAuthentication("client-1");
-        OrganisationCertificateDTO cert = certDto(CertificateType.AUTOMATED, "abc123");
+        OrganisationCertificateDTO cert = certDto(CertificateType.AUTOMATED, storedSerial);
         when(validationProvider.findByClientId("client-1")).thenReturn(Optional.of(cert));
         when(validationProvider.isActive(cert)).thenReturn(true);
 
@@ -207,36 +223,6 @@ class CertificateValidationInterceptorTest {
     }
 
     @Test
-    void serialNumberComparison_isCaseInsensitive() throws Exception {
-        setupAuthentication("client-1");
-        OrganisationCertificateDTO cert = certDto(CertificateType.AUTOMATED, "ABC123");
-        when(validationProvider.findByClientId("client-1")).thenReturn(Optional.of(cert));
-        when(validationProvider.isActive(cert)).thenReturn(true);
-
-        X509Certificate mockCert = mock(X509Certificate.class);
-        when(mockCert.getSerialNumber()).thenReturn(new BigInteger("abc123", 16));
-        when(request.getAttribute("jakarta.servlet.request.X509Certificate"))
-                .thenReturn(new X509Certificate[] {mockCert});
-
-        assertThat(interceptor.preHandle(request, response, handlerMethod)).isTrue();
-    }
-
-    @Test
-    void colonSeparatedSerialNumber_matchesPlainHex() throws Exception {
-        setupAuthentication("client-1");
-        OrganisationCertificateDTO cert = certDto(CertificateType.AUTOMATED, "ab:c1:23");
-        when(validationProvider.findByClientId("client-1")).thenReturn(Optional.of(cert));
-        when(validationProvider.isActive(cert)).thenReturn(true);
-
-        X509Certificate mockCert = mock(X509Certificate.class);
-        when(mockCert.getSerialNumber()).thenReturn(new BigInteger("abc123", 16));
-        when(request.getAttribute("jakarta.servlet.request.X509Certificate"))
-                .thenReturn(new X509Certificate[] {mockCert});
-
-        assertThat(interceptor.preHandle(request, response, handlerMethod)).isTrue();
-    }
-
-    @Test
     void nullSerialNumber_skipsCheck() throws Exception {
         setupAuthentication("client-1");
         OrganisationCertificateDTO cert = certDto(CertificateType.AUTOMATED, null);
@@ -273,26 +259,6 @@ class CertificateValidationInterceptorTest {
     }
 
     @Test
-    void nonBootstrapCertType_passesThrough() throws Exception {
-        setupAuthentication("client-1");
-        OrganisationCertificateDTO cert = certDto(CertificateType.AUTOMATED, null);
-        when(validationProvider.findByClientId("client-1")).thenReturn(Optional.of(cert));
-        when(validationProvider.isActive(cert)).thenReturn(true);
-
-        assertThat(interceptor.preHandle(request, response, handlerMethod)).isTrue();
-    }
-
-    @Test
-    void manualCertType_passesThrough() throws Exception {
-        setupAuthentication("client-1");
-        OrganisationCertificateDTO cert = certDto(CertificateType.MANUAL, null);
-        when(validationProvider.findByClientId("client-1")).thenReturn(Optional.of(cert));
-        when(validationProvider.isActive(cert)).thenReturn(true);
-
-        assertThat(interceptor.preHandle(request, response, handlerMethod)).isTrue();
-    }
-
-    @Test
     void bootstrapCert_nonHandlerMethod_returns403() throws Exception {
         setupAuthentication("client-1");
         OrganisationCertificateDTO cert = certDto(CertificateType.BOOTSTRAP, null);
@@ -320,7 +286,6 @@ class CertificateValidationInterceptorTest {
         verify(response).setStatus(403);
         verify(response).setContentType("application/json");
         String body = sw.toString();
-        assertThat(body).contains("403");
-        assertThat(body).contains("Organisation certificate is not active");
+        assertThat(body).contains("403").contains("Organisation certificate is not active");
     }
 }
