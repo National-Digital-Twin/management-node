@@ -259,4 +259,36 @@ class VaultPkiServiceTest {
         when(vaultTemplate.read(anyString())).thenReturn(null);
         assertThrows(PkiException.class, () -> vaultPkiService.getIntermediateCertificate());
     }
+
+    @Test
+    void generateKeyPair_shouldReturnRsaKeyPair() {
+        java.security.KeyPair keyPair = vaultPkiService.generateKeyPair();
+
+        assertNotNull(keyPair);
+        assertNotNull(keyPair.getPublic());
+        assertNotNull(keyPair.getPrivate());
+        assertEquals("RSA", keyPair.getPublic().getAlgorithm());
+        assertEquals("RSA", keyPair.getPrivate().getAlgorithm());
+    }
+
+    @Test
+    void createCsr_withKeyPair_shouldReturnValidCsr() {
+        java.security.KeyPair keyPair = vaultPkiService.generateKeyPair();
+
+        String csrPem = vaultPkiService.createCsr(keyPair, "bootstrap");
+
+        assertNotNull(csrPem);
+        assertTrue(csrPem.contains("BEGIN CERTIFICATE REQUEST"));
+        assertTrue(csrPem.contains("END CERTIFICATE REQUEST"));
+    }
+
+    @Test
+    void createCsr_withKeyPairAndNullCn_shouldHandleGracefully() {
+        java.security.KeyPair keyPair = vaultPkiService.generateKeyPair();
+
+        String csrPem = vaultPkiService.createCsr(keyPair, "");
+
+        assertNotNull(csrPem);
+        assertTrue(csrPem.contains("BEGIN CERTIFICATE REQUEST"));
+    }
 }

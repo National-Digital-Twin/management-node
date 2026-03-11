@@ -13,7 +13,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -150,5 +154,34 @@ public class CertificateController {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public IntermediateCertResponseDTO getIntermediateCertificate() {
         return pkiService.getIntermediateCertificate();
+    }
+
+    /**
+     * Issues a short-lived bootstrap certificate and returns it as a downloadable ZIP package
+     * containing PKCS#12 keystore, truststore, and their passwords.
+     *
+     * @param request the bootstrap request containing the target client ID and common name
+     * @return a ZIP archive containing the bootstrap certificate package
+     */
+    @PostMapping("/bootstrap")
+    @Operation(
+            summary = "Issue bootstrap certificate package",
+            description =
+                    "Generates a short-lived bootstrap certificate for the specified organisation and returns it as a ZIP download containing keystore.p12, truststore.p12, and password files.",
+            security = {@SecurityRequirement(name = "bearerAuth")})
+    @ApiResponse(
+            responseCode = "200",
+            description = "Bootstrap certificate package created successfully",
+            content = @Content(mediaType = "application/zip"))
+    @ApiResponse(responseCode = "400", description = "Invalid request — client ID and common name are required")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    public ResponseEntity<byte[]> issueBootstrapCertificate(@Valid @RequestBody BootstrapRequestDTO request) {
+        byte[] zip = signingProvider.issueBootstrapPackage(request.getClientId(), request.getCommonName());
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType("application/zip"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"bootstrap-certificates.zip\"")
+                .body(zip);
     }
 }

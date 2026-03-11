@@ -21,4 +21,15 @@ public interface CertificateSigningProvider {
      * @return a DTO containing the signed certificate and its chain
      */
     SignCertResponseDTO signAndRecord(String csrPem, String clientId);
+
+    /**
+     * Issue a short-lived bootstrap certificate package for the given organisation.
+     * Generates a key pair, creates and signs a CSR, and packages the result as a
+     * ZIP archive containing PKCS#12 keystore, truststore, and their passwords.
+     *
+     * @param clientId the IDP client ID of the calling organisation
+     * @param commonName the common name (CN) to use as the certificate subject
+     * @return a ZIP archive as a byte array
+     */
+    byte[] issueBootstrapPackage(String clientId, String commonName);
 }

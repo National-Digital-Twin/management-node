@@ -20,4 +20,14 @@ public class CertificateSigningException extends RuntimeException {
     public CertificateSigningException(String message) {
         super(message);
     }
+
+    /**
+     * Constructs a new CertificateSigningException with the specified detail message and cause.
+     *
+     * @param message the detail message
+     * @param cause the cause of this exception
+     */
+    public CertificateSigningException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
