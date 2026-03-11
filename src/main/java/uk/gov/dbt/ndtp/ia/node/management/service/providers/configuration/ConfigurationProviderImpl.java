@@ -8,15 +8,22 @@ package uk.gov.dbt.ndtp.ia.node.management.service.providers.configuration;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.*;
 import uk.gov.dbt.ndtp.ia.node.management.service.data.ConsumerService;
 import uk.gov.dbt.ndtp.ia.node.management.service.data.ProducerService;
 import uk.gov.dbt.ndtp.ia.node.management.service.data.ProductConsumerService;
+import uk.gov.dbt.ndtp.ia.node.management.service.providers.certificate.CertificateValidationProvider;
 
 /**
  * Implementation of {@link ConfigurationProvider} that retrieves configuration from database services.
@@ -30,21 +37,26 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
 
     private final ProducerService producerService;
 
+    private final CertificateValidationProvider certificateValidationProvider;
+
     /**
      * Constructs a new ConfigurationProviderImpl with required services.
      *
      * @param consumerService the consumer service
      * @param consumerAllowedDataProviders the product consumer service
      * @param producerService the producer service
+     * @param certificateValidationProvider the certificate validation provider
      */
     public ConfigurationProviderImpl(
             ConsumerService consumerService,
             ProductConsumerService consumerAllowedDataProviders,
-            ProducerService producerService) {
+            ProducerService producerService,
+            CertificateValidationProvider certificateValidationProvider) {
 
         this.consumerService = consumerService;
         this.productConsumerService = consumerAllowedDataProviders;
         this.producerService = producerService;
+        this.certificateValidationProvider = certificateValidationProvider;
     }
 
     /**
@@ -58,7 +70,7 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
         return grantedTs != null
                 && grantedTs
                         .toInstant()
-                        .plus(java.time.Duration.ofDays(validity.longValue()))
+                        .plus(Duration.ofDays(validity.longValue()))
                         .isAfter(Instant.now());
     }
 
@@ -76,9 +88,11 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
                 .filter(ProducerDTO::getActive)
                 .toList();
 
+        producers = filterProducersByActiveCertificate(producers);
+
         // Filter products of each producer to only those in validProductIds
         if (!validProductIds.isEmpty()) {
-            var validIdsSet = new java.util.HashSet<>(validProductIds);
+            Set<Long> validIdsSet = new HashSet<>(validProductIds);
             producers.forEach(
                     p -> p.getProducts().removeIf(prod -> prod.getId() == null || !validIdsSet.contains(prod.getId())));
         } else {
@@ -136,8 +150,7 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
         // Get allowed consumers (not directly used but might be needed for side effects)
         consumerService.getConsumersOfProviders(dataProviderIds);
 
-        // Process consumers for each provider
-        processConsumersForProducers(producers);
+        populateConsumersForProducers(producers);
 
         return ProducerConfigDTO.builder()
                 .clientId(clientId)
@@ -204,62 +217,44 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
     }
 
     /**
-     * Processes consumers for each provider in the given producers.
+     * Resolves consumers for each product and populates them onto the product DTOs,
+     * filtering out consumers whose organisations have inactive certificates.
      *
-     * @param producers list of producers to process
+     * @param producers the list of producers whose products need consumer resolution
      */
-    /**
-     * Processes consumers for a list of producers.
-     *
-     * @param producers the list of producers
-     */
-    private void processConsumersForProducers(List<ProducerDTO> producers) {
+    private void populateConsumersForProducers(List<ProducerDTO> producers) {
+        // Resolve all valid consumers per product
+        Map<ProductDTO, List<ConsumerDTO>> consumersByProduct = new LinkedHashMap<>();
         for (ProducerDTO producer : producers) {
-            for (ProductDTO provider : producer.getProducts()) {
-                processConsumersForProvider(provider);
+            for (ProductDTO product : producer.getProducts()) {
+                List<ConsumerDTO> resolved = productConsumerService.findByDataProviderId(product.getId()).stream()
+                        .filter(this::isValidProvider)
+                        .map(cp -> consumerService.findById(cp.getConsumerId()))
+                        .filter(Optional::isPresent)
+                        .map(Optional::get)
+                        .toList();
+                consumersByProduct.put(product, resolved);
             }
         }
-    }
 
-    /**
-     * Processes consumers for a specific provider.
-     *
-     * @param provider the provider to process consumers for
-     */
-    /**
-     * Processes consumers for a specific provider.
-     *
-     * @param provider the product provider DTO
-     */
-    private void processConsumersForProvider(ProductDTO provider) {
+        Set<Long> allConsumerOrgIds = consumersByProduct.values().stream()
+                .flatMap(List::stream)
+                .map(ConsumerDTO::getOrgId)
+                .collect(Collectors.toSet());
+        Set<Long> activeOrgIds = certificateValidationProvider.findActiveOrganisationIds(allConsumerOrgIds);
 
-        // Get consumer providers for this data provider
-        List<ProductConsumerDTO> consumerProviders = productConsumerService.findByDataProviderId(provider.getId());
-
-        // Filter valid providers and add their consumers
-        addValidConsumersToProvider(consumerProviders, provider);
-    }
-
-    /**
-     * Adds valid consumers to the given provider.
-     *
-     * @param consumerProviders list of consumer-provider relationships
-     * @param provider          the provider to add consumers to
-     */
-    /**
-     * Adds valid consumers to a provider.
-     *
-     * @param consumerProviders the list of product consumer DTOs
-     * @param provider the product provider DTO
-     */
-    private void addValidConsumersToProvider(List<ProductConsumerDTO> consumerProviders, ProductDTO provider) {
-        if (provider.getConsumers() == null) {
-            provider.setConsumers(new ArrayList<>());
+        // Populate each product's consumer list, skipping inactive orgs
+        for (var entry : consumersByProduct.entrySet()) {
+            ProductDTO product = entry.getKey();
+            if (product.getConsumers() == null) {
+                product.setConsumers(new ArrayList<>());
+            }
+            for (ConsumerDTO consumer : entry.getValue()) {
+                if (activeOrgIds.contains(consumer.getOrgId())) {
+                    product.getConsumers().add(consumer);
+                }
+            }
         }
-        consumerProviders.stream().filter(this::isValidProvider).forEach(consumerProvider -> {
-            Optional<ConsumerDTO> consumer = consumerService.findById(consumerProvider.getConsumerId());
-            consumer.ifPresent(provider.getConsumers()::add);
-        });
     }
 
     /**
@@ -273,5 +268,25 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
         if (provider.getValidity() == null || provider.getValidity().equals(BigDecimal.ZERO)) return true;
 
         return isValidGrantedTs(provider.getGrantedTs(), provider.getValidity());
+    }
+
+    /**
+     * Filters producers to only those whose organisations have active certificates.
+     *
+     * @param producers the list of producers to filter
+     * @return producers with active organisation certificates
+     */
+    private List<ProducerDTO> filterProducersByActiveCertificate(List<ProducerDTO> producers) {
+        Set<Long> producerOrgIds = producers.stream().map(ProducerDTO::getOrgId).collect(Collectors.toSet());
+
+        if (producerOrgIds.isEmpty()) {
+            return producers;
+        }
+
+        Set<Long> activeOrgIds = certificateValidationProvider.findActiveOrganisationIds(producerOrgIds);
+
+        return producers.stream()
+                .filter(p -> activeOrgIds.contains(p.getOrgId()))
+                .toList();
     }
 }

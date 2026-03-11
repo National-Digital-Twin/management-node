@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import uk.gov.dbt.ndtp.ia.node.management.exception.AuthenticationProcessingException;
+import uk.gov.dbt.ndtp.ia.node.management.exception.CertificateSigningException;
 import uk.gov.dbt.ndtp.ia.node.management.exception.ErrorResponse;
 import uk.gov.dbt.ndtp.ia.node.management.exception.PkiException;
 
@@ -85,6 +86,29 @@ public class GlobalExceptionHandler {
                 new ErrorResponse(HttpStatus.NOT_FOUND.value(), "Resource not found: " + ex.getResourcePath(), errorId);
 
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    /**
+     * Handles CertificateSigningException.
+     *
+     * @param ex      the exception
+     * @param request the current request
+     * @return a ResponseEntity with a 403 error message
+     */
+    @ExceptionHandler(CertificateSigningException.class)
+    public ResponseEntity<ErrorResponse> handleCertificateSigningException(
+            CertificateSigningException ex, WebRequest request) {
+
+        String errorId = generateErrorId();
+        log.warn(
+                "Certificate signing rejected, error_id={}, path={}: {}",
+                errorId,
+                request.getDescription(false),
+                ex.getMessage());
+
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.FORBIDDEN.value(), ex.getMessage(), errorId);
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(PkiException.class)

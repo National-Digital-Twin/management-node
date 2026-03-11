@@ -22,4 +22,7 @@ public class Organisation {
 
     @Column(name = "name", nullable = false, length = 150)
     private String name;
+
+    @Column(name = "certificate_automation_enabled", nullable = false)
+    private Boolean certificateAutomationEnabled = true;
 }
