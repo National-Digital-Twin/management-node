@@ -160,14 +160,19 @@ public class CertificateController {
      * Issues a short-lived bootstrap certificate and returns it as a downloadable ZIP package
      * containing PKCS#12 keystore, truststore, and their passwords.
      *
+     * <p>The caller must hold the {@code <clientId>:bootstrap} role in their JWT to authorize
+     * the bootstrap operation for the target organisation. The client ID in the request body
+     * identifies the target organisation, while the JWT identifies and authorizes the caller.
+     *
      * @param request the bootstrap request containing the target client ID and common name
      * @return a ZIP archive containing the bootstrap certificate package
      */
     @PostMapping("/bootstrap")
+    @PreAuthorize("hasRole(#request.clientId + ':bootstrap')")
     @Operation(
             summary = "Issue bootstrap certificate package",
             description =
-                    "Generates a short-lived bootstrap certificate for the specified organisation and returns it as a ZIP download containing keystore.p12, truststore.p12, and password files.",
+                    "Generates a short-lived bootstrap certificate for the specified organisation and returns it as a ZIP download containing keystore.p12, truststore.p12, and password files. Requires the caller to hold the <clientId>:bootstrap role.",
             security = {@SecurityRequirement(name = "bearerAuth")})
     @ApiResponse(
             responseCode = "200",
@@ -175,7 +180,9 @@ public class CertificateController {
             content = @Content(mediaType = "application/zip"))
     @ApiResponse(responseCode = "400", description = "Invalid request — client ID and common name are required")
     @ApiResponse(responseCode = "401", description = "Unauthorized")
-    @ApiResponse(responseCode = "403", description = "Forbidden")
+    @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden — insufficient permissions or certificate validation failure")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public ResponseEntity<byte[]> issueBootstrapCertificate(@Valid @RequestBody BootstrapRequestDTO request) {
         byte[] zip = signingProvider.issueBootstrapPackage(request.getClientId(), request.getCommonName());
