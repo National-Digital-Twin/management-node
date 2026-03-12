@@ -133,7 +133,7 @@ public class CertificateSigningProviderImpl implements CertificateSigningProvide
             OrganisationCertificateDTO cert, SignCertResponseDTO response, CertificateType type) {
         X509Certificate x509 = PemUtil.parseCertificate(response.getCertificate());
         cert.setSubjectDn(x509.getSubjectX500Principal().getName());
-        cert.setSerialNumber(response.getSerialNumber());
+        cert.setSerialNumber(x509.getSerialNumber().toString(16));
         cert.setIssuedAt(Timestamp.from(x509.getNotBefore().toInstant()));
         cert.setExpiresAt(
                 Timestamp.from(Instant.ofEpochSecond(response.getExpiration().longValue())));

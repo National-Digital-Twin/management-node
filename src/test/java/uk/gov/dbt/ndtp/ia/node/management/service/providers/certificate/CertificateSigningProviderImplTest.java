@@ -12,6 +12,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import java.io.ByteArrayInputStream;
+import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.cert.X509Certificate;
@@ -98,6 +99,7 @@ class CertificateSigningProviderImplTest {
         X509Certificate x509 = mock(X509Certificate.class);
         when(x509.getSubjectX500Principal()).thenReturn(new X500Principal(subjectDn));
         when(x509.getNotBefore()).thenReturn(Date.from(NOT_BEFORE));
+        when(x509.getSerialNumber()).thenReturn(new BigInteger("abc123", 16));
         pemUtilMock.when(() -> PemUtil.parseCertificate("CERT_PEM")).thenReturn(x509);
     }
 
