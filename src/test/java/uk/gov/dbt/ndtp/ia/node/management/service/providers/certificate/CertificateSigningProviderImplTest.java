@@ -238,8 +238,7 @@ class CertificateSigningProviderImplTest {
 
         byte[] zip = provider.issueBootstrapPackage("client-1", BOOTSTRAP_CN);
 
-        assertThat(zip).isNotNull();
-        assertThat(zip.length).isGreaterThan(0);
+        assertThat(zip).isNotNull().hasSizeGreaterThan(0);
 
         List<String> entryNames = new java.util.ArrayList<>();
         try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zip))) {

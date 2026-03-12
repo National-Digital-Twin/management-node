@@ -43,6 +43,7 @@ public class CertificateSigningProviderImpl implements CertificateSigningProvide
 
     private static final String BOOTSTRAP_ALIAS = "bootstrap";
     private static final int PASSWORD_BYTES = 24;
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final VaultPkiService vaultPkiService;
     private final OrganisationCertificateService certificateService;
@@ -149,7 +150,7 @@ public class CertificateSigningProviderImpl implements CertificateSigningProvide
 
     private static String generatePassword() {
         byte[] bytes = new byte[PASSWORD_BYTES];
-        new SecureRandom().nextBytes(bytes);
+        SECURE_RANDOM.nextBytes(bytes);
         return Base64.getEncoder().encodeToString(bytes);
     }
 
