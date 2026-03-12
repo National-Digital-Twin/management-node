@@ -81,3 +81,21 @@ jobs:
         env:
           GH_PACKAGES_PAT: ${{ secrets.GH_PACKAGES_PAT }}
         run: ./mvnw $MAVEN_CLI_OPTS spotless:check
+  security-scanning:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@6fb20c8edd70745d6b34bff0387b53b03c8a760a # v0.69.3
+        with:
+          scan-type: "fs"
+          scan-ref: .
+          format: "table"
+          exit-code: "1"
+          ignore-unfixed: true
+          severity: "CRITICAL,HIGH"
+        continue-on-error: true
