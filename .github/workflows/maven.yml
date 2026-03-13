@@ -114,7 +114,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Format repo name
-        run: echo "REPO=${env.GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
+        run: echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
 
       - name: Get server and client jars
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
@@ -129,7 +129,7 @@ jobs:
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
         with:
-          image-ref: ghcr.io/${REPO}/management-node:staged
+          image-ref: ghcr.io/${env.REPO}/management-node:staged
           format: table
           exit-code: 1
           ignore-unfixed: true
