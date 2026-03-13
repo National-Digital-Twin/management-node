@@ -34,6 +34,7 @@ on:
 env:
   MAVEN_CLI_OPTS: "--batch-mode --no-transfer-progress"
   DOCKER_TARGET: management-node
+  REPO: ${{ github.repository }}
 
 jobs:
   build:
@@ -112,9 +113,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Format repo name
-        run: echo "REPO=${ github.event.repository.name }" >>${GITHUB_ENV}
 
       - name: Get server and client jars
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
