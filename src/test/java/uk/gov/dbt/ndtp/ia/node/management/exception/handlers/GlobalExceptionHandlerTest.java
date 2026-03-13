@@ -15,6 +15,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import uk.gov.dbt.ndtp.ia.node.management.exception.AuthenticationProcessingException;
@@ -76,6 +77,24 @@ class GlobalExceptionHandlerTest {
         assertNotNull(errorResponse);
         assertEquals(HttpStatus.UNAUTHORIZED.value(), errorResponse.getStatus());
         assertTrue(errorResponse.getMessage().contains(message));
+        assertNotNull(errorResponse.getErrorId());
+    }
+
+    @Test
+    void handleAuthorizationDeniedException_shouldReturnForbiddenStatus() {
+        // Arrange
+        AuthorizationDeniedException exception = new AuthorizationDeniedException("Access Denied");
+
+        // Act
+        ResponseEntity<ErrorResponse> response =
+                exceptionHandler.handleAuthorizationDeniedException(exception, webRequest);
+
+        // Assert
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        ErrorResponse errorResponse = response.getBody();
+        assertNotNull(errorResponse);
+        assertEquals(HttpStatus.FORBIDDEN.value(), errorResponse.getStatus());
+        assertTrue(errorResponse.getMessage().contains("insufficient permissions"));
         assertNotNull(errorResponse.getErrorId());
     }
 

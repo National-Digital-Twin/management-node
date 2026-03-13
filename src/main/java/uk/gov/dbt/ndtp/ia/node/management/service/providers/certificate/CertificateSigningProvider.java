@@ -24,12 +24,12 @@ public interface CertificateSigningProvider {
 
     /**
      * Issue a short-lived bootstrap certificate package for the given organisation.
-     * Generates a key pair, creates and signs a CSR, and packages the result as a
-     * ZIP archive containing PKCS#12 keystore, truststore, and their passwords.
+     * Signs the caller-provided CSR and packages the signed certificate and CA chain
+     * as PEM files in a ZIP archive for deployment to Vault.
      *
      * @param clientId the IDP client ID of the calling organisation
-     * @param commonName the common name (CN) to use as the certificate subject
-     * @return a ZIP archive as a byte array
+     * @param csrPem the Certificate Signing Request in PEM format
+     * @return a ZIP archive as a byte array containing certificate.pem and ca-chain.pem
      */
-    byte[] issueBootstrapPackage(String clientId, String commonName);
+    byte[] issueBootstrapPackage(String clientId, String csrPem);
 }

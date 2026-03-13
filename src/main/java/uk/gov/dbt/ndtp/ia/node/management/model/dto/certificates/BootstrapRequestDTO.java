@@ -23,5 +23,5 @@ public class BootstrapRequestDTO {
     private String clientId;
 
     @NotBlank
-    private String commonName;
+    private String csr;
 }

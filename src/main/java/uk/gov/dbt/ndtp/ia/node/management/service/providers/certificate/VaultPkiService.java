@@ -111,23 +111,6 @@ public class VaultPkiService {
     }
 
     /**
-     * Generates an RSA 2048-bit key pair.
-     *
-     * @return the generated key pair
-     * @throws PkiException if key pair generation fails
-     */
-    public KeyPair generateKeyPair() {
-        log.info("Generating RSA 2048-bit key pair");
-        try {
-            KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
-            kpg.initialize(2048);
-            return kpg.generateKeyPair();
-        } catch (NoSuchAlgorithmException e) {
-            throw new PkiException("Key pair generation failed: RSA", e);
-        }
-    }
-
-    /**
      * Creates a Certificate Signing Request (CSR) from provided public and private keys and subject information.
      *
      * @param req the CSR request DTO containing keys and subject details
@@ -156,27 +139,6 @@ public class VaultPkiService {
             throw e;
         } catch (Exception e) {
             log.error("Failed to create CSR for subject common name: {}", req.getCommonName(), e);
-            throw new PkiException("CSR creation failed", e);
-        }
-    }
-
-    /**
-     * Creates a Certificate Signing Request (CSR) from a key pair with a simple common name subject.
-     *
-     * @param keyPair the key pair to use for the CSR
-     * @param commonName the common name for the certificate subject
-     * @return the CSR in PEM format
-     * @throws PkiException if CSR creation fails
-     */
-    public String createCsr(KeyPair keyPair, String commonName) {
-        log.info("Creating CSR for common name: {}", commonName);
-        try {
-            X500Name x500 = new X500Name("CN=" + safe(commonName));
-            return buildCsr(keyPair, x500, null);
-        } catch (PkiException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Failed to create CSR for common name: {}", commonName, e);
             throw new PkiException("CSR creation failed", e);
         }
     }

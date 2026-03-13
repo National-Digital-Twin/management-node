@@ -13,8 +13,6 @@ import static org.mockito.Mockito.*;
 
 import java.io.ByteArrayInputStream;
 import java.math.BigInteger;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
 import java.security.cert.X509Certificate;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -38,7 +36,6 @@ import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.CertificateEventTyp
 import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.CertificateType;
 import uk.gov.dbt.ndtp.ia.node.management.service.data.CertificateEventService;
 import uk.gov.dbt.ndtp.ia.node.management.service.data.OrganisationCertificateService;
-import uk.gov.dbt.ndtp.ia.node.management.utils.cryptography.KeyStoreBuilder;
 import uk.gov.dbt.ndtp.ia.node.management.utils.cryptography.PemUtil;
 
 class CertificateSigningProviderImplTest {
@@ -54,23 +51,21 @@ class CertificateSigningProviderImplTest {
 
     private CertificateSigningProviderImpl provider;
     private MockedStatic<PemUtil> pemUtilMock;
-    private MockedStatic<KeyStoreBuilder> keyStoreBuilderMock;
 
     private static final String BOOTSTRAP_TTL = "2h";
-    private static final String BOOTSTRAP_CN = "api.acme-digital.co.uk";
+    private static final String BOOTSTRAP_CSR =
+            "-----BEGIN CERTIFICATE REQUEST-----\nMIIBtest\n-----END CERTIFICATE REQUEST-----";
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
         provider = new CertificateSigningProviderImpl(vaultPkiService, certificateService, eventService, BOOTSTRAP_TTL);
         pemUtilMock = mockStatic(PemUtil.class);
-        keyStoreBuilderMock = mockStatic(KeyStoreBuilder.class);
     }
 
     @AfterEach
     void tearDown() {
         pemUtilMock.close();
-        keyStoreBuilderMock.close();
     }
 
     private OrganisationCertificateDTO buildCert(CertificateType type, boolean automationEnabled, boolean renewable) {
@@ -202,41 +197,21 @@ class CertificateSigningProviderImplTest {
         assertThat(captor.getValue().getExpiresAt()).isEqualTo(Timestamp.from(Instant.ofEpochSecond(1735689600L)));
     }
 
-    private KeyPair generateTestKeyPair() throws Exception {
-        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
-        kpg.initialize(2048);
-        return kpg.generateKeyPair();
-    }
-
-    private void setupBootstrapMocks(OrganisationCertificateDTO cert) throws Exception {
+    private void setupBootstrapMocks(OrganisationCertificateDTO cert) {
         when(certificateService.findByClientId("client-1")).thenReturn(Optional.of(cert));
-
-        KeyPair keyPair = generateTestKeyPair();
-        when(vaultPkiService.generateKeyPair()).thenReturn(keyPair);
-        when(vaultPkiService.createCsr(keyPair, BOOTSTRAP_CN)).thenReturn("BOOTSTRAP_CSR");
-        when(vaultPkiService.signCsr("BOOTSTRAP_CSR", Optional.empty(), Optional.of(BOOTSTRAP_TTL)))
+        when(vaultPkiService.signCsr(BOOTSTRAP_CSR, Optional.empty(), Optional.of(BOOTSTRAP_TTL)))
                 .thenReturn(buildSignResponse());
         when(certificateService.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        mockPemParsing("CN=" + BOOTSTRAP_CN);
-
-        X509Certificate caCert = mock(X509Certificate.class);
-        pemUtilMock.when(() -> PemUtil.parseCertificate("CA_PEM")).thenReturn(caCert);
-
-        keyStoreBuilderMock
-                .when(() -> KeyStoreBuilder.createKeyStore(any(), any(), any(), any(), eq("bootstrap")))
-                .thenReturn(new byte[] {1, 2, 3});
-        keyStoreBuilderMock
-                .when(() -> KeyStoreBuilder.createTrustStore(any(), any()))
-                .thenReturn(new byte[] {4, 5, 6});
+        mockPemParsing("CN=api.acme-digital.co.uk");
     }
 
     @Test
-    void issueBootstrapPackage_success_returnsZipWithFourEntries() throws Exception {
+    void issueBootstrapPackage_success_returnsZipWithTwoEntries() throws Exception {
         OrganisationCertificateDTO cert = buildCert(CertificateType.MANUAL, true, false);
         setupBootstrapMocks(cert);
 
-        byte[] zip = provider.issueBootstrapPackage("client-1", BOOTSTRAP_CN);
+        byte[] zip = provider.issueBootstrapPackage("client-1", BOOTSTRAP_CSR);
 
         assertThat(zip).isNotNull().hasSizeGreaterThan(0);
 
@@ -247,28 +222,59 @@ class CertificateSigningProviderImplTest {
                 entryNames.add(entry.getName());
             }
         }
-        assertThat(entryNames)
-                .containsExactly("keystore.p12", "truststore.p12", "keystore.password", "truststore.password");
+        assertThat(entryNames).containsExactly("certificate.pem", "ca-chain.pem");
+    }
+
+    @Test
+    void issueBootstrapPackage_success_nullCaChain_returnsEmptyCaChainPem() throws Exception {
+        OrganisationCertificateDTO cert = buildCert(CertificateType.MANUAL, true, false);
+        when(certificateService.findByClientId("client-1")).thenReturn(Optional.of(cert));
+
+        SignCertResponseDTO responseWithNullChain = SignCertResponseDTO.builder()
+                .certificate("CERT_PEM")
+                .serialNumber("abc123")
+                .expiration(1735689600L)
+                .caChain(null)
+                .issuingCa("ISSUING_CA_PEM")
+                .build();
+        when(vaultPkiService.signCsr(BOOTSTRAP_CSR, Optional.empty(), Optional.of(BOOTSTRAP_TTL)))
+                .thenReturn(responseWithNullChain);
+        when(certificateService.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        mockPemParsing("CN=api.acme-digital.co.uk");
+
+        byte[] zip = provider.issueBootstrapPackage("client-1", BOOTSTRAP_CSR);
+
+        assertThat(zip).isNotNull();
+
+        java.util.Map<String, byte[]> entries = new java.util.LinkedHashMap<>();
+        try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zip))) {
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                entries.put(entry.getName(), zis.readAllBytes());
+            }
+        }
+        assertThat(entries).containsKeys("certificate.pem", "ca-chain.pem");
+        assertThat(entries.get("ca-chain.pem")).isEmpty();
     }
 
     @Test
     void issueBootstrapPackage_noCertRecord_throwsException() {
         when(certificateService.findByClientId("unknown")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> provider.issueBootstrapPackage("unknown", BOOTSTRAP_CN))
+        assertThatThrownBy(() -> provider.issueBootstrapPackage("unknown", BOOTSTRAP_CSR))
                 .isInstanceOf(CertificateSigningException.class)
                 .hasMessageContaining("No certificate record");
 
-        verify(vaultPkiService, never()).generateKeyPair();
+        verify(vaultPkiService, never()).signCsr(any(), any(), any());
     }
 
     @Test
-    void issueBootstrapPackage_recordUpdatedWithBootstrapType() throws Exception {
+    void issueBootstrapPackage_recordUpdatedWithBootstrapType() {
         Instant before = Instant.now();
         OrganisationCertificateDTO cert = buildCert(CertificateType.MANUAL, true, false);
         setupBootstrapMocks(cert);
 
-        provider.issueBootstrapPackage("client-1", BOOTSTRAP_CN);
+        provider.issueBootstrapPackage("client-1", BOOTSTRAP_CSR);
 
         ArgumentCaptor<OrganisationCertificateDTO> captor = ArgumentCaptor.forClass(OrganisationCertificateDTO.class);
         verify(certificateService).save(captor.capture());
@@ -277,7 +283,7 @@ class CertificateSigningProviderImplTest {
         assertThat(saved.getType()).isEqualTo(CertificateType.BOOTSTRAP);
         assertThat(saved.getIsRenewable()).isTrue();
         assertThat(saved.getSerialNumber()).isEqualTo("abc123");
-        assertThat(saved.getSubjectDn()).isEqualTo("CN=" + BOOTSTRAP_CN);
+        assertThat(saved.getSubjectDn()).isEqualTo("CN=api.acme-digital.co.uk");
         assertThat(saved.getRequestedAt()).isNotNull();
         assertThat(saved.getRequestedAt().toInstant()).isBetween(before, Instant.now());
         assertThat(saved.getIssuedAt()).isEqualTo(Timestamp.from(NOT_BEFORE));
@@ -285,31 +291,31 @@ class CertificateSigningProviderImplTest {
     }
 
     @Test
-    void issueBootstrapPackage_auditEventRecorded() throws Exception {
+    void issueBootstrapPackage_auditEventRecorded() {
         OrganisationCertificateDTO cert = buildCert(CertificateType.MANUAL, true, false);
         setupBootstrapMocks(cert);
 
-        provider.issueBootstrapPackage("client-1", BOOTSTRAP_CN);
+        provider.issueBootstrapPackage("client-1", BOOTSTRAP_CSR);
 
         verify(eventService).recordEvent(1L, CertificateType.BOOTSTRAP, CertificateEventType.ISSUED, "client-1");
     }
 
     @Test
-    void issueBootstrapPackage_usesConfiguredTtl() throws Exception {
+    void issueBootstrapPackage_usesConfiguredTtl() {
         OrganisationCertificateDTO cert = buildCert(CertificateType.MANUAL, true, false);
         setupBootstrapMocks(cert);
 
-        provider.issueBootstrapPackage("client-1", BOOTSTRAP_CN);
+        provider.issueBootstrapPackage("client-1", BOOTSTRAP_CSR);
 
-        verify(vaultPkiService).signCsr("BOOTSTRAP_CSR", Optional.empty(), Optional.of(BOOTSTRAP_TTL));
+        verify(vaultPkiService).signCsr(BOOTSTRAP_CSR, Optional.empty(), Optional.of(BOOTSTRAP_TTL));
     }
 
     @Test
-    void issueBootstrapPackage_existingAutomatedCert_succeeds() throws Exception {
+    void issueBootstrapPackage_existingAutomatedCert_succeeds() {
         OrganisationCertificateDTO cert = buildCert(CertificateType.AUTOMATED, true, true);
         setupBootstrapMocks(cert);
 
-        byte[] zip = provider.issueBootstrapPackage("client-1", BOOTSTRAP_CN);
+        byte[] zip = provider.issueBootstrapPackage("client-1", BOOTSTRAP_CSR);
 
         assertThat(zip).isNotNull();
 
