@@ -32,6 +32,27 @@ resource "keycloak_role" "access_producer_configurations" {
   description = "Allows access to producer configuration resources"
 }
 
+resource "keycloak_role" "sign_certificate" {
+  realm_id    = keycloak_realm.management-node.id
+  client_id   = keycloak_openid_client.management_node.id
+  name        = "sign_certificate"
+  description = "Allows signing certificate signing requests"
+}
+
+resource "keycloak_role" "access_public_certificates" {
+  realm_id    = keycloak_realm.management-node.id
+  client_id   = keycloak_openid_client.management_node.id
+  name        = "access_public_certificates"
+  description = "Allows access to public certificate resources"
+}
+
+resource "keycloak_role" "create_keys" {
+  realm_id    = keycloak_realm.management-node.id
+  client_id   = keycloak_openid_client.management_node.id
+  name        = "create_keys"
+  description = "Allows creating key pairs and certificate signing requests"
+}
+
 # Configure clients from federator_clients variable
 module "federator_client" {
   source = "./modules/federator_client"
@@ -46,6 +67,9 @@ module "federator_client" {
     keycloak_openid_client.management_node,
     keycloak_role.access_consumer_configurations,
     keycloak_role.access_producer_configurations,
+    keycloak_role.sign_certificate,
+    keycloak_role.access_public_certificates,
+    keycloak_role.create_keys,
   ]
 
   # Token lifespan for this client

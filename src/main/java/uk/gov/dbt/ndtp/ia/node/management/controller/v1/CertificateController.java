@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.dbt.ndtp.ia.node.management.config.AllowBootstrapCertificates;
@@ -47,6 +48,7 @@ public class CertificateController {
      * @return a DTO containing the generated public and private keys in PEM format
      */
     @GetMapping("/keyPair")
+    @PreAuthorize("hasAuthority('ROLE_management-node:create_keys')")
     @Operation(
             summary = "Create RSA key pair",
             description = "Creates a new RSA 2048-bit key pair using the configured PKI service.",
@@ -74,6 +76,7 @@ public class CertificateController {
      * @return a DTO containing the generated CSR PEM
      */
     @PostMapping("/csr/create")
+    @PreAuthorize("hasAuthority('ROLE_management-node:create_keys')")
     @Operation(
             summary = "Create Certificate Signing Request (CSR)",
             description = "Generates a CSR from the provided public and private keys and subject information.",
@@ -101,6 +104,7 @@ public class CertificateController {
      * @return a DTO containing the signed certificate and its chain
      */
     @PostMapping("/csr/sign")
+    @PreAuthorize("hasAuthority('ROLE_management-node:sign_certificate')")
     @Operation(
             summary = "Sign CSR",
             description =
@@ -129,6 +133,7 @@ public class CertificateController {
      * @return a DTO containing the PEM certificate, CA chain, and parsed info
      */
     @GetMapping("/intermediate")
+    @PreAuthorize("hasAuthority('ROLE_management-node:access_public_certificates')")
     @Operation(
             summary = "Get intermediate certificate",
             description = "Retrieves the configured intermediate certificate and its CA chain.",
