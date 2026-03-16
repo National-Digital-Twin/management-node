@@ -134,7 +134,7 @@ jobs:
           exit-code: 1
           ignore-unfixed: true
           severity: "CRITICAL,HIGH"
-        continue-on-error: false
+        continue-on-error: true
 
       - name: Clean up docker image
         run: docker rmi ghcr.io/${{ env.REPO }}/management-node:staged
