@@ -116,7 +116,7 @@ jobs:
       - name: Format repo name
         run: echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
 
-      - name: Get server and client jars
+      - name: Get server jar
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
           pattern: management-node-*.jar
@@ -137,4 +137,4 @@ jobs:
         continue-on-error: true
 
       - name: Clean up docker image
-        run: docker rmi ghcr.io/${{ env.REPO }}/management-node:staged
+        run: docker rmi ghcr.io/${REPO}/management-node:staged
