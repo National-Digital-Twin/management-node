@@ -61,6 +61,7 @@ public class VaultPkiService {
     private static final String PARAM_CSR = "csr";
     private static final String PARAM_TTL = "ttl";
     private static final String PARAM_FORMAT = "format";
+    private static final String PARAM_OTHER_SANS = "other_sans";
 
     public VaultPkiService(
             VaultTemplate vault,
@@ -76,7 +77,7 @@ public class VaultPkiService {
     }
 
     /**
-     * Creates a new RSA or specified algorithm key pair.
+     * Creates a new RSA or specified algorithm key pair and returns it as a PEM-encoded DTO.
      *
      * @param algorithm the key algorithm (defaults to RSA if null or blank)
      * @param keySize the size of the key (defaults to 2048 if null)
@@ -120,46 +121,55 @@ public class VaultPkiService {
     public CreateCsrResponseDTO createCsr(CreateCsrRequestDTO req) {
         log.info("Creating CSR for common name: {}", req.getCommonName());
         try {
-            String privateKeyPem = req.getPrivateKeyPem();
-            String publicKeyPem = req.getPublicKeyPem();
+            PrivateKey privateKey = PemUtil.parsePkcs8PrivateKey(req.getPrivateKeyPem());
+            var publicKey = PemUtil.parsePublicKey(req.getPublicKeyPem());
+            KeyPair keyPair = new KeyPair(publicKey, privateKey);
 
-            PrivateKey privateKey = PemUtil.parsePkcs8PrivateKey(privateKeyPem);
-            var publicKey = PemUtil.parsePublicKey(publicKeyPem);
-
-            // Build subject
             String subject = String.format(
                     "CN=%s, OU=%s, O=%s, C=%s",
                     safe(req.getCommonName()),
                     safe(req.getOrganizationalUnit()),
                     safe(req.getOrganization()),
                     safe(req.getCountry()));
-            X500Name x500 = new X500Name(subject);
 
-            // CSR builder
-            JcaPKCS10CertificationRequestBuilder csrBuilder = new JcaPKCS10CertificationRequestBuilder(x500, publicKey);
-
-            // SANs
-            if (req.getDnsSans() != null && !req.getDnsSans().isEmpty()) {
-                log.debug("Adding DNS SANs to CSR: {}", req.getDnsSans());
-                GeneralNames sans = new GeneralNames(req.getDnsSans().stream()
-                        .map(d -> new GeneralName(GeneralName.dNSName, d))
-                        .toArray(GeneralName[]::new));
-                csrBuilder.addAttribute(
-                        PKCSObjectIdentifiers.pkcs_9_at_extensionRequest,
-                        new Extensions(new Extension(Extension.subjectAlternativeName, false, sans.getEncoded())));
-            }
-
-            ContentSigner signer = new JcaContentSignerBuilder("SHA256withRSA").build(privateKey);
-            PKCS10CertificationRequest csr = csrBuilder.build(signer);
-
-            String csrPem = PemUtil.toPem("CERTIFICATE REQUEST", csr.getEncoded());
+            String csrPem = buildCsr(keyPair, new X500Name(subject), req.getDnsSans());
             String csrId = UUID.randomUUID().toString();
 
             return new CreateCsrResponseDTO(csrId, csrPem);
+        } catch (PkiException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Failed to create CSR for subject common name: {}", req.getCommonName(), e);
             throw new PkiException("CSR creation failed", e);
         }
+    }
+
+    /**
+     * Builds a PKCS#10 CSR from the given key pair, subject, and optional DNS SANs.
+     *
+     * @param keyPair the key pair to sign the CSR with
+     * @param subject the X.500 distinguished name for the subject
+     * @param dnsSans optional list of DNS Subject Alternative Names
+     * @return the CSR in PEM format
+     * @throws Exception if CSR building or signing fails
+     */
+    private String buildCsr(KeyPair keyPair, X500Name subject, List<String> dnsSans) throws Exception {
+        JcaPKCS10CertificationRequestBuilder csrBuilder =
+                new JcaPKCS10CertificationRequestBuilder(subject, keyPair.getPublic());
+
+        if (dnsSans != null && !dnsSans.isEmpty()) {
+            log.debug("Adding DNS SANs to CSR: {}", dnsSans);
+            GeneralNames sans = new GeneralNames(dnsSans.stream()
+                    .map(d -> new GeneralName(GeneralName.dNSName, d))
+                    .toArray(GeneralName[]::new));
+            csrBuilder.addAttribute(
+                    PKCSObjectIdentifiers.pkcs_9_at_extensionRequest,
+                    new Extensions(new Extension(Extension.subjectAlternativeName, false, sans.getEncoded())));
+        }
+
+        ContentSigner signer = new JcaContentSignerBuilder("SHA256withRSA").build(keyPair.getPrivate());
+        PKCS10CertificationRequest csr = csrBuilder.build(signer);
+        return PemUtil.toPem("CERTIFICATE REQUEST", csr.getEncoded());
     }
 
     /**
@@ -172,6 +182,21 @@ public class VaultPkiService {
      * @throws PkiException if signing fails or Vault returns an empty response
      */
     public SignCertResponseDTO signCsr(String csrPem, Optional<String> role, Optional<String> ttl) {
+        return signCsr(csrPem, role, ttl, Optional.empty());
+    }
+
+    /**
+     * Signs a CSR using the specified role in Vault, with optional custom SANs.
+     *
+     * @param csrPem the CSR in PEM format
+     * @param role the Vault PKI role to use for signing
+     * @param ttl the requested Time To Live for the certificate
+     * @param otherSans optional other SANs to include (e.g. "1.3.6.1.4.1.32473.1.1;UTF8:bootstrap")
+     * @return a DTO containing the signed certificate and its chain
+     * @throws PkiException if signing fails or Vault returns an empty response
+     */
+    public SignCertResponseDTO signCsr(
+            String csrPem, Optional<String> role, Optional<String> ttl, Optional<String> otherSans) {
         String effectiveRole = role.filter(StringUtils::isNotBlank).orElse(defaultRole);
         String effectiveTtl = ttl.filter(StringUtils::isNotBlank).orElse(defaultTtl);
         log.info("Signing CSR with role: {} and TTL: {}", effectiveRole, effectiveTtl);
@@ -193,6 +218,7 @@ public class VaultPkiService {
             body.put(PARAM_TTL, effectiveTtl);
         }
         body.put(PARAM_FORMAT, "pem");
+        otherSans.filter(StringUtils::isNotBlank).ifPresent(sans -> body.put(PARAM_OTHER_SANS, sans));
 
         try {
             VaultResponse resp = vault.write(path, body);

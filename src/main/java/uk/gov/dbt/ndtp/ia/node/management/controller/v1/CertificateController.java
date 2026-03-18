@@ -13,7 +13,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -150,5 +154,41 @@ public class CertificateController {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public IntermediateCertResponseDTO getIntermediateCertificate() {
         return pkiService.getIntermediateCertificate();
+    }
+
+    /**
+     * Issues a short-lived bootstrap certificate and returns it as a downloadable ZIP package
+     * containing signed certificate and CA chain PEM files.
+     *
+     * <p>The caller must hold the {@code ROLE_management-node:request_bootstrap_certificate}
+     * authority in their JWT. The client ID in the request body identifies the target
+     * organisation, while the JWT identifies and authorizes the caller.
+     *
+     * @param request the bootstrap request containing the target client ID and CSR PEM
+     * @return a ZIP archive containing the bootstrap certificate package
+     */
+    @PostMapping("/bootstrap")
+    @PreAuthorize("hasAuthority('ROLE_management-node:request_bootstrap_certificate')")
+    @Operation(
+            summary = "Issue bootstrap certificate package",
+            description =
+                    "Signs the provided CSR and returns a ZIP download containing certificate.pem and ca-chain.pem. Requires the ROLE_management-node:request_bootstrap_certificate authority.",
+            security = {@SecurityRequirement(name = "bearerAuth")})
+    @ApiResponse(
+            responseCode = "200",
+            description = "Bootstrap certificate package created successfully",
+            content = @Content(mediaType = "application/zip"))
+    @ApiResponse(responseCode = "400", description = "Invalid request — client ID and CSR are required")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden — insufficient permissions or certificate validation failure")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    public ResponseEntity<byte[]> issueBootstrapCertificate(@Valid @RequestBody BootstrapRequestDTO request) {
+        byte[] zip = signingProvider.issueBootstrapPackage(request.getClientId(), request.getCsr());
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType("application/zip"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"bootstrap_bundle.zip\"")
+                .body(zip);
     }
 }
