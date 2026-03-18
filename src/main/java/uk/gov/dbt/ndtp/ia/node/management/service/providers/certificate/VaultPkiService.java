@@ -61,6 +61,7 @@ public class VaultPkiService {
     private static final String PARAM_CSR = "csr";
     private static final String PARAM_TTL = "ttl";
     private static final String PARAM_FORMAT = "format";
+    private static final String PARAM_OTHER_SANS = "other_sans";
 
     public VaultPkiService(
             VaultTemplate vault,
@@ -181,6 +182,21 @@ public class VaultPkiService {
      * @throws PkiException if signing fails or Vault returns an empty response
      */
     public SignCertResponseDTO signCsr(String csrPem, Optional<String> role, Optional<String> ttl) {
+        return signCsr(csrPem, role, ttl, Optional.empty());
+    }
+
+    /**
+     * Signs a CSR using the specified role in Vault, with optional custom SANs.
+     *
+     * @param csrPem the CSR in PEM format
+     * @param role the Vault PKI role to use for signing
+     * @param ttl the requested Time To Live for the certificate
+     * @param otherSans optional other SANs to include (e.g. "1.3.6.1.4.1.32473.1.1;UTF8:bootstrap")
+     * @return a DTO containing the signed certificate and its chain
+     * @throws PkiException if signing fails or Vault returns an empty response
+     */
+    public SignCertResponseDTO signCsr(
+            String csrPem, Optional<String> role, Optional<String> ttl, Optional<String> otherSans) {
         String effectiveRole = role.filter(StringUtils::isNotBlank).orElse(defaultRole);
         String effectiveTtl = ttl.filter(StringUtils::isNotBlank).orElse(defaultTtl);
         log.info("Signing CSR with role: {} and TTL: {}", effectiveRole, effectiveTtl);
@@ -202,6 +218,7 @@ public class VaultPkiService {
             body.put(PARAM_TTL, effectiveTtl);
         }
         body.put(PARAM_FORMAT, "pem");
+        otherSans.filter(StringUtils::isNotBlank).ifPresent(sans -> body.put(PARAM_OTHER_SANS, sans));
 
         try {
             VaultResponse resp = vault.write(path, body);

@@ -53,13 +53,16 @@ class CertificateSigningProviderImplTest {
     private MockedStatic<PemUtil> pemUtilMock;
 
     private static final String BOOTSTRAP_TTL = "2h";
+    private static final String BOOTSTRAP_OID = "1.3.6.1.4.1.32473.1.1";
+    private static final String BOOTSTRAP_OTHER_SANS = BOOTSTRAP_OID + ";UTF8:bootstrap";
     private static final String BOOTSTRAP_CSR =
             "-----BEGIN CERTIFICATE REQUEST-----\nMIIBtest\n-----END CERTIFICATE REQUEST-----";
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        provider = new CertificateSigningProviderImpl(vaultPkiService, certificateService, eventService, BOOTSTRAP_TTL);
+        provider = new CertificateSigningProviderImpl(
+                vaultPkiService, certificateService, eventService, BOOTSTRAP_TTL, BOOTSTRAP_OID);
         pemUtilMock = mockStatic(PemUtil.class);
     }
 
@@ -199,7 +202,8 @@ class CertificateSigningProviderImplTest {
 
     private void setupBootstrapMocks(OrganisationCertificateDTO cert) {
         when(certificateService.findByClientId("client-1")).thenReturn(Optional.of(cert));
-        when(vaultPkiService.signCsr(BOOTSTRAP_CSR, Optional.empty(), Optional.of(BOOTSTRAP_TTL)))
+        when(vaultPkiService.signCsr(
+                        BOOTSTRAP_CSR, Optional.empty(), Optional.of(BOOTSTRAP_TTL), Optional.of(BOOTSTRAP_OTHER_SANS)))
                 .thenReturn(buildSignResponse());
         when(certificateService.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
@@ -237,7 +241,8 @@ class CertificateSigningProviderImplTest {
                 .caChain(null)
                 .issuingCa("ISSUING_CA_PEM")
                 .build();
-        when(vaultPkiService.signCsr(BOOTSTRAP_CSR, Optional.empty(), Optional.of(BOOTSTRAP_TTL)))
+        when(vaultPkiService.signCsr(
+                        BOOTSTRAP_CSR, Optional.empty(), Optional.of(BOOTSTRAP_TTL), Optional.of(BOOTSTRAP_OTHER_SANS)))
                 .thenReturn(responseWithNullChain);
         when(certificateService.save(any())).thenAnswer(inv -> inv.getArgument(0));
         mockPemParsing("CN=api.acme-digital.co.uk");
@@ -265,7 +270,7 @@ class CertificateSigningProviderImplTest {
                 .isInstanceOf(CertificateSigningException.class)
                 .hasMessageContaining("No certificate record");
 
-        verify(vaultPkiService, never()).signCsr(any(), any(), any());
+        verify(vaultPkiService, never()).signCsr(any(), any(), any(), any());
     }
 
     @Test
@@ -307,7 +312,9 @@ class CertificateSigningProviderImplTest {
 
         provider.issueBootstrapPackage("client-1", BOOTSTRAP_CSR);
 
-        verify(vaultPkiService).signCsr(BOOTSTRAP_CSR, Optional.empty(), Optional.of(BOOTSTRAP_TTL));
+        verify(vaultPkiService)
+                .signCsr(
+                        BOOTSTRAP_CSR, Optional.empty(), Optional.of(BOOTSTRAP_TTL), Optional.of(BOOTSTRAP_OTHER_SANS));
     }
 
     @Test

@@ -40,16 +40,19 @@ public class CertificateSigningProviderImpl implements CertificateSigningProvide
     private final OrganisationCertificateService certificateService;
     private final CertificateEventService eventService;
     private final String bootstrapTtl;
+    private final String bootstrapOid;
 
     public CertificateSigningProviderImpl(
             VaultPkiService vaultPkiService,
             OrganisationCertificateService certificateService,
             CertificateEventService eventService,
-            @Value("${application.bootstrap.ttl:2h}") String bootstrapTtl) {
+            @Value("${application.bootstrap.ttl:2h}") String bootstrapTtl,
+            @Value("${application.bootstrap.oid:1.3.6.1.4.1.32473.1.1}") String bootstrapOid) {
         this.vaultPkiService = vaultPkiService;
         this.certificateService = certificateService;
         this.eventService = eventService;
         this.bootstrapTtl = bootstrapTtl;
+        this.bootstrapOid = bootstrapOid;
     }
 
     @Override
@@ -89,7 +92,9 @@ public class CertificateSigningProviderImpl implements CertificateSigningProvide
             log.warn("Overwriting active automated certificate for client {}", clientId);
         }
 
-        SignCertResponseDTO signResponse = vaultPkiService.signCsr(csrPem, Optional.empty(), Optional.of(bootstrapTtl));
+        String otherSans = bootstrapOid + ";UTF8:bootstrap";
+        SignCertResponseDTO signResponse =
+                vaultPkiService.signCsr(csrPem, Optional.empty(), Optional.of(bootstrapTtl), Optional.of(otherSans));
 
         byte[] zipBytes = assembleBootstrapBundle(signResponse);
 

@@ -54,6 +54,7 @@ application:
     default-ttl: 24h # default TTL for signing CSRs
   bootstrap:
     ttl: ${BOOTSTRAP_CERT_TTL:2h} # TTL for bootstrap certificates
+    oid: ${BOOTSTRAP_OID:1.3.6.1.4.1.32473.1.1} # OID for bootstrap cert marker (RFC 5612 example PEN)
   client:
     key-store: keystore.jks # path to MTLS client keystore
     key-store-password: ${CERTPASSWORD:} # MTLS client keystore password
