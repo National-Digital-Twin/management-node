@@ -22,7 +22,7 @@ federator_clients = [
     mapped_client_roles = [
       {
         client = "management-node"
-        roles  = ["access_producer_configurations", "access_consumer_configurations"]
+        roles  = ["access_producer_configurations", "access_consumer_configurations", "sign_certificate", "access_public_certificates", "create_keys"]
       }
     ]
   },
@@ -32,7 +32,7 @@ federator_clients = [
     mapped_client_roles = [
       {
         client = "management-node"
-        roles  = ["access_producer_configurations", "access_consumer_configurations"]
+        roles  = ["access_producer_configurations", "access_consumer_configurations", "sign_certificate", "access_public_certificates", "create_keys"]
       }
     ]
   },
@@ -42,7 +42,7 @@ federator_clients = [
     mapped_client_roles = [
       {
         client = "management-node"
-        roles  = ["access_producer_configurations", "access_consumer_configurations"]
+        roles  = ["access_producer_configurations", "access_consumer_configurations", "sign_certificate", "access_public_certificates", "create_keys"]
       }
     ]
   },
@@ -52,7 +52,7 @@ federator_clients = [
     mapped_client_roles = [
       {
         client = "management-node"
-        roles  = ["access_producer_configurations", "access_consumer_configurations"]
+        roles  = ["access_producer_configurations", "access_consumer_configurations", "sign_certificate", "access_public_certificates", "create_keys"]
       }
     ]
   }
