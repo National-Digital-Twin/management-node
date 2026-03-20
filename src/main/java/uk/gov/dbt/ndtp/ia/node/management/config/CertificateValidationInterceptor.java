@@ -17,7 +17,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 import uk.gov.dbt.ndtp.ia.node.management.exception.ErrorResponse;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.OrganisationCertificateDTO;
@@ -72,7 +71,7 @@ public class CertificateValidationInterceptor implements HandlerInterceptor {
             }
         }
 
-        if (cert.getType() == CertificateType.BOOTSTRAP && !allowsBootstrapCertificates(handler)) {
+        if (cert.getType() == CertificateType.BOOTSTRAP) {
             log.warn("Bootstrap certificate denied access to {}", request.getRequestURI());
             writeError(
                     response, HttpServletResponse.SC_FORBIDDEN, "Bootstrap certificates cannot access this endpoint");
@@ -90,11 +89,6 @@ public class CertificateValidationInterceptor implements HandlerInterceptor {
         }
         String clientId = principal.clientId();
         return (clientId == null || clientId.isEmpty()) ? null : clientId;
-    }
-
-    private boolean allowsBootstrapCertificates(Object handler) {
-        return handler instanceof HandlerMethod handlerMethod
-                && handlerMethod.getBeanType().isAnnotationPresent(AllowBootstrapCertificates.class);
     }
 
     private String validateSerialNumber(HttpServletRequest request, OrganisationCertificateDTO cert, String clientId) {

@@ -24,12 +24,13 @@ public interface CertificateSigningProvider {
 
     /**
      * Issue a short-lived bootstrap certificate package for the given organisation.
-     * Signs the caller-provided CSR and packages the signed certificate and CA chain
-     * as PEM files in a ZIP archive for deployment to Vault.
+     * Signs the caller-provided CSR with a short TTL and bootstrap OID marker,
+     * sets the organisation's certificate record to BOOTSTRAP type with renewal enabled,
+     * and packages the signed certificate and CA chain as PEM files in a ZIP archive.
      *
-     * @param clientId the IDP client ID of the calling organisation
+     * @param organisationId the ID of the target organisation
      * @param csrPem the Certificate Signing Request in PEM format
      * @return a ZIP archive as a byte array containing certificate.pem and ca-chain.pem
      */
-    byte[] issueBootstrapPackage(String clientId, String csrPem);
+    byte[] issueBootstrapPackage(Long organisationId, String csrPem);
 }

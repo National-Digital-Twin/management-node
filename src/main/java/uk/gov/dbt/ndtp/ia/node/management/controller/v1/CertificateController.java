@@ -21,7 +21,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import uk.gov.dbt.ndtp.ia.node.management.config.AllowBootstrapCertificates;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.certificates.*;
 import uk.gov.dbt.ndtp.ia.node.management.model.jwt.EnhancedPrincipal;
 import uk.gov.dbt.ndtp.ia.node.management.service.providers.certificate.CertificateSigningProvider;
@@ -33,7 +32,6 @@ import uk.gov.dbt.ndtp.ia.node.management.service.providers.certificate.VaultPki
  */
 @RestController
 @RequestMapping("/api/v1/certificate")
-@AllowBootstrapCertificates
 @Slf4j
 @Tag(name = "Certificate", description = "Endpoints for certificate management.")
 public class CertificateController {
@@ -185,7 +183,7 @@ public class CertificateController {
             description = "Forbidden — insufficient permissions or certificate validation failure")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public ResponseEntity<byte[]> issueBootstrapCertificate(@Valid @RequestBody BootstrapRequestDTO request) {
-        byte[] zip = signingProvider.issueBootstrapPackage(request.getClientId(), request.getCsr());
+        byte[] zip = signingProvider.issueBootstrapPackage(request.getOrganisationId(), request.getCsr());
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType("application/zip"))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"bootstrap_bundle.zip\"")

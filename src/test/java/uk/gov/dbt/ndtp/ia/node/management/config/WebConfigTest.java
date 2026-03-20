@@ -30,7 +30,7 @@ class WebConfigTest {
     private InterceptorRegistration registration;
 
     @Test
-    void bootstrapEndpoint_excludedFromCertificateValidation() {
+    void certificateEndpoints_excludedFromCertificateValidation() {
         when(registry.addInterceptor(any())).thenReturn(registration);
         when(registration.addPathPatterns(any(String.class))).thenReturn(registration);
 
@@ -38,6 +38,6 @@ class WebConfigTest {
         config.addInterceptors(registry);
 
         verify(registration).addPathPatterns("/api/**");
-        verify(registration).excludePathPatterns("/api/v1/certificate/bootstrap");
+        verify(registration).excludePathPatterns("/api/v1/certificate/**");
     }
 }

@@ -1,7 +1,13 @@
-ALTER TABLE mn.organisation
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ * © Crown Copyright 2026. This work has been developed by the National Digital Twin Programme and is legally
+ * attributed to the Department for Business and Trade (UK) as the governing entity.
+ */
+
+ALTER TABLE organisation
 ADD COLUMN certificate_automation_enabled BOOLEAN NOT NULL DEFAULT TRUE;
 
-CREATE TABLE mn.organisation_certificate (
+CREATE TABLE organisation_certificate (
     id BIGSERIAL PRIMARY KEY,
     organisation_id BIGINT NOT NULL UNIQUE,
     subject_dn VARCHAR(500),
@@ -14,12 +20,12 @@ CREATE TABLE mn.organisation_certificate (
     expires_at TIMESTAMP,
     revoked_at TIMESTAMP,
     CONSTRAINT fk_organisation_certificate__organisation_id
-    FOREIGN KEY (organisation_id) REFERENCES mn.organisation (id)
+    FOREIGN KEY (organisation_id) REFERENCES organisation (id)
 );
 CREATE INDEX idx_organisation_certificate__organisation_id
-ON mn.organisation_certificate (organisation_id);
+ON organisation_certificate (organisation_id);
 
-CREATE TABLE mn.certificate_events (
+CREATE TABLE certificate_events (
     id BIGSERIAL PRIMARY KEY,
     organisation_certificate_id BIGINT NOT NULL,
     type VARCHAR(50) NOT NULL,
@@ -28,14 +34,14 @@ CREATE TABLE mn.certificate_events (
     performed_by VARCHAR(255),
     CONSTRAINT fk_certificate_events__organisation_certificate_id
     FOREIGN KEY (organisation_certificate_id)
-    REFERENCES mn.organisation_certificate (id)
+    REFERENCES organisation_certificate (id)
 );
 CREATE INDEX idx_certificate_events__organisation_certificate_id
-ON mn.certificate_events (organisation_certificate_id);
+ON certificate_events (organisation_certificate_id);
 
 /* Mark existing orgs as manually configured */
-UPDATE mn.organisation SET certificate_automation_enabled = FALSE;
-INSERT INTO mn.organisation_certificate (
+UPDATE organisation SET certificate_automation_enabled = FALSE;
+INSERT INTO organisation_certificate (
     organisation_id,
     subject_dn,
     serial_number,
@@ -56,5 +62,4 @@ SELECT
     NULL AS issued_at,
     NULL AS expires_at,
     NULL AS revoked_at
-FROM mn.organisation
-;
+FROM organisation;

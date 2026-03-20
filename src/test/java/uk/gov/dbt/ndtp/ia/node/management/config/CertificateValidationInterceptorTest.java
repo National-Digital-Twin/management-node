@@ -34,8 +34,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.method.HandlerMethod;
-import uk.gov.dbt.ndtp.ia.node.management.controller.v1.CertificateController;
-import uk.gov.dbt.ndtp.ia.node.management.controller.v1.ConfigurationController;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.OrganisationCertificateDTO;
 import uk.gov.dbt.ndtp.ia.node.management.model.jwt.EnhancedPrincipal;
 import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.CertificateType;
@@ -234,41 +232,15 @@ class CertificateValidationInterceptorTest {
     }
 
     @Test
-    void bootstrapCert_annotatedController_passesThrough() throws Exception {
+    void bootstrapCert_alwaysReturns403() throws Exception {
         setupAuthentication("client-1");
         OrganisationCertificateDTO cert = certDto(CertificateType.BOOTSTRAP, null);
         when(validationProvider.findByClientId("client-1")).thenReturn(Optional.of(cert));
         when(validationProvider.isActive(cert)).thenReturn(true);
-        when(handlerMethod.getBeanType()).thenReturn((Class) CertificateController.class);
-
-        assertThat(interceptor.preHandle(request, response, handlerMethod)).isTrue();
-    }
-
-    @Test
-    void bootstrapCert_unannotatedController_returns403() throws Exception {
-        setupAuthentication("client-1");
-        OrganisationCertificateDTO cert = certDto(CertificateType.BOOTSTRAP, null);
-        when(validationProvider.findByClientId("client-1")).thenReturn(Optional.of(cert));
-        when(validationProvider.isActive(cert)).thenReturn(true);
-        when(handlerMethod.getBeanType()).thenReturn((Class) ConfigurationController.class);
         when(request.getRequestURI()).thenReturn("/api/v1/configuration/consumer");
         setupResponseWriter();
 
         assertThat(interceptor.preHandle(request, response, handlerMethod)).isFalse();
-        verify(response).setStatus(403);
-    }
-
-    @Test
-    void bootstrapCert_nonHandlerMethod_returns403() throws Exception {
-        setupAuthentication("client-1");
-        OrganisationCertificateDTO cert = certDto(CertificateType.BOOTSTRAP, null);
-        when(validationProvider.findByClientId("client-1")).thenReturn(Optional.of(cert));
-        when(validationProvider.isActive(cert)).thenReturn(true);
-        when(request.getRequestURI()).thenReturn("/api/v1/something");
-        setupResponseWriter();
-
-        assertThat(interceptor.preHandle(request, response, "not-a-handler-method"))
-                .isFalse();
         verify(response).setStatus(403);
     }
 
