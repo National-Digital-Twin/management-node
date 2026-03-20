@@ -34,6 +34,7 @@ import uk.gov.dbt.ndtp.ia.node.management.model.dto.OrganisationCertificateDTO;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.certificates.SignCertResponseDTO;
 import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.CertificateEventType;
 import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.CertificateType;
+import uk.gov.dbt.ndtp.ia.node.management.persistency.repository.OrganisationRepository;
 import uk.gov.dbt.ndtp.ia.node.management.service.data.CertificateEventService;
 import uk.gov.dbt.ndtp.ia.node.management.service.data.OrganisationCertificateService;
 import uk.gov.dbt.ndtp.ia.node.management.utils.cryptography.PemUtil;
@@ -49,6 +50,9 @@ class CertificateSigningProviderImplTest {
     @Mock
     private CertificateEventService eventService;
 
+    @Mock
+    private OrganisationRepository organisationRepository;
+
     private CertificateSigningProviderImpl provider;
     private MockedStatic<PemUtil> pemUtilMock;
 
@@ -62,7 +66,12 @@ class CertificateSigningProviderImplTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         provider = new CertificateSigningProviderImpl(
-                vaultPkiService, certificateService, eventService, BOOTSTRAP_TTL, BOOTSTRAP_OID);
+                vaultPkiService,
+                certificateService,
+                eventService,
+                organisationRepository,
+                BOOTSTRAP_TTL,
+                BOOTSTRAP_OID);
         pemUtilMock = mockStatic(PemUtil.class);
     }
 
@@ -201,7 +210,7 @@ class CertificateSigningProviderImplTest {
     }
 
     private void setupBootstrapMocks(OrganisationCertificateDTO cert) {
-        when(certificateService.findByClientId("client-1")).thenReturn(Optional.of(cert));
+        when(certificateService.findByOrganisationId(10L)).thenReturn(Optional.of(cert));
         when(vaultPkiService.signCsr(
                         BOOTSTRAP_CSR, Optional.empty(), Optional.of(BOOTSTRAP_TTL), Optional.of(BOOTSTRAP_OTHER_SANS)))
                 .thenReturn(buildSignResponse());
@@ -215,7 +224,7 @@ class CertificateSigningProviderImplTest {
         OrganisationCertificateDTO cert = buildCert(CertificateType.MANUAL, true, false);
         setupBootstrapMocks(cert);
 
-        byte[] zip = provider.issueBootstrapPackage("client-1", BOOTSTRAP_CSR);
+        byte[] zip = provider.issueBootstrapPackage(10L, BOOTSTRAP_CSR);
 
         assertThat(zip).isNotNull().hasSizeGreaterThan(0);
 
@@ -232,7 +241,7 @@ class CertificateSigningProviderImplTest {
     @Test
     void issueBootstrapPackage_success_nullCaChain_returnsEmptyCaChainPem() throws Exception {
         OrganisationCertificateDTO cert = buildCert(CertificateType.MANUAL, true, false);
-        when(certificateService.findByClientId("client-1")).thenReturn(Optional.of(cert));
+        when(certificateService.findByOrganisationId(10L)).thenReturn(Optional.of(cert));
 
         SignCertResponseDTO responseWithNullChain = SignCertResponseDTO.builder()
                 .certificate("CERT_PEM")
@@ -247,7 +256,7 @@ class CertificateSigningProviderImplTest {
         when(certificateService.save(any())).thenAnswer(inv -> inv.getArgument(0));
         mockPemParsing("CN=api.acme-digital.co.uk");
 
-        byte[] zip = provider.issueBootstrapPackage("client-1", BOOTSTRAP_CSR);
+        byte[] zip = provider.issueBootstrapPackage(10L, BOOTSTRAP_CSR);
 
         assertThat(zip).isNotNull();
 
@@ -263,12 +272,46 @@ class CertificateSigningProviderImplTest {
     }
 
     @Test
-    void issueBootstrapPackage_noCertRecord_throwsException() {
-        when(certificateService.findByClientId("unknown")).thenReturn(Optional.empty());
+    void issueBootstrapPackage_noCertRecord_createsOne() {
+        when(certificateService.findByOrganisationId(99L)).thenReturn(Optional.empty());
+        when(organisationRepository.existsById(99L)).thenReturn(true);
 
-        assertThatThrownBy(() -> provider.issueBootstrapPackage("unknown", BOOTSTRAP_CSR))
+        OrganisationCertificateDTO created = OrganisationCertificateDTO.builder()
+                .id(5L)
+                .organisationId(99L)
+                .type(CertificateType.MANUAL)
+                .isRenewable(false)
+                .build();
+        when(certificateService.save(any())).thenReturn(created).thenAnswer(inv -> inv.getArgument(0));
+        when(vaultPkiService.signCsr(
+                        BOOTSTRAP_CSR, Optional.empty(), Optional.of(BOOTSTRAP_TTL), Optional.of(BOOTSTRAP_OTHER_SANS)))
+                .thenReturn(buildSignResponse());
+        mockPemParsing("CN=api.acme-digital.co.uk");
+
+        byte[] zip = provider.issueBootstrapPackage(99L, BOOTSTRAP_CSR);
+
+        assertThat(zip).isNotNull();
+
+        ArgumentCaptor<OrganisationCertificateDTO> captor = ArgumentCaptor.forClass(OrganisationCertificateDTO.class);
+        verify(certificateService, atLeastOnce()).save(captor.capture());
+
+        OrganisationCertificateDTO finalSave =
+                captor.getAllValues().get(captor.getAllValues().size() - 1);
+        assertThat(finalSave.getType()).isEqualTo(CertificateType.BOOTSTRAP);
+        assertThat(finalSave.getIsRenewable()).isTrue();
+        assertThat(finalSave.getSerialNumber()).isEqualTo("abc123");
+
+        verify(eventService).recordEvent(5L, CertificateType.BOOTSTRAP, CertificateEventType.ISSUED, "99");
+    }
+
+    @Test
+    void issueBootstrapPackage_organisationNotFound_throwsException() {
+        when(certificateService.findByOrganisationId(999L)).thenReturn(Optional.empty());
+        when(organisationRepository.existsById(999L)).thenReturn(false);
+
+        assertThatThrownBy(() -> provider.issueBootstrapPackage(999L, BOOTSTRAP_CSR))
                 .isInstanceOf(CertificateSigningException.class)
-                .hasMessageContaining("No certificate record");
+                .hasMessageContaining("Organisation not found");
 
         verify(vaultPkiService, never()).signCsr(any(), any(), any(), any());
     }
@@ -279,12 +322,13 @@ class CertificateSigningProviderImplTest {
         OrganisationCertificateDTO cert = buildCert(CertificateType.MANUAL, true, false);
         setupBootstrapMocks(cert);
 
-        provider.issueBootstrapPackage("client-1", BOOTSTRAP_CSR);
+        provider.issueBootstrapPackage(10L, BOOTSTRAP_CSR);
 
         ArgumentCaptor<OrganisationCertificateDTO> captor = ArgumentCaptor.forClass(OrganisationCertificateDTO.class);
-        verify(certificateService).save(captor.capture());
+        verify(certificateService, atLeastOnce()).save(captor.capture());
 
-        OrganisationCertificateDTO saved = captor.getValue();
+        OrganisationCertificateDTO saved =
+                captor.getAllValues().get(captor.getAllValues().size() - 1);
         assertThat(saved.getType()).isEqualTo(CertificateType.BOOTSTRAP);
         assertThat(saved.getIsRenewable()).isTrue();
         assertThat(saved.getSerialNumber()).isEqualTo("abc123");
@@ -300,9 +344,9 @@ class CertificateSigningProviderImplTest {
         OrganisationCertificateDTO cert = buildCert(CertificateType.MANUAL, true, false);
         setupBootstrapMocks(cert);
 
-        provider.issueBootstrapPackage("client-1", BOOTSTRAP_CSR);
+        provider.issueBootstrapPackage(10L, BOOTSTRAP_CSR);
 
-        verify(eventService).recordEvent(1L, CertificateType.BOOTSTRAP, CertificateEventType.ISSUED, "client-1");
+        verify(eventService).recordEvent(1L, CertificateType.BOOTSTRAP, CertificateEventType.ISSUED, "10");
     }
 
     @Test
@@ -310,7 +354,7 @@ class CertificateSigningProviderImplTest {
         OrganisationCertificateDTO cert = buildCert(CertificateType.MANUAL, true, false);
         setupBootstrapMocks(cert);
 
-        provider.issueBootstrapPackage("client-1", BOOTSTRAP_CSR);
+        provider.issueBootstrapPackage(10L, BOOTSTRAP_CSR);
 
         verify(vaultPkiService)
                 .signCsr(
@@ -322,12 +366,13 @@ class CertificateSigningProviderImplTest {
         OrganisationCertificateDTO cert = buildCert(CertificateType.AUTOMATED, true, true);
         setupBootstrapMocks(cert);
 
-        byte[] zip = provider.issueBootstrapPackage("client-1", BOOTSTRAP_CSR);
+        byte[] zip = provider.issueBootstrapPackage(10L, BOOTSTRAP_CSR);
 
         assertThat(zip).isNotNull();
 
         ArgumentCaptor<OrganisationCertificateDTO> captor = ArgumentCaptor.forClass(OrganisationCertificateDTO.class);
-        verify(certificateService).save(captor.capture());
-        assertThat(captor.getValue().getType()).isEqualTo(CertificateType.BOOTSTRAP);
+        verify(certificateService, atLeastOnce()).save(captor.capture());
+        assertThat(captor.getAllValues().get(captor.getAllValues().size() - 1).getType())
+                .isEqualTo(CertificateType.BOOTSTRAP);
     }
 }

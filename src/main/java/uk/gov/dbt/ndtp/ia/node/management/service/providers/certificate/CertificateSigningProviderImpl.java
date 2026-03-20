@@ -24,6 +24,7 @@ import uk.gov.dbt.ndtp.ia.node.management.model.dto.OrganisationCertificateDTO;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.certificates.SignCertResponseDTO;
 import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.CertificateEventType;
 import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.CertificateType;
+import uk.gov.dbt.ndtp.ia.node.management.persistency.repository.OrganisationRepository;
 import uk.gov.dbt.ndtp.ia.node.management.service.data.CertificateEventService;
 import uk.gov.dbt.ndtp.ia.node.management.service.data.OrganisationCertificateService;
 import uk.gov.dbt.ndtp.ia.node.management.utils.cryptography.PemUtil;
@@ -39,6 +40,7 @@ public class CertificateSigningProviderImpl implements CertificateSigningProvide
     private final VaultPkiService vaultPkiService;
     private final OrganisationCertificateService certificateService;
     private final CertificateEventService eventService;
+    private final OrganisationRepository organisationRepository;
     private final String bootstrapTtl;
     private final String bootstrapOid;
 
@@ -46,11 +48,13 @@ public class CertificateSigningProviderImpl implements CertificateSigningProvide
             VaultPkiService vaultPkiService,
             OrganisationCertificateService certificateService,
             CertificateEventService eventService,
+            OrganisationRepository organisationRepository,
             @Value("${application.bootstrap.ttl:2h}") String bootstrapTtl,
             @Value("${application.bootstrap.oid:1.3.6.1.4.1.32473.1.1}") String bootstrapOid) {
         this.vaultPkiService = vaultPkiService;
         this.certificateService = certificateService;
         this.eventService = eventService;
+        this.organisationRepository = organisationRepository;
         this.bootstrapTtl = bootstrapTtl;
         this.bootstrapOid = bootstrapOid;
     }
@@ -85,11 +89,13 @@ public class CertificateSigningProviderImpl implements CertificateSigningProvide
 
     @Override
     @Transactional
-    public byte[] issueBootstrapPackage(String clientId, String csrPem) {
-        OrganisationCertificateDTO cert = lookupCertificate(clientId);
+    public byte[] issueBootstrapPackage(Long organisationId, String csrPem) {
+        OrganisationCertificateDTO cert = certificateService
+                .findByOrganisationId(organisationId)
+                .orElseGet(() -> createCertificateRecord(organisationId));
 
         if (cert.getType() == CertificateType.AUTOMATED) {
-            log.warn("Overwriting active automated certificate for client {}", clientId);
+            log.warn("Overwriting active automated certificate for organisation {}", organisationId);
         }
 
         String otherSans = bootstrapOid + ";UTF8:bootstrap";
@@ -101,12 +107,29 @@ public class CertificateSigningProviderImpl implements CertificateSigningProvide
         cert.setRequestedAt(Timestamp.from(Instant.now()));
         updateCertificateRecord(cert, signResponse, CertificateType.BOOTSTRAP);
         cert.setIsRenewable(true);
-        certificateService.save(cert);
-        eventService.recordEvent(cert.getId(), CertificateType.BOOTSTRAP, CertificateEventType.ISSUED, clientId);
+        OrganisationCertificateDTO saved = certificateService.save(cert);
+        eventService.recordEvent(
+                saved.getId(), CertificateType.BOOTSTRAP, CertificateEventType.ISSUED, organisationId.toString());
 
-        log.info("Bootstrap certificate issued for client {}, serial {}", clientId, signResponse.getSerialNumber());
+        log.info(
+                "Bootstrap certificate issued for organisation {}, serial {}",
+                organisationId,
+                signResponse.getSerialNumber());
 
         return zipBytes;
+    }
+
+    private OrganisationCertificateDTO createCertificateRecord(Long organisationId) {
+        if (!organisationRepository.existsById(organisationId)) {
+            throw new CertificateSigningException("Organisation not found: " + organisationId);
+        }
+        log.info("No certificate record found for organisation {}. Creating one.", organisationId);
+        OrganisationCertificateDTO newCert = OrganisationCertificateDTO.builder()
+                .organisationId(organisationId)
+                .type(CertificateType.MANUAL)
+                .isRenewable(false)
+                .build();
+        return certificateService.save(newCert);
     }
 
     private OrganisationCertificateDTO lookupCertificate(String clientId) {

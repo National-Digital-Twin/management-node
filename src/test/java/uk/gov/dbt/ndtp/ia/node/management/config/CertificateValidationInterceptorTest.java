@@ -34,7 +34,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.method.HandlerMethod;
-import uk.gov.dbt.ndtp.ia.node.management.controller.v1.CertificateController;
 import uk.gov.dbt.ndtp.ia.node.management.controller.v1.ConfigurationController;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.OrganisationCertificateDTO;
 import uk.gov.dbt.ndtp.ia.node.management.model.jwt.EnhancedPrincipal;
@@ -239,7 +238,7 @@ class CertificateValidationInterceptorTest {
         OrganisationCertificateDTO cert = certDto(CertificateType.BOOTSTRAP, null);
         when(validationProvider.findByClientId("client-1")).thenReturn(Optional.of(cert));
         when(validationProvider.isActive(cert)).thenReturn(true);
-        when(handlerMethod.getBeanType()).thenReturn((Class) CertificateController.class);
+        when(handlerMethod.getBeanType()).thenReturn((Class) AnnotatedTestController.class);
 
         assertThat(interceptor.preHandle(request, response, handlerMethod)).isTrue();
     }
@@ -288,4 +287,7 @@ class CertificateValidationInterceptorTest {
         String body = sw.toString();
         assertThat(body).contains("403").contains("Organisation certificate is not active");
     }
+
+    @AllowBootstrapCertificates
+    private static class AnnotatedTestController {}
 }

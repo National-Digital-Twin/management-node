@@ -23,6 +23,6 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(certificateValidationInterceptor)
                 .addPathPatterns("/api/**")
-                .excludePathPatterns("/api/v1/certificate/bootstrap");
+                .excludePathPatterns("/api/v1/certificate/**");
     }
 }
