@@ -41,6 +41,10 @@ Sample JWT payload (use this structure when testing locally):
       "roles": [
         "access_producer_configurations",
         "access_consumer_configurations",
+        "create_keys",
+        "sign_certificate",
+        "access_public_certificates",
+        "request_bootstrap_certificate",
         "BrownfieldLandAvailability",
         "PendingPlanningApplications"
       ]
@@ -57,10 +61,22 @@ Notes:
 ## Role requirements per API
 
 - Producer API: Federator clients may access Producer configuration only when their token contains the role `access_producer_configurations` under the `resource_access` for the audience/client `management-node`.
-  - Enforcement in code: `@PreAuthorize("hasRole('ROLE_management-node:access_producer_configurations')")` on `/api/v1/configuration/producer`.
+  - Enforcement in code: `@PreAuthorize("hasAuthority('ROLE_management-node:access_producer_configurations')")` on `/api/v1/configuration/producer`.
 
 - Consumer API: Federator clients may access Consumer configuration only when their token contains the role `access_consumer_configurations` under the `resource_access` for the audience/client `management-node`.
-  - Enforcement in code: `@PreAuthorize("hasRole('ROLE_management-node:access_consumer_configurations')")` on `/api/v1/configuration/consumer`.
+  - Enforcement in code: `@PreAuthorize("hasAuthority('ROLE_management-node:access_consumer_configurations')")` on `/api/v1/configuration/consumer`.
+
+- Key Pair / CSR Creation API: Clients may create RSA key pairs and certificate signing requests when their token contains the role `create_keys`.
+  - Enforcement in code: `@PreAuthorize("hasAuthority('ROLE_management-node:create_keys')")` on `GET /api/v1/certificate/keyPair` and `POST /api/v1/certificate/csr/create`.
+
+- CSR Signing API: Clients may sign certificate signing requests when their token contains the role `sign_certificate`.
+  - Enforcement in code: `@PreAuthorize("hasAuthority('ROLE_management-node:sign_certificate')")` on `POST /api/v1/certificate/csr/sign`.
+
+- Intermediate Certificate API: Clients may retrieve the intermediate CA certificate when their token contains the role `access_public_certificates`.
+  - Enforcement in code: `@PreAuthorize("hasAuthority('ROLE_management-node:access_public_certificates')")` on `GET /api/v1/certificate/intermediate`.
+
+- Bootstrap Certificate API: The onboarding service account may request bootstrap certificate packages when its token contains the role `request_bootstrap_certificate`. The request body contains the target `organisationId` and a CSR. If no certificate record exists for the organisation, one is created automatically. This role is typically assigned only to the website backend service account, not to individual federator clients.
+  - Enforcement in code: `@PreAuthorize("hasAuthority('ROLE_management-node:request_bootstrap_certificate')")` on `POST /api/v1/certificate/bootstrap`.
 
 ## How this maps to Keycloak
 
@@ -71,13 +87,19 @@ Notes:
 - Create and assign the following client roles on the `management-node` client:
   - `access_producer_configurations`
   - `access_consumer_configurations`
-- Assign these roles to the appropriate Producer or Consumer Federator clients or service accounts.
+  - `create_keys`
+  - `sign_certificate`
+  - `access_public_certificates`
+  - `request_bootstrap_certificate`
+- Assign configuration roles to the appropriate Producer or Consumer Federator clients or service accounts.
+- Assign certificate roles (`create_keys`, `sign_certificate`, `access_public_certificates`) to federator service accounts that manage their own certificates.
+- Assign `request_bootstrap_certificate` only to the website/onboarding backend service account.
 
 ## Requesting tokens (example)
 
 Using client credentials with mTLS (as per the project’s Keycloak setup):
 ```
-curl --location 'https://localhost:8443/realms/management-node/protocol/openid-connect/token' \
+curl --location 'https://localhost:8443/realms/mng-node/protocol/openid-connect/token' \
   --cert client.crt --key client.key \
   --header 'Content-Type: application/x-www-form-urlencoded' \
   --data-urlencode 'client_id=<federator-client-id>' \
@@ -97,4 +119,8 @@ curl -k 'https://localhost:8090/api/v1/configuration/producer' \
 - Authorization:
   - Producer API requires role: `access_producer_configurations`.
   - Consumer API requires role: `access_consumer_configurations`.
+  - Key Pair / CSR Creation API requires role: `create_keys`.
+  - CSR Signing API requires role: `sign_certificate`.
+  - Intermediate Certificate API requires role: `access_public_certificates`.
+  - Bootstrap Certificate API requires role: `request_bootstrap_certificate`.
 - Swagger/OpenAPI: Use Swagger UI at `/swagger-ui.html` to explore and test with a valid token.

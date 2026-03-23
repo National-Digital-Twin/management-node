@@ -32,7 +32,7 @@ For instructions on generating these files, refer to the [Certificate Setup](#ce
 
 ## Configuring MTLS for Keycloak
 
-Keycloak's MTLS configuration is defined in the `docker/docker-compose.yml` file. The following environment variables control MTLS behavior:
+Keycloak's MTLS configuration is defined in the `docker/keycloak/docker-compose.yml` file. The following environment variables control MTLS behavior:
 
 ```yaml
 KC_HTTPS_CLIENT_AUTH: ${KC_HTTPS_CLIENT_AUTH}  # Set to 'required' to enforce MTLS

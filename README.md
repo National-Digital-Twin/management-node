@@ -1,22 +1,22 @@
 # README
 
-**Repository:** `management-node`  
-**Description:** `Provides APIs to be accessed by Consumer and Producer Federators for the purpose of dynamic configuration management `  
+**Repository:** `management-node`
+**Description:** `Provides APIs to be accessed by Consumer and Producer Federators for the purpose of dynamic configuration management `
 **SPDX-License-Identifier:** `Apache-2.0 AND OGL-UK-3.0 `
 
 ---
 
 ## Overview
 
-The Management Node Module is a Spring Boot application that provides APIs to be accessed by Consumer and Producer Federators. It implements a secure communication architecture using Mutual TLS (MTLS) connectivity between Federator instances and itself, as well as establishing zero trust connectivity with Keycloak for authentication and authorization.   
+The Management Node is a Spring Boot application that provides REST APIs for federator configuration management and certificate lifecycle operations (key generation, CSR signing, and bootstrap onboarding). It implements secure communication using Mutual TLS (mTLS) and zero-trust authentication via Keycloak.
 
---- 
+---
 
 ## Database Schema
 
 For a full description of the database tables, relationships, and constraints, see the Database Schema documentation: [docs/DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md).
 
---- 
+---
 
 ## Prerequisites
 - Java 21
@@ -28,7 +28,8 @@ For a full description of the database tables, relationships, and constraints, s
 ---
 
 ## Quick Start
-Note. see lower for setting up prerequisites for local deployment certs, keycloak etc.
+
+> **Note:** see [lower](#prerequisites-setup) for setting up prerequisites for local deployment certs, keycloak etc.
 
 ### Run the Spring Boot application
 
@@ -74,7 +75,7 @@ Notes:
   ```bash
   java -jar target/management-node-0.0.1.jar --spring.config.location=/path/to/your.yml
   ```
-- The application serves HTTPS on port 8090 by default (see server.ssl in configuration).  
+- The application serves HTTPS on port 8090 by default (see server.ssl in configuration).
 
 
 
@@ -97,26 +98,26 @@ The Management Node Module implements a zero-trust security architecture using M
 
 The system requires several certificate files:
 
-1. **Private Key (`localhost.key`)**: 
+1. **Private Key (`localhost.key`)**:
    - The private key used to sign and decrypt data
    - Must be kept secure and never shared
    - Used by both Keycloak and the Management Node
 
-2. **Certificate (`localhost.crt`)**: 
+2. **Certificate (`localhost.crt`)**:
    - The public certificate containing the public key
    - Shared with other services to verify the identity
    - Used in both server and client authentication
 
-3. **PKCS12 Keystore (`localhost.p12`)**: 
+3. **PKCS12 Keystore (`localhost.p12`)**:
    - A container format that stores the private key and certificate
    - Used primarily for client authentication
    - Imported by Keycloak for client certificate validation
 
-4. **Java Keystore (`keystore.jks`)**: 
+4. **Java Keystore (`keystore.jks`)**:
    - Java-specific format for storing the server's private key and certificate
    - Used by both Keycloak and the Management Node for their TLS endpoints
 
-5. **Java Truststore (`truststore.jks`)**: 
+5. **Java Truststore (`truststore.jks`)**:
    - Contains certificates that the server trusts
    - Used to validate client certificates during MTLS
 
@@ -157,7 +158,7 @@ cd docker
    openssl x509 -req -CA rootCA.crt -CAkey rootCA.key -in localhost.csr -out localhost.crt -days 365 -CAcreateserial -extfile localhost.ext
    ```
    This signs the host CSR with the Root CA, creating a certificate valid for 365 days.
-   
+
 
    This configuration specifies that the certificate is valid for both `localhost` and `keycloak` hostnames.
 
@@ -175,7 +176,7 @@ cd docker
 
 6. **Add the Root CA to the Trust Store**:
    ```bash
-   keytool -importcert -file rootCA.crt -alias clientca -keystore localhost.p12 -storetype PKCS12 -storepass changeit
+   keytool -importcert -noprompt -file rootCA.crt -alias clientca -keystore localhost.p12 -storetype PKCS12 -storepass changeit
    ```
    This adds the Root CA to the trust store so that clients signed by this CA will be trusted.
 
@@ -217,9 +218,13 @@ cd docker
 
 ### Certificate Placement and Configuration
 
-After generating the certificates, place them in the appropriate locations:
+After generating the certificates, ensure they are readable by Docker containers (Keycloak runs as a non-root user):
 
-if you've followed the above then follow with
+```bash
+chmod 644 localhost.key localhost.crt localhost.p12 keystore.jks truststore.jks rootCA.crt rootCA.key
+```
+
+Then copy them to the management-node root directory:
 ```bash
 cp keystore.jks ../keystore.jks
 cp truststore.jks ../truststore.jks
@@ -322,7 +327,7 @@ The application uses Keycloak for authentication and authorization. Follow these
    cd docker
    ```
 
-2. Make sure you have the required certificates in the `docker` directory: see lower for local certificate setup 
+2. Make sure you have the required certificates in the `docker` directory: see lower for local certificate setup
    - `keystore.jks` - Java keystore containing the server certificate
    - `truststore.jks` - Java truststore containing trusted certificates
    - `localhost.p12` - PKCS12 keystore for client authentication
@@ -344,9 +349,15 @@ The application uses Keycloak for authentication and authorization. Follow these
 
 5. Access the Keycloak admin console at https://localhost:8443/admin with the following credentials:
    - Username: `admin`
-   - Password: `password`  
+   - Password: `password`
 
-   you will need to first import your client.p12 digital certificate file into your local browser, else the request will be rejected. for chrome got to. settings - privacy and security - security - manage certificate - manage imported certificates from windows, then import and follow the wizard.
+   You must import your `client.p12` certificate into your browser before accessing the admin console, otherwise the request will be rejected by mTLS.
+
+   **Chrome:**
+   1. Navigate to `chrome://certificate-manager/clientcerts/platformclientcerts`
+   2. Click **Import** and select the `client.p12` file from the `docker/` directory
+   3. When prompted for a password, enter `changeit`
+
 
 
 
@@ -364,8 +375,8 @@ After starting Keycloak, you need to set up a realm for the Management Node. You
 5. Click on the "Browse" or "Select file" button
 6. Navigate to and select the `docker/keycloak/management-node.json` file from your project directory
 7. Click "Create" or "Import"
-8. After the import is complete, verify that the `management-node` realm has been created with all the necessary configurations
-9. Note the client secret for the `management-node` client from the Credentials tab (Clients → management-node → Credentials) click regenerate, view it and do ```export KEYCLOAK_CLIENTID=*************``` 
+8. After the import is complete, verify that the `mng-node` realm has been created with all the necessary configurations
+9. Note the client secret for the `management-node` client from the Credentials tab (Clients → management-node → Credentials) click regenerate, view it and do ```export KEYCLOAK_CLIENT_SECRET=*************```
 
 ### Option 2: Manual Configuration
 
@@ -373,22 +384,22 @@ If you prefer to set up the realm manually (updated for Keycloak 26.x):
 
 1. Log in to the Keycloak admin console at https://localhost:8443/admin (you must first import your `client.p12` certificate into your browser)
 
-2. Create a new realm named `management-node` by clicking the dropdown in the top-left and selecting "Create Realm"
+2. Create a new realm named `mng-node` by clicking the dropdown in the top-left and selecting "Create Realm"
 
 3. Create the **management-node** client:
-   - In the `management-node` realm, navigate to **Clients** and click **Create client**
-   
+   - In the `mng-node` realm, navigate to **Clients** and click **Create client**
+
    **General Settings:**
    - Client type: `OpenID Connect`
    - Client ID: `management-node`
    - Click **Next**
-   
+
    **Capability config:**
    - Client authentication: **ON** (this enables the Credentials tab)
    - Authorization: **OFF**
    - Authentication flow: Enable **Service accounts roles**
    - Click **Next**
-   
+
    **Login settings:**
    - Valid redirect URIs: `https://localhost:8090/*`
    - Valid post logout redirect URIs: `+`
@@ -400,41 +411,93 @@ If you prefer to set up the realm manually (updated for Keycloak 26.x):
 5. Add required roles to the client:
    - Go to **Clients** → **management-node** → **Roles** tab
    - Click **Create role** and add the following roles:
-     - `access_producer_configurations`
-     - `access_consumer_configurations`
+     - `access_producer_configurations` — access producer configuration endpoint
+     - `access_consumer_configurations` — access consumer configuration endpoint
+     - `create_keys` — generate key pairs and create CSRs
+     - `sign_certificate` — sign CSRs via the PKI engine
+     - `access_public_certificates` — retrieve the intermediate CA certificate
+     - `request_bootstrap_certificate` — issue bootstrap certificate packages (website service account only)
+
+   See [Authentication Requirements](docs/AUTHENTICATION_REQUIREMENTS.md) for full details on which roles map to which endpoints.
 
 6. Assign roles to the service account:
    - Go to **Clients** → **management-node** → **Service accounts roles** tab
    - Click **Assign role**
    - Filter by **Filter by clients** and select **management-node**
-   - Check both roles (`access_producer_configurations` and `access_consumer_configurations`)
+   - Check the roles needed for this client:
+     - `access_producer_configurations`
+     - `access_consumer_configurations`
+     - `create_keys`
+     - `sign_certificate`
+     - `access_public_certificates`
+     - `request_bootstrap_certificate`
    - Click **Assign**
 
-7. Update your `application.yml` with the client configuration, if needed (or do ```export KEYCLOAK_CLIENTID=*************```):
+   > **Note:** For local development, assign all 6 roles if you will be testing all endpoints with the single `management-node` client credentials. In production, roles should be split across separate clients (e.g. `request_bootstrap_certificate` only for the website/onboarding service).
+
+7. Create `src/main/resources/application-local.yml` with all local development overrides:
    ```yaml
    spring:
+     cloud:
+       vault:
+         token: not_setup # replace with Vault root token if using certificate endpoints
      security:
        oauth2:
          resourceserver:
            jwt:
-             issuer-uri: https://localhost:8443/realms/management-node
-             jwk-set-uri: https://localhost:8443/realms/management-node/protocol/openid-connect/certs
              audiences: account
            opaquetoken:
-             introspection-uri: https://localhost:8443/realms/management-node/protocol/openid-connect/token/introspect
-             client-secret: "client_secret=${KEYCLOAK_CLIENTID}"
-             client-id: management-node
-   
+             client-secret: <your_client_secret>
+     datasource:
+       password: keycloak_db_user_password
+
+   server:
+     ssl:
+       key-store-password: changeit
+       trust-store-password: changeit
+
    application:
      client:
-       key-store: keystore.jks
        key-store-password: changeit
-       keyStoreType: JKS
+       keyStoreType: PKCS12
    ```
 
-### Setting up vault with Docker compose
+   > **Note:** The `audiences` is set to `account` because Keycloak includes `account` as the default audience in service account tokens. Without this override, JWT validation will reject tokens with an audience mismatch. In production, configure a client scope audience mapper in Keycloak to use a custom audience instead.
 
-Follow these steps to setup vault using Docker compose:
+### Testing mTLS connectivity:
+
+Once Keycloak is running and configured, you can test mTLS connectivity using the command below. Replace `YOUR_CLIENT_SECRET` with the actual client secret obtained from the Keycloak Credentials tab (step 4 in the manual configuration above):
+
+```bash
+export KEYCLOAK_CLIENT_SECRET=`YOUR_CLIENT_SECRET`
+cd docker # or where your certificates are stored
+```
+
+```bash
+curl -k --location 'https://localhost:8443/realms/mng-node/protocol/openid-connect/token' \
+  --cert client.crt --key client.key \
+  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'client_id=management-node' \
+  --data-urlencode "client_secret=${KEYCLOAK_CLIENT_SECRET}" \
+  --data-urlencode 'grant_type=client_credentials'
+```
+
+**Note:** The `client_secret` parameter is required for confidential clients. Make sure to:
+1. Copy the client secret from Keycloak admin console: **Clients** → **management-node** → **Credentials** tab
+2. Replace `YOUR_CLIENT_SECRET` in the command above with your actual client secret
+3. The `-k` flag is used to allow insecure connections (self-signed certificates) for development
+
+If successful, you will receive a JSON response containing an `access_token` with the assigned roles in the `resource_access.management-node.roles` claim. This confirms that:
+- ✅ mTLS authentication is working (client certificates validated)
+- ✅ Client credentials are correct
+- ✅ Keycloak is properly configured
+- ✅ Service account has the required roles assigned
+
+## Vault Setup (Optional — required for Certificate Manager)
+
+This section is only needed if you plan to use the certificate endpoints (`/api/v1/certificate/*`) or run the federator-certificate-manager. If you only need the configuration endpoints, skip to [Building and Running with Maven](#building-and-running-with-maven).
+
+### Setting up Vault with Docker Compose
 
 1. Create a directory called `config` in the `docker/vault` directory
 
@@ -472,51 +535,129 @@ docker compose -f docker/vault/docker-compose.yaml up -d
 docker exec vault vault status -format=json
 ```
 
-5. initialize vault & generate unseal keys and root token:
+5. Initialise vault & generate unseal keys and root token:
 
 ```sh
 # copy the Keys and root token to somewhere safe
-docker exec vault vault operator init -key-shares=5 -key-threshold=3 -format=json
+docker exec vault vault operator init -key-shares=1 -key-threshold=1 -format=json
 ```
 
-6. unseal vault using the unseal key in the previous step:
+> **Note:** A single key share is used here for convenience. In production, use multiple key shares (e.g. `-key-shares=5 -key-threshold=3`) to distribute unseal keys across different operators via [Shamir's secret sharing](https://developer.hashicorp.com/vault/docs/concepts/seal).
+
+6. Unseal vault using the unseal key from the previous step:
 
 ```sh
-docker exec vault vault operator unseal <unseal_key_1>
-docker exec vault vault operator unseal <unseal_key_2>
-docker exec vault vault operator unseal <unseal_key_3>
+docker exec vault vault operator unseal <unseal_key>
 ```
 
-You can then access vault using the Web UI and the root token at `http://localhost:8200`. Dont forget to add your vault root token to the application file.
+> **Note:** Vault seals itself whenever the container is stopped or restarted. You will need to run the unseal command again each time you bring the container back up. The init and PKI setup steps do not need to be repeated — only the unseal.
 
-### Testing mTLS connectivity:
+You can then access vault using the Web UI and the root token at [http://localhost:8200](http://localhost:8200). Add the Vault root token to your `application-local.yml`:
 
-Once Keycloak is running and configured, you can test mTLS connectivity using the command below. Replace `YOUR_CLIENT_SECRET` with the actual client secret obtained from the Keycloak Credentials tab (step 4 in the manual configuration above):
+   ```yaml
+   spring:
+     cloud:
+       vault:
+         token: <your_vault_root_token>
+   ```
 
-```bash
-export KEYCLOAK_CLIENTID=`YOUR_CLIENT_SECRET`
-cd docker # or where your certificates are stored
+### Setting up the Vault PKI Secrets Engine
+
+The Management Node uses Vault's PKI secrets engine to sign certificate requests. After initialising and unsealing Vault, you need to enable the PKI engine, import the root CA, and create a signing role.
+
+All commands below assume you are using the root token for authentication. Replace `<root_token>` with the token from the init step above.
+
+7. Set the Vault address and token for the CLI:
+
+```sh
+export VAULT_ADDR=http://localhost:8200
+export VAULT_TOKEN=<root_token>
 ```
 
+8. Enable the PKI secrets engine at the `pki-int` mount path. This path must match the `application.vault.pki-mount` property in `application.yml` (default: `pki-int`):
+
+```sh
+docker exec -e VAULT_TOKEN=$VAULT_TOKEN vault vault secrets enable -path=pki-int pki
+```
+
+9. Set the maximum TTL for the PKI engine. This controls how long certificates issued by this CA can be valid:
+
+```sh
+docker exec -e VAULT_TOKEN=$VAULT_TOKEN vault vault secrets tune -max-lease-ttl=87600h pki-int
+```
+
+10. Import the existing root CA into Vault's PKI engine. This reuses the same root CA generated during [Certificate Setup](#certificate-setup), so certificates signed by Vault are trusted by the same truststore used for mTLS:
+
+```sh
+docker exec -e VAULT_TOKEN=$VAULT_TOKEN vault vault write pki-int/config/ca \
+  pem_bundle="$(openssl rsa -in docker/rootCA.key -passin pass:changeit 2>/dev/null && cat docker/rootCA.crt)"
+```
+
+11. Configure the PKI issuing certificate and CRL distribution URLs. These are embedded in certificates issued by the CA:
+
+```sh
+docker exec -e VAULT_TOKEN=$VAULT_TOKEN vault vault write pki-int/config/urls \
+  issuing_certificates="http://localhost:8200/v1/pki-int/ca" \
+  crl_distribution_points="http://localhost:8200/v1/pki-int/crl"
+```
+
+12. Create a signing role. The role name must match `application.vault.default-role` in `application.yml` (default: `default-role`). This role defines what the CA is allowed to sign:
+
+```sh
+docker exec -e VAULT_TOKEN=$VAULT_TOKEN vault vault write pki-int/roles/default-role \
+  allow_any_name=true \
+  allow_subdomains=true \
+  max_ttl=8760h \
+  key_type=any \
+  allow_ip_sans=true \
+  allow_glob_domains=true \
+  server_flag=true \
+  client_flag=true \
+  allowed_other_sans="1.3.6.1.4.1.32473.1.1;utf8:*"
+```
+
+- `allow_any_name=true` permits signing CSRs with any common name — appropriate for development. In production, restrict this to specific domains.
+- `key_type=any` allows both RSA and EC keys.
+- `allowed_other_sans` whitelists the bootstrap OID so the bootstrap flow can embed it in signed certificates. This matches the default `application.bootstrap.oid` value — if you override `BOOTSTRAP_OID`, update this Vault role to match.
+
+13. Verify the PKI engine is working by reading back the CA certificate:
+
+```sh
+docker exec -e VAULT_TOKEN=$VAULT_TOKEN vault vault read pki-int/cert/ca
+```
+
+You should see the root CA certificate in PEM format.
+
+14. Test that the PKI engine can sign a certificate:
+
+```sh
+docker exec -e VAULT_TOKEN=$VAULT_TOKEN vault vault write -format=json pki-int/issue/default-role \
+  common_name="test.example.com" \
+  ttl=1h | jq -r '.data.certificate'
+```
+
+You should see a signed PEM certificate. This confirms the Vault PKI engine is working.
+
+14. To verify the full integration with the Management Node, restart the app (with the real Vault token in `application-local.yml`) and test the certificate endpoints:
+
 ```bash
-curl -k --location 'https://localhost:8443/realms/management-node/protocol/openid-connect/token' \
+# Get a token
+TOKEN=$(curl -k https://localhost:8443/realms/mng-node/protocol/openid-connect/token \
   --cert client.crt --key client.key \
-  --header 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'grant_type=client_credentials' \
   --data-urlencode 'client_id=management-node' \
-  --data-urlencode "client_secret=${KEYCLOAK_CLIENTID}" \
-  --data-urlencode 'grant_type=client_credentials'
+  --data-urlencode "client_secret=${KEYCLOAK_CLIENT_SECRET}" \
+  -s | jq -r '.access_token')
+
+# Generate a key pair via the Management Node
+curl -k https://localhost:8090/api/v1/certificate/keyPair \
+  --cert client.crt --key client.key \
+  -H "Authorization: Bearer $TOKEN" | jq .
 ```
 
-**Note:** The `client_secret` parameter is required for confidential clients. Make sure to:
-1. Copy the client secret from Keycloak admin console: **Clients** → **management-node** → **Credentials** tab
-2. Replace `YOUR_CLIENT_SECRET` in the command above with your actual client secret
-3. The `-k` flag is used to allow insecure connections (self-signed certificates) for development
+If this returns 200 with a JSON response containing the key pair, the Management Node is fully connected to Vault's PKI engine.
 
-If successful, you will receive a JSON response containing an `access_token` with the assigned roles in the `resource_access.management-node.roles` claim. This confirms that:
-- ✅ mTLS authentication is working (client certificates validated)
-- ✅ Client credentials are correct
-- ✅ Keycloak is properly configured
-- ✅ Service account has the required roles assigned
+> **Note:** This setup imports the development root CA directly at the `pki-int` mount point. For production, you would typically create a separate root CA and then generate an intermediate CA signed by it. Both configurations work with the Management Node — the only difference is whether `pki-int/cert/ca_chain` returns a chain or is empty.
 
 ## Building and Running with Maven
 
@@ -547,9 +688,9 @@ The Management Node Module uses Maven for dependency management and build automa
 
 ### Running the Application
 
-After building, you can run the application using one of these methods:  
+After building, you can run the application using one of these methods:
 
-Note: if running with defaults export your passwords first.eg
+Note: if using `application-local.yml` (see [Keycloak Realm Setup](#keycloak-realm-setup) step 7), passwords are already configured. Otherwise, export them first:
    ```
    export POSTGRES_PASSWORD=keycloak_db_user_password
    export CERTPASSWORD=changeit
@@ -567,9 +708,9 @@ cp docker/client.key client.key
    java -jar target/management-node-1.0.1.jar
    ```
 
-2. Using the Maven Spring Boot plugin:
+2. Using the Maven Spring Boot plugin (with the local profile if using `application-local.yml`):
    ```bash
-   mvn spring-boot:run
+   mvn spring-boot:run -Dspring-boot.run.profiles=local
    ```
 
 The application will be available at https://localhost:8090
@@ -581,12 +722,12 @@ Once you have a valid token, you can test the protected API endpoints:
 **Step 1: Get your Keycloak Client Secret**
 
 1. Log in to Keycloak admin console at https://localhost:8443/admin
-2. Navigate to: **management-node realm** → **Clients** → **management-node** → **Credentials** tab
+2. Navigate to: **mng-node realm** → **Clients** → **management-node** → **Credentials** tab
 3. Copy the **Client Secret** value (you can regenerate if needed)
 4. Export it as an environment variable:
 
 ```bash
-export KEYCLOAK_CLIENTID=your_actual_client_secret_here
+export KEYCLOAK_CLIENT_SECRET=your_actual_client_secret_here
 ```
 
 **Step 2: Get a JWT token and test the endpoints**
@@ -596,25 +737,25 @@ export KEYCLOAK_CLIENTID=your_actual_client_secret_here
 cd /path/to/management-node
 
 # First, verify you can get a token (view the full response)
-curl -k https://localhost:8443/realms/management-node/protocol/openid-connect/token \
+curl -k https://localhost:8443/realms/mng-node/protocol/openid-connect/token \
   --cert client.crt --key client.key \
   --data-urlencode 'grant_type=client_credentials' \
   --data-urlencode 'client_id=management-node' \
-  --data-urlencode "client_secret=${KEYCLOAK_CLIENTID}" \
+  --data-urlencode "client_secret=${KEYCLOAK_CLIENT_SECRET}" \
   -s | jq .
 
 # Get a token and save it
-TOKEN=$(curl -k https://localhost:8443/realms/management-node/protocol/openid-connect/token \
+TOKEN=$(curl -k https://localhost:8443/realms/mng-node/protocol/openid-connect/token \
   --cert client.crt --key client.key \
   --data-urlencode 'grant_type=client_credentials' \
   --data-urlencode 'client_id=management-node' \
-  --data-urlencode "client_secret=${KEYCLOAK_CLIENTID}" \
+  --data-urlencode "client_secret=${KEYCLOAK_CLIENT_SECRET}" \
   -s | jq -r '.access_token')
 
 # Verify the token was retrieved successfully
 echo "Token (first 50 chars): ${TOKEN:0:50}..."
 
-# If TOKEN is "null", check that KEYCLOAK_CLIENTID is set correctly
+# If TOKEN is "null", check that KEYCLOAK_CLIENT_SECRET is set correctly
 
 # Test the producer endpoint
 curl -k https://localhost:8090/api/v1/configuration/producer \
@@ -627,85 +768,65 @@ curl -k https://localhost:8090/api/v1/configuration/consumer \
   -H "Authorization: Bearer $TOKEN" | jq .
 ```
 
-Expected response (if no configuration data exists yet):
-```json
-{
-  "clientId": "management-node",
-  "producers": []
-}
-```
-
-If successful, you will receive a JSON response containing an `access_token`. This confirms that:
+The configuration endpoints will return a **403 Forbidden** with `"No organisation certificate found"`. This is expected — the `management-node` client is not mapped to a Producer or Consumer organisation in the database. At this point the setup is confirmed working:
 - ✅ mTLS authentication is working (client certificates validated)
-- ✅ Client credentials are correct
+- ✅ JWT token was issued with correct roles
 - ✅ Keycloak is properly configured
+- ✅ The 403 is the interceptor correctly rejecting an unmapped client
+
+**Testing further with a federator client (optional):**
+
+To test the full configuration response, create a Keycloak client that matches one of the seeded organisations:
+
+1. In the Keycloak admin console, navigate to **mng-node realm** → **Clients** → **Create client**
+2. Set Client ID to `FEDERATOR_ENV` (matches the sample data for Environment Agency)
+3. Enable **Client authentication** and **Service accounts roles**
+4. Save, then go to the **Service accounts roles** tab
+5. Assign the `management-node` roles: `access_producer_configurations` and `access_consumer_configurations`
+6. Copy the client secret from the **Credentials** tab
+
+Then test with the new client:
+
+```bash
+export FEDERATOR_ENV_SECRET=<your_federator_env_secret>
+
+# Get a token for the FEDERATOR_ENV client
+TOKEN=$(curl -k https://localhost:8443/realms/mng-node/protocol/openid-connect/token \
+  --cert client.crt --key client.key \
+  --data-urlencode 'grant_type=client_credentials' \
+  --data-urlencode 'client_id=FEDERATOR_ENV' \
+  --data-urlencode "client_secret=${FEDERATOR_ENV_SECRET}" \
+  -s | jq -r '.access_token')
+
+# This should now return the configuration for the Environment Agency organisation
+curl -k https://localhost:8090/api/v1/configuration/producer \
+  --cert client.crt --key client.key \
+  -H "Authorization: Bearer $TOKEN" | jq .
+```
 
 ### Using Profile-Specific Configuration Files
 
 Spring Boot supports profile-specific property files, which are essential for local development environments where you need to configure sensitive information like passwords and URLs without committing them to version control.
 
-#### Why Use Profile-Specific Configuration?
+- **Security**: Keep sensitive information like passwords and API keys out of version control
+- **Environment-Specific Settings**: Configure different settings for development, testing, and production
+- **Local Development**: Each developer can have their own configuration without affecting others
 
-1. **Security**: Keep sensitive information like passwords and API keys out of version control
-2. **Environment-Specific Settings**: Configure different settings for development, testing, and production
-3. **Local Development**: Each developer can have their own configuration without affecting others
+For local development, create `src/main/resources/application-local.yml` to override secrets and passwords. See [Keycloak Realm Setup](#keycloak-realm-setup) step 7 for the full example.
 
-#### Creating a Profile-Specific YAML File
+Make sure to add this file to `.gitignore`:
+```
+src/main/resources/application-local.yml
+```
 
-1. Create a file named `application-{profile}.yml` in the `src/main/resources` directory, where `{profile}` is the name of your profile (e.g., `application-local.yml` for a "local" profile)
-
-2. Add your environment-specific configuration to this file. For example:
-
-   ```yaml
-   spring:
-     security:
-       oauth2:
-         resourceserver:
-           opaquetoken:
-             client-secret: your-client-secret-here
-             client-id: ztf-client
-     datasource:
-       password: your-database-password-here
-   
-   server:
-     ssl:
-       key-store-password: your-keystore-password-here
-       trust-store-password: your-truststore-password-here
-       key-store: /path/to/your/local/keystore.jks
-       trust-store: /path/to/your/local/truststore.jks
-   ```
-
-3. Make sure not to commit this file to version control by adding it to your `.gitignore` file:
-   ```
-   src/main/resources/application-local.yml
-   ```
-
-#### Running the Application with a Specific Profile
-
-To run the application with your profile, use one of these methods:
-
-1. Using the Java command with the `spring.profiles.active` parameter:
-   ```bash
-   java -jar target/management-node-0.0.1.jar --spring.profiles.active=local
-   ```
-
-2. Using the Maven Spring Boot plugin:
-   ```bash
-   mvn spring-boot:run -Dspring-boot.run.profiles=local
-   ```
-
-3. Using environment variables:
-   ```bash
-   export SPRING_PROFILES_ACTIVE=local
-   java -jar target/management-node-0.0.1.jar
-   ```
-
-4. When running with Docker, you can pass the profile as an environment variable:
-   ```bash
-   docker run -p 8090:8090 -e "SPRING_PROFILES_ACTIVE=local" management-node
-   ```
-
-The application will load both the default `application.yml` and your profile-specific `application-local.yml`, with the latter overriding any duplicate properties.
+Then run with the `local` profile:
+```bash
+mvn spring-boot:run -Dspring-boot.run.profiles=local
+```
+Or:
+```bash
+java -jar target/management-node-1.0.1.jar --spring.profiles.active=local
+```
 
 ## Code Coverage with JaCoCo
 
@@ -751,7 +872,7 @@ The current configuration aims for 80% code coverage across instructions, branch
      - **From Docker container**: Use `--network keycloak_keycloak_network` and connect to `keycloak:8443`
      - **From host machine**: Use `localhost:8443` or `host.docker.internal:8443`
    - **Error**: Token validation fails with 401 Unauthorized
-     - Check that `KEYCLOAK_CLIENTID` environment variable is set correctly
+     - Check that `KEYCLOAK_CLIENT_SECRET` environment variable is set correctly
      - Verify the token contains required roles using: `echo $TOKEN | cut -d. -f2 | base64 -d | jq .`
    - Check that Keycloak is running: `docker ps | grep keycloak`
    - Verify that the client secret matches the one in Keycloak admin console
@@ -792,7 +913,7 @@ For production deployments, consider:
 The project includes interactive API documentation powered by Springdoc OpenAPI (OAS 3.1). This exposes both a human-friendly Swagger UI and machine-readable OpenAPI definitions.
 
 How to access locally (default settings):
-- Swagger UI: https://localhost:8090/swagger-ui.html 
+- Swagger UI: https://localhost:8090/swagger-ui.html
 - OpenAPI JSON: https://localhost:8090/v3/api-docs
 
 
@@ -808,14 +929,14 @@ How Springdoc OpenAPI works in this project
   - @Tag(name = "...") groups endpoints in the UI.
   - @Parameter, @Schema, @ApiResponse add fine-grained control over params, models, and responses.
 - Security schema: Because this app is an OAuth2 Resource Server (JWT), you can declare a bearerAuth security scheme to document Authorization: Bearer <token>. Example:
-  
+
   @io.swagger.v3.oas.annotations.security.SecurityScheme(
       name = "bearerAuth",
       type = io.swagger.v3.oas.annotations.enums.SecuritySchemeType.HTTP,
       scheme = "bearer",
       bearerFormat = "JWT"
   )
-  
+
   Then add @SecurityRequirement(name = "bearerAuth") on secured controllers or operations.
 - Global metadata: You can set title, version, and contact details using @OpenAPIDefinition on a @Configuration class if desired.
 
@@ -827,8 +948,12 @@ All protected endpoints require JWT bearer tokens. Tokens must:
 - Contain a `resource_access` claim with client-specific roles under `resource_access.management-node.roles`.
 
 **Required Client Roles:**
-- `access_producer_configurations` - Required to access `/api/v1/configuration/producer` endpoint
-- `access_consumer_configurations` - Required to access `/api/v1/configuration/consumer` endpoint
+- `access_producer_configurations` — access `/api/v1/configuration/producer`
+- `access_consumer_configurations` — access `/api/v1/configuration/consumer`
+- `create_keys` — `GET /api/v1/certificate/keyPair`, `POST /api/v1/certificate/csr/create`
+- `sign_certificate` — `POST /api/v1/certificate/csr/sign`
+- `access_public_certificates` — `GET /api/v1/certificate/intermediate`
+- `request_bootstrap_certificate` — `POST /api/v1/certificate/bootstrap`
 
 **Token Structure Example:**
 ```json
@@ -838,7 +963,9 @@ All protected endpoints require JWT bearer tokens. Tokens must:
     "management-node": {
       "roles": [
         "access_producer_configurations",
-        "access_consumer_configurations"
+        "access_consumer_configurations",
+        "sign_certificate",
+        "access_public_certificates"
       ]
     }
   },
@@ -848,7 +975,7 @@ All protected endpoints require JWT bearer tokens. Tokens must:
 
 These roles must be:
 1. Created as client roles in the Keycloak `management-node` client
-2. Assigned to the service account of the `management-node` client
+2. Assigned to the appropriate service accounts
 
 Read the full details, examples, and Keycloak mapping guidance in [Authentication Requirements](docs/AUTHENTICATION_REQUIREMENTS.md).
 
@@ -857,7 +984,7 @@ This repository has been developed with public funding as part of the National D
 ## License
 This repository contains both source code and documentation, which are covered by different licenses:
 - **Code:** Developed and maintained by National Digital Twin Programme. Licensed under the Apache License 2.0.
-- **Documentation:** Licensed under the Open Government Licence v3.0.  
+- **Documentation:** Licensed under the Open Government Licence v3.0.
   See `LICENSE.md`, `OGL_LICENCE.md`, and `NOTICE.md` for details.
 ## Security and Responsible Disclosure
 We take security seriously. If you believe you have found a security vulnerability in this repository, please follow our responsible disclosure process outlined in `SECURITY.md`.
@@ -870,7 +997,7 @@ We welcome contributions that align with the Programme’s objectives. Please re
 ## Acknowledgements
 This repository has benefited from collaboration with various organisations. For a list of acknowledgments, see `ACKNOWLEDGEMENTS.md`.
 ## Support and Contact
-For questions or support, check our Issues or contact the NDTP team on ndtp@businessandtrade.gov.uk.    
+For questions or support, check our Issues or contact the NDTP team on ndtp@businessandtrade.gov.uk.
 
-**Maintained by the National Digital Twin Programme (NDTP).**   
+**Maintained by the National Digital Twin Programme (NDTP).**
 © Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally attributed to the Department for Business and Trade (UK) as the governing entityright 2025. This work has been developed by the National Digital Twin Programme and is legally attributed to the Department for Business and Trade (UK) as the governing entity.
