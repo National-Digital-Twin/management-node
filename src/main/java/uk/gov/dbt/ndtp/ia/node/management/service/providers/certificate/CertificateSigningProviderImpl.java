@@ -89,7 +89,7 @@ public class CertificateSigningProviderImpl implements CertificateSigningProvide
 
     @Override
     @Transactional
-    public byte[] issueBootstrapPackage(Long organisationId, String csrPem) {
+    public byte[] issueBootstrapPackage(Long organisationId, String csrPem, String performedBy) {
         OrganisationCertificateDTO cert = certificateService
                 .findByOrganisationId(organisationId)
                 .orElseGet(() -> createCertificateRecord(organisationId));
@@ -108,8 +108,7 @@ public class CertificateSigningProviderImpl implements CertificateSigningProvide
         updateCertificateRecord(cert, signResponse, CertificateType.BOOTSTRAP);
         cert.setIsRenewable(true);
         OrganisationCertificateDTO saved = certificateService.save(cert);
-        eventService.recordEvent(
-                saved.getId(), CertificateType.BOOTSTRAP, CertificateEventType.ISSUED, organisationId.toString());
+        eventService.recordEvent(saved.getId(), CertificateType.BOOTSTRAP, CertificateEventType.ISSUED, performedBy);
 
         log.info(
                 "Bootstrap certificate issued for organisation {}, serial {}",
