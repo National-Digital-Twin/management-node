@@ -182,8 +182,11 @@ public class CertificateController {
             responseCode = "403",
             description = "Forbidden — insufficient permissions or certificate validation failure")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    public ResponseEntity<byte[]> issueBootstrapCertificate(@Valid @RequestBody BootstrapRequestDTO request) {
-        byte[] zip = signingProvider.issueBootstrapPackage(request.getOrganisationId(), request.getCsr());
+    public ResponseEntity<byte[]> issueBootstrapCertificate(
+            @Valid @RequestBody BootstrapRequestDTO request,
+            @Parameter(hidden = true) @AuthenticationPrincipal EnhancedPrincipal principal) {
+        byte[] zip = signingProvider.issueBootstrapPackage(
+                request.getOrganisationId(), request.getCsr(), principal.clientId());
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType("application/zip"))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"bootstrap_bundle.zip\"")

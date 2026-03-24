@@ -30,7 +30,8 @@ public interface CertificateSigningProvider {
      *
      * @param organisationId the ID of the target organisation
      * @param csrPem the Certificate Signing Request in PEM format
+     * @param performedBy the client ID of the caller requesting the bootstrap
      * @return a ZIP archive as a byte array containing certificate.pem and ca-chain.pem
      */
-    byte[] issueBootstrapPackage(Long organisationId, String csrPem);
+    byte[] issueBootstrapPackage(Long organisationId, String csrPem, String performedBy);
 }

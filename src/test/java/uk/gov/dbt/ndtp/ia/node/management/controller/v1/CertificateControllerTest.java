@@ -144,7 +144,8 @@ class CertificateControllerTest {
     @Test
     void issueBootstrapCertificate_shouldReturnZipDownload() throws Exception {
         byte[] zipBytes = new byte[] {0x50, 0x4B, 0x03, 0x04};
-        when(signingProvider.issueBootstrapPackage(10L, "CSR_PEM")).thenReturn(zipBytes);
+        when(signingProvider.issueBootstrapPackage(any(), anyString(), anyString()))
+                .thenReturn(zipBytes);
 
         mockMvc.perform(post("/api/v1/certificate/bootstrap")
                         .contentType(MediaType.APPLICATION_JSON)
