@@ -21,4 +21,15 @@ public interface CertificateSigningProvider {
      * @return a DTO containing the signed certificate and its chain
      */
     SignCertResponseDTO signAndRecord(String csrPem, String clientId);
+
+    /**
+     * Issue a short-lived bootstrap certificate package for the given organisation.
+     * Signs the caller-provided CSR and packages the signed certificate and CA chain
+     * as PEM files in a ZIP archive for deployment to Vault.
+     *
+     * @param clientId the IDP client ID of the calling organisation
+     * @param csrPem the Certificate Signing Request in PEM format
+     * @return a ZIP archive as a byte array containing certificate.pem and ca-chain.pem
+     */
+    byte[] issueBootstrapPackage(String clientId, String csrPem);
 }

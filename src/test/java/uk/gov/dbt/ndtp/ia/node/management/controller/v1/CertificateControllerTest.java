@@ -140,4 +140,18 @@ class CertificateControllerTest {
                 .andExpect(jsonPath("$.info.issuer").value("CN=Root"))
                 .andExpect(jsonPath("$.info.serialNumber").value("12345"));
     }
+
+    @Test
+    void issueBootstrapCertificate_shouldReturnZipDownload() throws Exception {
+        byte[] zipBytes = new byte[] {0x50, 0x4B, 0x03, 0x04};
+        when(signingProvider.issueBootstrapPackage("cert-manager", "CSR_PEM")).thenReturn(zipBytes);
+
+        mockMvc.perform(post("/api/v1/certificate/bootstrap")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"clientId\":\"cert-manager\",\"csr\":\"CSR_PEM\"}"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/zip"))
+                .andExpect(header().string("Content-Disposition", "attachment; filename=\"bootstrap_bundle.zip\""))
+                .andExpect(content().bytes(zipBytes));
+    }
 }

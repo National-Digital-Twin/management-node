@@ -6,7 +6,6 @@
 
 package uk.gov.dbt.ndtp.ia.node.management.exception.handlers;
 
-import java.nio.file.AccessDeniedException;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -46,11 +45,7 @@ public class GlobalExceptionHandler {
      * @param request the current request
      * @return a ResponseEntity with an error message
      */
-    @ExceptionHandler({
-        AuthenticationProcessingException.class,
-        AccessDeniedException.class,
-        AuthorizationDeniedException.class
-    })
+    @ExceptionHandler(AuthenticationProcessingException.class)
     public ResponseEntity<ErrorResponse> handleAuthenticationProcessingException(
             AuthenticationProcessingException ex, WebRequest request) {
 
@@ -66,6 +61,19 @@ public class GlobalExceptionHandler {
                 new ErrorResponse(HttpStatus.UNAUTHORIZED.value(), "Authentication error: " + ex.getMessage(), errorId);
 
         return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAuthorizationDeniedException(
+            AuthorizationDeniedException ex, WebRequest request) {
+
+        String errorId = generateErrorId();
+        log.debug("Access denied, error_id={}, path={}: {}", errorId, request.getDescription(false), ex.getMessage());
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.FORBIDDEN.value(), "Access denied: insufficient permissions for this operation", errorId);
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
     }
 
     /**
