@@ -7,7 +7,7 @@
 
 # Build stage
 ARG JAR_FILE=management-node-1.0.1.jar
-FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
+FROM maven:3.9.14-eclipse-temurin-21-alpine AS build
 ARG JAR_FILE
 WORKDIR /build
 
