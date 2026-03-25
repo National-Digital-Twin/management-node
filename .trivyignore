@@ -2,3 +2,5 @@
 CVE-2026-1584
 # SiYuan: Authorization Bypass Allows Arbitrary SQL Execution
 CVE-2026-32767
+# libpng: LIBPNG has a heap buffer. 
+CVE-2026-25646
