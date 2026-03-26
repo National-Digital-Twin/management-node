@@ -1,8 +1,8 @@
 # Database Schema
 
-**Repository:** `management-node`
-**Description:** `Provides APIs to be accessed by Consumer and Producer Federators for the purpose of dynamic configuration management `
-**SPDX-License-Identifier:** `Apache-2.0 AND OGL-UK-3.0 `
+**Repository:** `management-node`  
+**Description:** `Provides APIs to be accessed by Consumer and Producer Federators for the purpose of dynamic configuration management `  
+**SPDX-License-Identifier:** `Apache-2.0 AND OGL-UK-3.0 `  
 
 ---
 
