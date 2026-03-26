@@ -14,7 +14,7 @@
   </parent>
   <groupId>uk.gov.dbt.ndtp.ia.management.node</groupId>
   <artifactId>management-node</artifactId>
-  <version>1.1.0</version>
+  <version>1.2.0</version>
   <packaging>jar</packaging>
   <name>management-node</name>
   <description>Provides Management capabilities over IA Node Net</description>
