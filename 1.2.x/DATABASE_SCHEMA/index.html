@@ -1,0 +1,1211 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Management Node is is the control plane for the National Digital Twin Programme IA Node Net.">
+      
+      
+        <meta name="author" content="NDTP">
+      
+      
+        <link rel="canonical" href="https://docs.ndtp.co.uk/1.2.x/DATABASE_SCHEMA/">
+      
+      
+        <link rel="prev" href="../BOOTSTRAP_ONBOARDING/">
+      
+      
+        <link rel="next" href="../JACOCO_COVERAGE/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/android-chrome-512x512-1-150x150.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Database Schema - Management-Node Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#database-schema" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Management-Node Documentation" class="md-header__button md-logo" aria-label="Management-Node Documentation" data-md-component="logo">
+      
+  <img src="../assets/light-page_header_logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Management-Node Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Database Schema
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Management-Node Documentation" class="md-nav__button md-logo" aria-label="Management-Node Documentation" data-md-component="logo">
+      
+  <img src="../assets/light-page_header_logo.png" alt="logo">
+
+    </a>
+    Management-Node Documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    README
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../AUTHENTICATION_REQUIREMENTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Authentication Requirements
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../BOOTSTRAP_ONBOARDING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bootstrap Onboarding Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Database Schema
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Database Schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview-of-entities-and-relationships" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview of Entities and Relationships
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tables
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tables">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#organisation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        organisation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#producer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        producer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consumer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        consumer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#product_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        product_type
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#product" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        product
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#product_consumer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        product_consumer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#product_consumer_attribute" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        product_consumer_attribute
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#organisation_certificate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        organisation_certificate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#certificate_events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        certificate_events
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Migration Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-protection-and-security" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Protection and Security
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../JACOCO_COVERAGE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JaCoCo Code Coverage Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MOCKITO_USAGE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mockito Testing Tool Usage Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MTLS_CONFIGURATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MTLS Configuration Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../entity-dto-converter-pattern/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entity-DTO Converter Pattern
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../jobs-scheduler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Jobs Scheduler
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview-of-entities-and-relationships" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview of Entities and Relationships
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tables
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tables">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#organisation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        organisation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#producer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        producer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consumer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        consumer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#product_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        product_type
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#product" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        product
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#product_consumer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        product_consumer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#product_consumer_attribute" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        product_consumer_attribute
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#organisation_certificate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        organisation_certificate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#certificate_events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        certificate_events
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Migration Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-protection-and-security" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Protection and Security
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="database-schema">Database Schema</h1>
+<p><strong>Repository:</strong> <code>management-node</code><br />
+<strong>Description:</strong> <code>Provides APIs to be accessed by Consumer and Producer Federators for the purpose of dynamic configuration management</code><br />
+<strong>SPDX-License-Identifier:</strong> <code>Apache-2.0 AND OGL-UK-3.0</code>  </p>
+<hr />
+<p>This document describes the relational database schema used by the Management Node. The schema is applied via Flyway migrations located at:</p>
+<ul>
+<li><code>src/main/resources/db/migration/</code></li>
+</ul>
+<p>The database is designed to model Organisations, their Producers and Consumers, the Products offered by Producers, and the access grants that allow specific Consumers to access specific Products. Additional attributes can be attached to each grant.</p>
+<h2 id="overview-of-entities-and-relationships">Overview of Entities and Relationships</h2>
+<ul>
+<li>Organisation has many Producers and Consumers</li>
+<li>Organisation has one optional OrganisationCertificate</li>
+<li>OrganisationCertificate has many CertificateEvents</li>
+<li>Producer belongs to an Organisation</li>
+<li>Consumer belongs to an Organisation</li>
+<li>Product belongs to a Producer</li>
+<li>Product ↔ Consumer is a many-to-many relationship implemented via the join table <code>product_consumer</code></li>
+<li>Each <code>product_consumer</code> (grant) can have many <code>product_consumer_attribute</code> rows for extensible metadata</li>
+</ul>
+<p>A simple ER diagram (Mermaid):</p>
+<pre class="mermaid"><code>erDiagram
+  ORGANISATION ||--o{ PRODUCER : has
+  ORGANISATION ||--o{ CONSUMER : has
+  ORGANISATION ||--o| ORGANISATION_CERTIFICATE : has
+  ORGANISATION_CERTIFICATE ||--o{ CERTIFICATE_EVENTS : logs
+  PRODUCER ||--o{ PRODUCT : offers
+  PRODUCT ||--o{ PRODUCT_CONSUMER : grants
+  CONSUMER ||--o{ PRODUCT_CONSUMER : consumes
+  PRODUCT_CONSUMER ||--o{ PRODUCT_CONSUMER_ATTRIBUTE : has
+  PRODUCT_TYPE ||--o{ PRODUCT : categorizes
+
+  ORGANISATION {
+    BIGSERIAL id PK
+    VARCHAR name
+    BOOLEAN certificate_automation_enabled
+  }
+  PRODUCER {
+    BIGSERIAL id PK
+    VARCHAR name
+    TEXT description
+    BIGINT org_id FK
+
+    BOOLEAN active
+    VARCHAR host
+    NUMERIC port
+    BOOLEAN tls
+    VARCHAR idp_client_id
+  }
+  CONSUMER {
+    BIGSERIAL id PK
+    VARCHAR name
+    BIGINT org_id FK
+    VARCHAR idp_client_id
+    VARCHAR schedule_type
+    VARCHAR schedule_expression
+  }
+  PRODUCT_TYPE {
+    BIGSERIAL id PK
+    VARCHAR name
+    VARCHAR description
+  }
+  PRODUCT {
+    BIGSERIAL id PK
+    VARCHAR name
+    VARCHAR topic
+    BIGINT producer_id FK
+    BIGINT product_type_id FK
+    VARCHAR source
+  }
+  PRODUCT_CONSUMER {
+    BIGSERIAL id PK
+    BIGINT product_id FK
+    BIGINT consumer_id FK
+    TIMESTAMP granted_ts
+    NUMERIC validity
+    VARCHAR schedule_type
+    VARCHAR schedule_expression
+    VARCHAR destination
+  }
+  PRODUCT_CONSUMER_ATTRIBUTE {
+    BIGSERIAL id PK
+    VARCHAR name
+    VARCHAR type
+    VARCHAR value
+    BIGINT product_consumer_id FK
+  }
+  ORGANISATION_CERTIFICATE {
+    BIGSERIAL id PK
+    BIGINT organisation_id FK
+    VARCHAR subject_dn
+    VARCHAR serial_number
+    BOOLEAN is_renewable
+    BIGINT renewal_ttl
+    VARCHAR type
+    TIMESTAMP requested_at
+    TIMESTAMP issued_at
+    TIMESTAMP expires_at
+    TIMESTAMP revoked_at
+  }
+  CERTIFICATE_EVENTS {
+    BIGSERIAL id PK
+    BIGINT organisation_certificate_id FK
+    VARCHAR type
+    VARCHAR event_type
+    TIMESTAMP event_time
+    VARCHAR performed_by
+  }</code></pre>
+<hr />
+<h2 id="tables">Tables</h2>
+<h3 id="organisation">organisation</h3>
+<p>Represents an organisation that owns Producers and Consumers.</p>
+<p>Columns:
+- <code>id</code> BIGSERIAL, primary key
+- <code>name</code> VARCHAR(150), not null
+- <code>certificate_automation_enabled</code> BOOLEAN, not null, default TRUE</p>
+<p>Usage:
+- Parent entity for <code>producer</code>, <code>consumer</code>, and <code>organisation_certificate</code>.</p>
+<hr />
+<h3 id="producer">producer</h3>
+<p>Represents a Producer federator/service that offers one or more Products.</p>
+<p>Columns:
+- <code>id</code> BIGSERIAL, primary key
+- <code>name</code> VARCHAR(50), not null
+- <code>description</code> TEXT, not null
+- <code>org_id</code> BIGINT, not null, foreign key → <code>organisation(id)</code>
+- <code>active</code> BOOLEAN, not null
+- <code>host</code> VARCHAR(500), not null — host or base URL where the producer can be reached
+- <code>port</code> NUMERIC, not null — network port (stored as numeric)
+- <code>tls</code> BOOLEAN, not null — whether TLS is required for this endpoint
+- <code>idp_client_id</code> VARCHAR(50), not null — identity provider client id (e.g., Keycloak). Informational; not an FK</p>
+<p>Usage:
+- Owns <code>product</code> records.
+- Links an Organisation to concrete connection details for the Producer.</p>
+<hr />
+<h3 id="consumer">consumer</h3>
+<p>Represents a Consumer federator/client that requests access to Products.</p>
+<p>Columns:
+- <code>id</code> BIGSERIAL, primary key
+- <code>name</code> VARCHAR(50), not null
+- <code>org_id</code> BIGINT, not null, foreign key → <code>organisation(id)</code>
+- <code>idp_client_id</code> VARCHAR(50), not null — identity provider client id (e.g., Keycloak). Informational; not an FK
+- <code>schedule_type</code> VARCHAR(100), nullable — type of schedule, e.g., <code>cron</code>, <code>interval</code>
+- <code>schedule_expression</code> VARCHAR(255), nullable — schedule expression matching the chosen schedule_type</p>
+<p>Usage:
+- Participates in access grants via <code>product_consumer</code>.
+- Optional scheduling metadata for consumer-driven jobs.</p>
+<hr />
+<h3 id="product_type">product_type</h3>
+<p>Represents a category/type of Product (e.g., topic-based, file-based).</p>
+<p>Columns:
+- <code>id</code> BIGSERIAL, primary key
+- <code>name</code> VARCHAR(150), not null
+- <code>description</code> VARCHAR(255), nullable — brief description of the product type</p>
+<p>Usage:
+- Lookup table used to categorize products. Initial values seeded by migration: <code>topic</code> and <code>file</code>.</p>
+<hr />
+<h3 id="product">product</h3>
+<p>Represents a Product (e.g., a data stream or dataset) offered by a Producer.</p>
+<p>Columns:
+- <code>id</code> BIGSERIAL, primary key
+- <code>name</code> VARCHAR(50), not null
+- <code>topic</code> VARCHAR(150), not null — logical topic or channel for the product
+- <code>producer_id</code> BIGINT, not null, foreign key → <code>producer(id)</code>
+- <code>product_type_id</code> BIGINT, nullable, foreign key → <code>product_type(id)</code> — categorization of the product
+- <code>source</code> VARCHAR(500), nullable — optional source identifier/URI for the product</p>
+<p>Usage:
+- The resource being granted to Consumers via <code>product_consumer</code>.
+- Migration defaults existing rows to the <code>topic</code> product type.</p>
+<hr />
+<h3 id="product_consumer">product_consumer</h3>
+<p>Join table representing an access grant that allows a Consumer to access a Product.</p>
+<p>Columns:
+- <code>id</code> BIGSERIAL, primary key
+- <code>product_id</code> BIGINT, not null, foreign key → <code>product(id)</code>
+- <code>consumer_id</code> BIGINT, not null, foreign key → <code>consumer(id)</code>
+- <code>granted_ts</code> TIMESTAMP, not null — timestamp when access was granted
+- <code>validity</code> NUMERIC, not null — validity period/units are application-defined
+- <code>schedule_type</code> VARCHAR(100), nullable — e.g., <code>cron</code>, <code>interval</code>
+- <code>schedule_expression</code> VARCHAR(255), nullable — expression matching the schedule_type
+- <code>destination</code> VARCHAR(500), nullable — optional destination identifier/URI for scheduled deliveries
+- <code>uq_product_consumer_pair</code> UNIQUE (<code>product_id</code>, <code>consumer_id</code>) — ensures one grant per pair</p>
+<p>Notes:
+- Originally used a composite primary key (<code>product_id</code>, <code>consumer_id</code>); later replaced by surrogate <code>id</code> while preserving uniqueness via <code>uq_product_consumer_pair</code>.</p>
+<p>Usage:
+- Central record for authorization decisions: which Consumer can access which Product and since when.
+- Optional scheduling metadata for grant-level processing/delivery.</p>
+<hr />
+<h3 id="product_consumer_attribute">product_consumer_attribute</h3>
+<p>Extensible attributes attached to a specific <code>product_consumer</code> grant (key/value-like rows with a simple type field).</p>
+<p>Columns:
+- <code>id</code> BIGSERIAL, primary key
+- <code>name</code> VARCHAR(150), not null — attribute name/key
+- <code>type</code> VARCHAR(50), not null — attribute type (string indicator)
+- <code>value</code> VARCHAR(500), not null — attribute value
+- <code>product_consumer_id</code> BIGINT, not null, foreign key → <code>product_consumer(id)</code></p>
+<p>Usage:
+- Store additional constraints or metadata for a grant (e.g., scopes, rate limits, contractual flags). Semantics are defined by application logic.</p>
+<hr />
+<h3 id="organisation_certificate">organisation_certificate</h3>
+<p>Tracks the current certificate state for each organisation. Each organisation has at most one certificate record.</p>
+<p>Columns:
+- <code>id</code> BIGSERIAL, primary key
+- <code>organisation_id</code> BIGINT, not null, unique, foreign key → <code>organisation(id)</code>
+- <code>subject_dn</code> VARCHAR(500), nullable — X.500 distinguished name of the certificate subject
+- <code>serial_number</code> VARCHAR(150), nullable — certificate serial number
+- <code>is_renewable</code> BOOLEAN, not null, default FALSE — whether automatic renewal is enabled
+- <code>renewal_ttl</code> BIGINT, nullable — renewal time-to-live value
+- <code>type</code> VARCHAR(50), not null — certificate type (e.g., <code>MANUAL</code>, <code>BOOTSTRAP</code>, <code>AUTOMATED</code>)
+- <code>requested_at</code> TIMESTAMP, nullable — when the certificate was requested
+- <code>issued_at</code> TIMESTAMP, nullable — when the certificate was issued
+- <code>expires_at</code> TIMESTAMP, nullable — certificate expiry time
+- <code>revoked_at</code> TIMESTAMP, nullable — when the certificate was revoked (if applicable)</p>
+<p>Constraints:
+- UNIQUE on <code>organisation_id</code> — one certificate record per organisation
+- Index on <code>organisation_id</code></p>
+<p>Usage:
+- Records the lifecycle state of each organisation's certificate. The <code>type</code> field tracks whether the certificate was manually provisioned, issued via the bootstrap flow, or issued via automated renewal.</p>
+<hr />
+<h3 id="certificate_events">certificate_events</h3>
+<p>Audit trail of certificate lifecycle events for each organisation certificate.</p>
+<p>Columns:
+- <code>id</code> BIGSERIAL, primary key
+- <code>organisation_certificate_id</code> BIGINT, not null, foreign key → <code>organisation_certificate(id)</code>
+- <code>type</code> VARCHAR(50), not null — certificate type at the time of the event
+- <code>event_type</code> VARCHAR(50), not null — the event that occurred (e.g., <code>ISSUED</code>, <code>RENEWED</code>, <code>EXPIRED</code>, <code>REVOKED</code>)
+- <code>event_time</code> TIMESTAMP, not null — when the event occurred
+- <code>performed_by</code> VARCHAR(255), nullable — identifier of the actor who triggered the event</p>
+<p>Constraints:
+- Index on <code>organisation_certificate_id</code></p>
+<p>Usage:
+- Provides an audit log of all certificate lifecycle transitions. Each event captures what happened, when, and who performed the action.</p>
+<hr />
+<h2 id="migration-notes">Migration Notes</h2>
+<ul>
+<li>Schema is versioned and applied with Flyway on application startup.</li>
+<li>Foreign keys enforce referential integrity among core entities.</li>
+<li>Consider adding database indexes on foreign key columns (<code>producer.producer_id</code>, <code>consumer.org_id</code>, <code>product.producer_id</code>, <code>product_consumer.product_id</code>, <code>product_consumer.consumer_id</code>, <code>product_consumer_attribute.product_consumer_id</code>) to optimize query performance.</li>
+</ul>
+<h2 id="data-protection-and-security">Data Protection and Security</h2>
+<ul>
+<li>Identity fields like <code>idp_client_id</code> are not foreign keys; they link to external IdP configuration (e.g., Keycloak) at the application layer.</li>
+<li>Ensure that any PII or sensitive metadata stored in attributes follows your organization’s data handling policies.</li>
+</ul>
+
+
+
+
+
+
+
+  
+    
+  
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="March 26, 2026 13:44:52 UTC">March 26, 2026</span>
+  </span>
+
+    
+    
+    
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      &copy;Crown Copyright 2025. This work has been developed by the National Digital Twin Programme and is legally attributed to the Department for Business and Trade (UK) as the governing entity.  
+
+    </div>
+  
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["content.code.annotate", "content.code.copy", "content.code.select", "content.tooltips", "navigation.indexes", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "search.share", "navigation.instant", "navigation.instant.prefetch", "navigation.instant", "navigation.instant.progress", "navigation.path", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
