@@ -1,8 +1,8 @@
 # Bootstrap Onboarding Flow
 
-**Repository:** `management-node`
-**Description:** `End-to-end bootstrap flow for onboarding new organisations with initial certificates`
-**SPDX-License-Identifier:** `Apache-2.0 AND OGL-UK-3.0`
+**Repository:** `management-node`  
+**Description:** `End-to-end bootstrap flow for onboarding new organisations with initial certificates`  
+**SPDX-License-Identifier:** `Apache-2.0 AND OGL-UK-3.0`  
 
 ---
 
