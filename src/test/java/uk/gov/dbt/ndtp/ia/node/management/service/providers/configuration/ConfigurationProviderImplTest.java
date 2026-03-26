@@ -13,9 +13,12 @@ import static org.mockito.Mockito.*;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -26,6 +29,7 @@ import uk.gov.dbt.ndtp.ia.node.management.model.dto.*;
 import uk.gov.dbt.ndtp.ia.node.management.service.data.ConsumerService;
 import uk.gov.dbt.ndtp.ia.node.management.service.data.ProducerService;
 import uk.gov.dbt.ndtp.ia.node.management.service.data.ProductConsumerService;
+import uk.gov.dbt.ndtp.ia.node.management.service.providers.certificate.CertificateValidationProvider;
 
 class ConfigurationProviderImplTest {
 
@@ -38,13 +42,23 @@ class ConfigurationProviderImplTest {
     @Mock
     private ProducerService producerService;
 
+    @Mock
+    private CertificateValidationProvider certificateValidationProvider;
+
     @InjectMocks
     private ConfigurationProviderImpl configurationProvider;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        configurationProvider = new ConfigurationProviderImpl(consumerService, productConsumerService, producerService);
+        configurationProvider = new ConfigurationProviderImpl(
+                consumerService, productConsumerService, producerService, certificateValidationProvider);
+        // Default: treat all orgs as having active certificates, override in specific
+        // tests to simulate inactive/missing certs.
+        when(certificateValidationProvider.findActiveOrganisationIds(any())).thenAnswer(invocation -> {
+            Collection<Long> ids = invocation.getArgument(0);
+            return ids != null ? new HashSet<>(ids) : Set.of();
+        });
     }
 
     private ConsumerDTO consumer(
@@ -52,6 +66,7 @@ class ConfigurationProviderImplTest {
         ConsumerDTO dto = ConsumerDTO.builder()
                 .idpClientId(clientId)
                 .name(name)
+                .orgId(1L)
                 .scheduleType(scheduleType)
                 .scheduleExpression(scheduleExpression)
                 .build();
@@ -63,6 +78,7 @@ class ConfigurationProviderImplTest {
         ProducerDTO p = ProducerDTO.builder()
                 .id(id)
                 .active(active)
+                .orgId(1L)
                 .idpClientId("cid")
                 .name("p")
                 .build();
@@ -207,6 +223,33 @@ class ConfigurationProviderImplTest {
     }
 
     @Test
+    void getProducerConfigByClientId_whenNoProducersFound_returnsEmptyConfig() {
+        String clientId = "nonExistentClient";
+        when(producerService.getProducersByClientId(clientId)).thenReturn(List.of());
+
+        ProducerConfigDTO cfg = configurationProvider.getProducerConfigByClientId(clientId, Optional.empty());
+
+        assertThat(cfg).isNotNull();
+        assertThat(cfg.getClientId()).isEqualTo(clientId);
+        assertThat(cfg.getProducers()).isEmpty();
+    }
+
+    @Test
+    void getConsumerConfigByClientId_whenNoConsumersFound_returnsEmptyConfig() {
+        String clientId = "nonExistentClient";
+        when(consumerService.findByIdpClientId(clientId)).thenReturn(List.of());
+
+        ConsumerConfigDTO cfg = configurationProvider.getConsumerConfigByClientId(clientId, Optional.empty());
+
+        assertThat(cfg).isNotNull();
+        assertThat(cfg.getClientId()).isEqualTo(clientId);
+        assertThat(cfg.getProducers()).isEmpty();
+        assertThat(cfg.getName()).isNull();
+        assertThat(cfg.getScheduleType()).isNull();
+        assertThat(cfg.getScheduleExpression()).isNull();
+    }
+
+    @Test
     void getProducerConfigByClientId_withValidValidity_includesConsumer() {
         String clientId = "producerClient";
         ProductDTO p1 = product(100L, "p1");
@@ -269,5 +312,60 @@ class ConfigurationProviderImplTest {
 
         assertThat(cfg.getProducers().get(0).getProducts().get(0).getConsumers())
                 .isEmpty();
+    }
+
+    @Test
+    void getConsumerConfig_filtersOutProducersWithInactiveCerts() {
+        String clientId = "clientA";
+        ConsumerDTO c1 = consumer(1L, clientId, "c1", "CRON", "@hourly");
+        when(consumerService.findByIdpClientId(clientId)).thenReturn(List.of(c1));
+
+        ProductConsumerDTO pc = productConsumer(100L, 1L, null, null);
+        when(productConsumerService.findByConsumerId(1L)).thenReturn(List.of(pc));
+
+        // Two active producers with different orgIds
+        ProducerDTO activeOrgProducer = producer(10L, true, product(100L, "dp-100"));
+        activeOrgProducer.setOrgId(100L);
+        ProducerDTO inactiveOrgProducer = producer(11L, true, product(100L, "dp-100"));
+        inactiveOrgProducer.setOrgId(200L);
+        when(producerService.getProducersByConsumerIds(List.of(1L)))
+                .thenReturn(List.of(activeOrgProducer, inactiveOrgProducer));
+
+        // Only org 100 has an active certificate
+        when(certificateValidationProvider.findActiveOrganisationIds(Set.of(100L, 200L)))
+                .thenReturn(Set.of(100L));
+
+        ConsumerConfigDTO cfg = configurationProvider.getConsumerConfigByClientId(clientId, Optional.empty());
+
+        assertThat(cfg.getProducers()).containsExactly(activeOrgProducer);
+    }
+
+    @Test
+    void getProducerConfig_filtersOutConsumersWithInactiveCerts() {
+        String clientId = "clientP";
+        ProductDTO p1 = product(900L, "prov1");
+        ProducerDTO pr1 = producer(91L, true, p1);
+        when(producerService.getProducersByClientId(clientId)).thenReturn(List.of(pr1));
+        when(consumerService.getConsumersOfProviders(any())).thenReturn(Map.of());
+
+        ProductConsumerDTO cp1 = productConsumer(900L, 501L, null, null);
+        ProductConsumerDTO cp2 = productConsumer(900L, 502L, null, null);
+        when(productConsumerService.findByDataProviderId(900L)).thenReturn(List.of(cp1, cp2));
+
+        ConsumerDTO activeOrgConsumer = consumer(501L, "cid501", "c501", "CRON", "@hourly");
+        activeOrgConsumer.setOrgId(300L);
+        ConsumerDTO inactiveOrgConsumer = consumer(502L, "cid502", "c502", "CRON", "@hourly");
+        inactiveOrgConsumer.setOrgId(400L);
+        when(consumerService.findById(501L)).thenReturn(Optional.of(activeOrgConsumer));
+        when(consumerService.findById(502L)).thenReturn(Optional.of(inactiveOrgConsumer));
+
+        // Only org 300 has an active certificate
+        when(certificateValidationProvider.findActiveOrganisationIds(Set.of(300L, 400L)))
+                .thenReturn(Set.of(300L));
+
+        ProducerConfigDTO cfg = configurationProvider.getProducerConfigByClientId(clientId, Optional.empty());
+
+        assertThat(cfg.getProducers().get(0).getProducts().get(0).getConsumers())
+                .containsExactly(activeOrgConsumer);
     }
 }

@@ -19,6 +19,43 @@ This project follows **Semantic Versioning (SemVer)** ([semver.org](https://semv
 
 ---
 
+## [1.2.0] - 2026-03-26
+
+### Added
+
+- Vault PKI service with enhancements and tests
+- Missing docker attributes
+- Missing documentation regarding vault setup
+- Organization certificates
+- Trigger release workflow from main and trivy check
+- Protect certificate endpoints with role-based access and add Keycloak TF roles
+- Bootstrap certificate endpoint
+- Bootstrap endpoint changes and interceptor exemption
+- Set bootstrap event performed by to requester clientId
+- Trivy vulnerability check to management-node pipeline
+- Get image tag from branch name
+
+### Fixed
+
+- Fix to vulnerability and update to trivy scan config
+
+### Changed
+
+- Management Node - Resolve CVEs
+- Non root access for dev container
+- Replace version in GitHub workflows
+- Update documentation and development setup guide
+
+### Dependencies
+
+- Added `org.springframework.cloud.spring-cloud-starter-vault-config` version ``
+- Added `org.bouncycastle.bcpkix-jdk18on` version `1.83`
+- Added `org.bouncycastle.bcprov-jdk18on` version `1.83`
+- Bumped `spring-boot-starter` to version `3.5.11`
+- Bumped `org.apache.commons.commons-lang3` to version `3.18.0`
+- Bumped `org.springframework.security.spring-security` to version `6.5.9`
+- Bumped `com.fasterxml.jackson` to version `2.21.1`
+
 ## [1.1.0] - 2026-02-20
 
 ### Added
