@@ -18,7 +18,7 @@
         <link rel="prev" href="..">
       
       
-        <link rel="next" href="../DATABASE_SCHEMA/">
+        <link rel="next" href="../BOOTSTRAP_ONBOARDING/">
       
       
         
@@ -405,6 +405,33 @@
   
   
     <li class="md-nav__item">
+      <a href="../BOOTSTRAP_ONBOARDING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bootstrap Onboarding Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../DATABASE_SCHEMA/" class="md-nav__link">
         
   
@@ -704,13 +731,17 @@
 </span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>      &quot;roles&quot;: [
 </span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>        &quot;access_producer_configurations&quot;,
 </span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>        &quot;access_consumer_configurations&quot;,
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>        &quot;BrownfieldLandAvailability&quot;,
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>        &quot;PendingPlanningApplications&quot;
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>      ]
-</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>    }
-</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>  },
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>  &quot;scope&quot;: &quot;FEDERATOR_PRODUCER MANAGEMENT_NODE_ACCESS FEDERATOR_CONSUMER&quot;
-</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>}
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>        &quot;create_keys&quot;,
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>        &quot;sign_certificate&quot;,
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>        &quot;access_public_certificates&quot;,
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>        &quot;request_bootstrap_certificate&quot;,
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>        &quot;BrownfieldLandAvailability&quot;,
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>        &quot;PendingPlanningApplications&quot;
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>      ]
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>    }
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>  },
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>  &quot;scope&quot;: &quot;FEDERATOR_PRODUCER MANAGEMENT_NODE_ACCESS FEDERATOR_CONSUMER&quot;
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>}
 </span></code></pre></div></p>
 <p>Notes:
 - The aud claim may be a list (as shown) and must include "management-node".
@@ -719,12 +750,36 @@
 <ul>
 <li>Producer API: Federator clients may access Producer configuration only when their token contains the role <code>access_producer_configurations</code> under the <code>resource_access</code> for the audience/client <code>management-node</code>.</li>
 <li>
-<p>Enforcement in code: <code>@PreAuthorize("hasRole('ROLE_management-node:access_producer_configurations')")</code> on <code>/api/v1/configuration/producer</code>.</p>
+<p>Enforcement in code: <code>@PreAuthorize("hasAuthority('ROLE_management-node:access_producer_configurations')")</code> on <code>/api/v1/configuration/producer</code>.</p>
 </li>
 <li>
 <p>Consumer API: Federator clients may access Consumer configuration only when their token contains the role <code>access_consumer_configurations</code> under the <code>resource_access</code> for the audience/client <code>management-node</code>.</p>
 </li>
-<li>Enforcement in code: <code>@PreAuthorize("hasRole('ROLE_management-node:access_consumer_configurations')")</code> on <code>/api/v1/configuration/consumer</code>.</li>
+<li>
+<p>Enforcement in code: <code>@PreAuthorize("hasAuthority('ROLE_management-node:access_consumer_configurations')")</code> on <code>/api/v1/configuration/consumer</code>.</p>
+</li>
+<li>
+<p>Key Pair / CSR Creation API: Clients may create RSA key pairs and certificate signing requests when their token contains the role <code>create_keys</code>.</p>
+</li>
+<li>
+<p>Enforcement in code: <code>@PreAuthorize("hasAuthority('ROLE_management-node:create_keys')")</code> on <code>GET /api/v1/certificate/keyPair</code> and <code>POST /api/v1/certificate/csr/create</code>.</p>
+</li>
+<li>
+<p>CSR Signing API: Clients may sign certificate signing requests when their token contains the role <code>sign_certificate</code>.</p>
+</li>
+<li>
+<p>Enforcement in code: <code>@PreAuthorize("hasAuthority('ROLE_management-node:sign_certificate')")</code> on <code>POST /api/v1/certificate/csr/sign</code>.</p>
+</li>
+<li>
+<p>Intermediate Certificate API: Clients may retrieve the intermediate CA certificate when their token contains the role <code>access_public_certificates</code>.</p>
+</li>
+<li>
+<p>Enforcement in code: <code>@PreAuthorize("hasAuthority('ROLE_management-node:access_public_certificates')")</code> on <code>GET /api/v1/certificate/intermediate</code>.</p>
+</li>
+<li>
+<p>Bootstrap Certificate API: The onboarding service account may request bootstrap certificate packages when its token contains the role <code>request_bootstrap_certificate</code>. The request body contains the target <code>organisationId</code> and a CSR. If no certificate record exists for the organisation, one is created automatically. This role is typically assigned only to the website backend service account, not to individual federator clients.</p>
+</li>
+<li>Enforcement in code: <code>@PreAuthorize("hasAuthority('ROLE_management-node:request_bootstrap_certificate')")</code> on <code>POST /api/v1/certificate/bootstrap</code>.</li>
 </ul>
 <h2 id="how-this-maps-to-keycloak">How this maps to Keycloak</h2>
 <ul>
@@ -735,11 +790,17 @@
 <li>Create and assign the following client roles on the <code>management-node</code> client:</li>
 <li><code>access_producer_configurations</code></li>
 <li><code>access_consumer_configurations</code></li>
-<li>Assign these roles to the appropriate Producer or Consumer Federator clients or service accounts.</li>
+<li><code>create_keys</code></li>
+<li><code>sign_certificate</code></li>
+<li><code>access_public_certificates</code></li>
+<li><code>request_bootstrap_certificate</code></li>
+<li>Assign configuration roles to the appropriate Producer or Consumer Federator clients or service accounts.</li>
+<li>Assign certificate roles (<code>create_keys</code>, <code>sign_certificate</code>, <code>access_public_certificates</code>) to federator service accounts that manage their own certificates.</li>
+<li>Assign <code>request_bootstrap_certificate</code> only to the website/onboarding backend service account.</li>
 </ul>
 <h2 id="requesting-tokens-example">Requesting tokens (example)</h2>
 <p>Using client credentials with mTLS (as per the project’s Keycloak setup):
-<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>curl --location &#39;https://localhost:8443/realms/management-node/protocol/openid-connect/token&#39; \
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>curl --location &#39;https://localhost:8443/realms/mng-node/protocol/openid-connect/token&#39; \
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  --cert client.crt --key client.key \
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>  --header &#39;Content-Type: application/x-www-form-urlencoded&#39; \
 </span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>  --data-urlencode &#39;client_id=&lt;federator-client-id&gt;&#39; \
@@ -756,6 +817,10 @@
 <li>Authorization:</li>
 <li>Producer API requires role: <code>access_producer_configurations</code>.</li>
 <li>Consumer API requires role: <code>access_consumer_configurations</code>.</li>
+<li>Key Pair / CSR Creation API requires role: <code>create_keys</code>.</li>
+<li>CSR Signing API requires role: <code>sign_certificate</code>.</li>
+<li>Intermediate Certificate API requires role: <code>access_public_certificates</code>.</li>
+<li>Bootstrap Certificate API requires role: <code>request_bootstrap_certificate</code>.</li>
 <li>Swagger/OpenAPI: Use Swagger UI at <code>/swagger-ui.html</code> to explore and test with a valid token.</li>
 </ul>
 
@@ -778,7 +843,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 15, 2025 09:44:29 UTC">September 15, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="March 26, 2026 13:33:35 UTC">March 26, 2026</span>
   </span>
 
     

@@ -15,7 +15,7 @@
         <link rel="canonical" href="https://docs.ndtp.co.uk/develop/DATABASE_SCHEMA/">
       
       
-        <link rel="prev" href="../AUTHENTICATION_REQUIREMENTS/">
+        <link rel="prev" href="../BOOTSTRAP_ONBOARDING/">
       
       
         <link rel="next" href="../JACOCO_COVERAGE/">
@@ -300,6 +300,33 @@
       
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../BOOTSTRAP_ONBOARDING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bootstrap Onboarding Flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
     
   
   
@@ -456,6 +483,28 @@
     <span class="md-ellipsis">
       
         product_consumer_attribute
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#organisation_certificate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        organisation_certificate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#certificate_events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        certificate_events
       
     </span>
   </a>
@@ -758,6 +807,28 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#organisation_certificate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        organisation_certificate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#certificate_events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        certificate_events
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -814,8 +885,8 @@
 
 
 <h1 id="database-schema">Database Schema</h1>
-<p><strong>Repository:</strong> <code>management-node</code><br />
-<strong>Description:</strong> <code>Provides APIs to be accessed by Consumer and Producer Federators for the purpose of dynamic configuration management</code><br />
+<p><strong>Repository:</strong> <code>management-node</code>
+<strong>Description:</strong> <code>Provides APIs to be accessed by Consumer and Producer Federators for the purpose of dynamic configuration management</code>
 <strong>SPDX-License-Identifier:</strong> <code>Apache-2.0 AND OGL-UK-3.0</code></p>
 <hr />
 <p>This document describes the relational database schema used by the Management Node. The schema is applied via Flyway migrations located at:</p>
@@ -826,6 +897,8 @@
 <h2 id="overview-of-entities-and-relationships">Overview of Entities and Relationships</h2>
 <ul>
 <li>Organisation has many Producers and Consumers</li>
+<li>Organisation has one optional OrganisationCertificate</li>
+<li>OrganisationCertificate has many CertificateEvents</li>
 <li>Producer belongs to an Organisation</li>
 <li>Consumer belongs to an Organisation</li>
 <li>Product belongs to a Producer</li>
@@ -836,6 +909,8 @@
 <pre class="mermaid"><code>erDiagram
   ORGANISATION ||--o{ PRODUCER : has
   ORGANISATION ||--o{ CONSUMER : has
+  ORGANISATION ||--o| ORGANISATION_CERTIFICATE : has
+  ORGANISATION_CERTIFICATE ||--o{ CERTIFICATE_EVENTS : logs
   PRODUCER ||--o{ PRODUCT : offers
   PRODUCT ||--o{ PRODUCT_CONSUMER : grants
   CONSUMER ||--o{ PRODUCT_CONSUMER : consumes
@@ -845,6 +920,7 @@
   ORGANISATION {
     BIGSERIAL id PK
     VARCHAR name
+    BOOLEAN certificate_automation_enabled
   }
   PRODUCER {
     BIGSERIAL id PK
@@ -895,6 +971,27 @@
     VARCHAR type
     VARCHAR value
     BIGINT product_consumer_id FK
+  }
+  ORGANISATION_CERTIFICATE {
+    BIGSERIAL id PK
+    BIGINT organisation_id FK
+    VARCHAR subject_dn
+    VARCHAR serial_number
+    BOOLEAN is_renewable
+    BIGINT renewal_ttl
+    VARCHAR type
+    TIMESTAMP requested_at
+    TIMESTAMP issued_at
+    TIMESTAMP expires_at
+    TIMESTAMP revoked_at
+  }
+  CERTIFICATE_EVENTS {
+    BIGSERIAL id PK
+    BIGINT organisation_certificate_id FK
+    VARCHAR type
+    VARCHAR event_type
+    TIMESTAMP event_time
+    VARCHAR performed_by
   }</code></pre>
 <hr />
 <h2 id="tables">Tables</h2>
@@ -902,9 +999,10 @@
 <p>Represents an organisation that owns Producers and Consumers.</p>
 <p>Columns:
 - <code>id</code> BIGSERIAL, primary key
-- <code>name</code> VARCHAR(150), not null</p>
+- <code>name</code> VARCHAR(150), not null
+- <code>certificate_automation_enabled</code> BOOLEAN, not null, default TRUE</p>
 <p>Usage:
-- Parent entity for <code>producer</code> and <code>consumer</code>.</p>
+- Parent entity for <code>producer</code>, <code>consumer</code>, and <code>organisation_certificate</code>.</p>
 <hr />
 <h3 id="producer">producer</h3>
 <p>Represents a Producer federator/service that offers one or more Products.</p>
@@ -986,6 +1084,40 @@
 <p>Usage:
 - Store additional constraints or metadata for a grant (e.g., scopes, rate limits, contractual flags). Semantics are defined by application logic.</p>
 <hr />
+<h3 id="organisation_certificate">organisation_certificate</h3>
+<p>Tracks the current certificate state for each organisation. Each organisation has at most one certificate record.</p>
+<p>Columns:
+- <code>id</code> BIGSERIAL, primary key
+- <code>organisation_id</code> BIGINT, not null, unique, foreign key → <code>organisation(id)</code>
+- <code>subject_dn</code> VARCHAR(500), nullable — X.500 distinguished name of the certificate subject
+- <code>serial_number</code> VARCHAR(150), nullable — certificate serial number
+- <code>is_renewable</code> BOOLEAN, not null, default FALSE — whether automatic renewal is enabled
+- <code>renewal_ttl</code> BIGINT, nullable — renewal time-to-live value
+- <code>type</code> VARCHAR(50), not null — certificate type (e.g., <code>MANUAL</code>, <code>BOOTSTRAP</code>, <code>AUTOMATED</code>)
+- <code>requested_at</code> TIMESTAMP, nullable — when the certificate was requested
+- <code>issued_at</code> TIMESTAMP, nullable — when the certificate was issued
+- <code>expires_at</code> TIMESTAMP, nullable — certificate expiry time
+- <code>revoked_at</code> TIMESTAMP, nullable — when the certificate was revoked (if applicable)</p>
+<p>Constraints:
+- UNIQUE on <code>organisation_id</code> — one certificate record per organisation
+- Index on <code>organisation_id</code></p>
+<p>Usage:
+- Records the lifecycle state of each organisation's certificate. The <code>type</code> field tracks whether the certificate was manually provisioned, issued via the bootstrap flow, or issued via automated renewal.</p>
+<hr />
+<h3 id="certificate_events">certificate_events</h3>
+<p>Audit trail of certificate lifecycle events for each organisation certificate.</p>
+<p>Columns:
+- <code>id</code> BIGSERIAL, primary key
+- <code>organisation_certificate_id</code> BIGINT, not null, foreign key → <code>organisation_certificate(id)</code>
+- <code>type</code> VARCHAR(50), not null — certificate type at the time of the event
+- <code>event_type</code> VARCHAR(50), not null — the event that occurred (e.g., <code>ISSUED</code>, <code>RENEWED</code>, <code>EXPIRED</code>, <code>REVOKED</code>)
+- <code>event_time</code> TIMESTAMP, not null — when the event occurred
+- <code>performed_by</code> VARCHAR(255), nullable — identifier of the actor who triggered the event</p>
+<p>Constraints:
+- Index on <code>organisation_certificate_id</code></p>
+<p>Usage:
+- Provides an audit log of all certificate lifecycle transitions. Each event captures what happened, when, and who performed the action.</p>
+<hr />
 <h2 id="migration-notes">Migration Notes</h2>
 <ul>
 <li>Schema is versioned and applied with Flyway on application startup.</li>
@@ -1017,7 +1149,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="October 14, 2025 13:49:18 UTC">October 14, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="March 26, 2026 13:33:35 UTC">March 26, 2026</span>
   </span>
 
     
