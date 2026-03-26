@@ -1,6 +1,6 @@
 {
     "id": "11e002d3-ea8f-4680-8f2b-e513e3d909b6",
-    "realm": "management-node",
+    "realm": "mng-node",
     "notBefore": 0,
     "defaultSignatureAlgorithm": "RS256",
     "revokeRefreshToken": false,
@@ -49,7 +49,7 @@
         "realm": [
             {
                 "id": "2349ea4a-fe69-4c32-b0c2-fc539293d1ad",
-                "name": "default-roles-management-node",
+                "name": "default-roles-mng-node",
                 "description": "${role_default-roles}",
                 "composite": true,
                 "composites": {
@@ -321,6 +321,42 @@
                     "clientRole": true,
                     "containerId": "e6362bd1-4515-42f4-be71-3434e3e0d6da",
                     "attributes": {}
+                },
+                {
+                    "id": "a1b2c3d4-1111-4000-a000-000000000001",
+                    "name": "create_keys",
+                    "description": "Generate key pairs and create CSRs",
+                    "composite": false,
+                    "clientRole": true,
+                    "containerId": "e6362bd1-4515-42f4-be71-3434e3e0d6da",
+                    "attributes": {}
+                },
+                {
+                    "id": "a1b2c3d4-2222-4000-a000-000000000002",
+                    "name": "sign_certificate",
+                    "description": "Sign CSRs via the PKI engine",
+                    "composite": false,
+                    "clientRole": true,
+                    "containerId": "e6362bd1-4515-42f4-be71-3434e3e0d6da",
+                    "attributes": {}
+                },
+                {
+                    "id": "a1b2c3d4-3333-4000-a000-000000000003",
+                    "name": "access_public_certificates",
+                    "description": "Retrieve the intermediate CA certificate",
+                    "composite": false,
+                    "clientRole": true,
+                    "containerId": "e6362bd1-4515-42f4-be71-3434e3e0d6da",
+                    "attributes": {}
+                },
+                {
+                    "id": "a1b2c3d4-4444-4000-a000-000000000004",
+                    "name": "request_bootstrap_certificate",
+                    "description": "Issue bootstrap certificate packages",
+                    "composite": false,
+                    "clientRole": true,
+                    "containerId": "e6362bd1-4515-42f4-be71-3434e3e0d6da",
+                    "attributes": {}
                 }
             ],
             "broker": [
@@ -427,7 +463,7 @@
     "groups": [],
     "defaultRole": {
         "id": "2349ea4a-fe69-4c32-b0c2-fc539293d1ad",
-        "name": "default-roles-management-node",
+        "name": "default-roles-mng-node",
         "description": "${role_default-roles}",
         "composite": true,
         "clientRole": false,
@@ -489,12 +525,15 @@
             "disableableCredentialTypes": [],
             "requiredActions": [],
             "realmRoles": [
-                "default-roles-management-node"
+                "default-roles-mng-node"
             ],
             "clientRoles": {
                 "management-node": [
                     "access_producer_configurations",
-                    "access_consumer_configurations"
+                    "access_consumer_configurations",
+                    "create_keys",
+                    "sign_certificate",
+                    "access_public_certificates"
                 ]
             },
             "notBefore": 0,
@@ -526,13 +565,13 @@
             "clientId": "account",
             "name": "${client_account}",
             "rootUrl": "${authBaseUrl}",
-            "baseUrl": "/realms/management-node/account/",
+            "baseUrl": "/realms/mng-node/account/",
             "surrogateAuthRequired": false,
             "enabled": true,
             "alwaysDisplayInConsole": false,
             "clientAuthenticatorType": "client-secret",
             "redirectUris": [
-                "/realms/management-node/account/*"
+                "/realms/mng-node/account/*"
             ],
             "webOrigins": [],
             "notBefore": 0,
@@ -573,13 +612,13 @@
             "clientId": "account-console",
             "name": "${client_account-console}",
             "rootUrl": "${authBaseUrl}",
-            "baseUrl": "/realms/management-node/account/",
+            "baseUrl": "/realms/mng-node/account/",
             "surrogateAuthRequired": false,
             "enabled": true,
             "alwaysDisplayInConsole": false,
             "clientAuthenticatorType": "client-secret",
             "redirectUris": [
-                "/realms/management-node/account/*"
+                "/realms/mng-node/account/*"
             ],
             "webOrigins": [],
             "notBefore": 0,

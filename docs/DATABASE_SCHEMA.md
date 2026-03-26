@@ -1,7 +1,7 @@
 # Database Schema
 
-**Repository:** `management-node`  
-**Description:** `Provides APIs to be accessed by Consumer and Producer Federators for the purpose of dynamic configuration management `  
+**Repository:** `management-node`
+**Description:** `Provides APIs to be accessed by Consumer and Producer Federators for the purpose of dynamic configuration management `
 **SPDX-License-Identifier:** `Apache-2.0 AND OGL-UK-3.0 `
 
 ---
@@ -18,6 +18,8 @@ The database is designed to model Organisations, their Producers and Consumers, 
 ## Overview of Entities and Relationships
 
 - Organisation has many Producers and Consumers
+- Organisation has one optional OrganisationCertificate
+- OrganisationCertificate has many CertificateEvents
 - Producer belongs to an Organisation
 - Consumer belongs to an Organisation
 - Product belongs to a Producer
@@ -30,6 +32,8 @@ A simple ER diagram (Mermaid):
 erDiagram
   ORGANISATION ||--o{ PRODUCER : has
   ORGANISATION ||--o{ CONSUMER : has
+  ORGANISATION ||--o| ORGANISATION_CERTIFICATE : has
+  ORGANISATION_CERTIFICATE ||--o{ CERTIFICATE_EVENTS : logs
   PRODUCER ||--o{ PRODUCT : offers
   PRODUCT ||--o{ PRODUCT_CONSUMER : grants
   CONSUMER ||--o{ PRODUCT_CONSUMER : consumes
@@ -39,6 +43,7 @@ erDiagram
   ORGANISATION {
     BIGSERIAL id PK
     VARCHAR name
+    BOOLEAN certificate_automation_enabled
   }
   PRODUCER {
     BIGSERIAL id PK
@@ -90,6 +95,27 @@ erDiagram
     VARCHAR value
     BIGINT product_consumer_id FK
   }
+  ORGANISATION_CERTIFICATE {
+    BIGSERIAL id PK
+    BIGINT organisation_id FK
+    VARCHAR subject_dn
+    VARCHAR serial_number
+    BOOLEAN is_renewable
+    BIGINT renewal_ttl
+    VARCHAR type
+    TIMESTAMP requested_at
+    TIMESTAMP issued_at
+    TIMESTAMP expires_at
+    TIMESTAMP revoked_at
+  }
+  CERTIFICATE_EVENTS {
+    BIGSERIAL id PK
+    BIGINT organisation_certificate_id FK
+    VARCHAR type
+    VARCHAR event_type
+    TIMESTAMP event_time
+    VARCHAR performed_by
+  }
 ```
 
 ---
@@ -102,9 +128,10 @@ Represents an organisation that owns Producers and Consumers.
 Columns:
 - `id` BIGSERIAL, primary key
 - `name` VARCHAR(150), not null
+- `certificate_automation_enabled` BOOLEAN, not null, default TRUE
 
 Usage:
-- Parent entity for `producer` and `consumer`.
+- Parent entity for `producer`, `consumer`, and `organisation_certificate`.
 
 ---
 
@@ -210,6 +237,50 @@ Columns:
 
 Usage:
 - Store additional constraints or metadata for a grant (e.g., scopes, rate limits, contractual flags). Semantics are defined by application logic.
+
+---
+
+### organisation_certificate
+Tracks the current certificate state for each organisation. Each organisation has at most one certificate record.
+
+Columns:
+- `id` BIGSERIAL, primary key
+- `organisation_id` BIGINT, not null, unique, foreign key → `organisation(id)`
+- `subject_dn` VARCHAR(500), nullable — X.500 distinguished name of the certificate subject
+- `serial_number` VARCHAR(150), nullable — certificate serial number
+- `is_renewable` BOOLEAN, not null, default FALSE — whether automatic renewal is enabled
+- `renewal_ttl` BIGINT, nullable — renewal time-to-live value
+- `type` VARCHAR(50), not null — certificate type (e.g., `MANUAL`, `BOOTSTRAP`, `AUTOMATED`)
+- `requested_at` TIMESTAMP, nullable — when the certificate was requested
+- `issued_at` TIMESTAMP, nullable — when the certificate was issued
+- `expires_at` TIMESTAMP, nullable — certificate expiry time
+- `revoked_at` TIMESTAMP, nullable — when the certificate was revoked (if applicable)
+
+Constraints:
+- UNIQUE on `organisation_id` — one certificate record per organisation
+- Index on `organisation_id`
+
+Usage:
+- Records the lifecycle state of each organisation's certificate. The `type` field tracks whether the certificate was manually provisioned, issued via the bootstrap flow, or issued via automated renewal.
+
+---
+
+### certificate_events
+Audit trail of certificate lifecycle events for each organisation certificate.
+
+Columns:
+- `id` BIGSERIAL, primary key
+- `organisation_certificate_id` BIGINT, not null, foreign key → `organisation_certificate(id)`
+- `type` VARCHAR(50), not null — certificate type at the time of the event
+- `event_type` VARCHAR(50), not null — the event that occurred (e.g., `ISSUED`, `RENEWED`, `EXPIRED`, `REVOKED`)
+- `event_time` TIMESTAMP, not null — when the event occurred
+- `performed_by` VARCHAR(255), nullable — identifier of the actor who triggered the event
+
+Constraints:
+- Index on `organisation_certificate_id`
+
+Usage:
+- Provides an audit log of all certificate lifecycle transitions. Each event captures what happened, when, and who performed the action.
 
 ---
 
