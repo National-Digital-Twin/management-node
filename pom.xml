@@ -18,7 +18,7 @@
   <packaging>jar</packaging>
   <name>management-node</name>
   <description>Provides Management capabilities over IA Node Net</description>
-  <url>https://github.com/National-Digital-Twin/management-node</url>
+  <url>https://github.com/National-Node-Net/management-node</url>
   <licenses>
     <license>
       <name>Apache-2.0</name>
@@ -37,9 +37,9 @@
     </developer>
   </developers>
   <scm>
-    <connection>scm:git:git@github.com:National-Digital-Twin/management-node.git</connection>
-    <developerConnection>scm:git:git@github.com:National-Digital-Twin/management-node.git</developerConnection>
-    <url>https://github.com/National-Digital-Twin/management-node</url>
+    <connection>scm:git:git@github.com:National-Node-Net/management-node.git</connection>
+    <developerConnection>scm:git:git@github.com:National-Node-Net/management-node.git</developerConnection>
+    <url>https://github.com/National-Node-Net/management-node</url>
   </scm>
   <properties>
     <maven.compiler.release>21</maven.compiler.release>

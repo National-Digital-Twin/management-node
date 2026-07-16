@@ -2,7 +2,7 @@ site_name: Management-Node Documentation
 site_description: Management Node is is the control plane for the National Digital Twin Programme IA Node Net.
 site_author: NDTP
 site_url: https://docs.ndtp.co.uk/
-#repo_url: https://github.com/National-Digital-Twin/federator
+#repo_url: https://github.com/National-Node-Net/federator
 edit_uri: edit/main/docs/
 nav: []
 theme:
