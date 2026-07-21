@@ -19,6 +19,13 @@ This project follows **Semantic Versioning (SemVer)** ([semver.org](https://semv
 
 ---
 
+## [1.2.1] - 2026-07-16
+
+### Changed
+
+- Alignment of GitHub actions to new organisation.
+
+
 ## [1.2.0] - 2026-03-26
 
 ### Added
