@@ -7,7 +7,7 @@ variable "token" {
 variable "organisation" {
   description = "The GitHub organisation name."
   type        = string
-  default     = "National-Digital-Twin"
+  default     = "National-Node-Net"
 }
 
 variable "repository_description" {

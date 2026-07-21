@@ -17,7 +17,7 @@ We are grateful for the collaboration that has helped shape this repository.
 ## Individual contributions     
 
 For a list of individual contributors who have made direct commits to this repository, see  
-GitHub’s auto-generated contributor insights: [Contributors](https://github.com/National-Digital-Twin/your-repo/graphs/contributors).   
+GitHub’s auto-generated contributor insights: [Contributors](https://github.com/National-Node-Net/your-repo/graphs/contributors).   
 
 ---  
 

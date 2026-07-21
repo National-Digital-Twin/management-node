@@ -252,4 +252,4 @@ Notes for local usage:
 ---
 
 ## Contributors
-Thanks to all contributors of this repository: https://github.com/National-Digital-Twin/management-node/graphs/contributors
+Thanks to all contributors of this repository: https://github.com/National-Node-Net/management-node/graphs/contributors
