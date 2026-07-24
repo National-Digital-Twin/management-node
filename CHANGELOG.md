@@ -19,6 +19,12 @@ This project follows **Semantic Versioning (SemVer)** ([semver.org](https://semv
 
 ---
 
+## [1.2.2] - 2026-07-24
+
+### Security
+
+- Bumped `org.postgresql:postgresql` from 42.7.11 to 42.7.12 to resolve CVE-2026-54291.
+
 ## [1.2.1] - 2026-07-16
 
 ### Changed
