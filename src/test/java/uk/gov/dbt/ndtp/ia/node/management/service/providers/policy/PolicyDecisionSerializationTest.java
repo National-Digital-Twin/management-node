@@ -17,8 +17,8 @@ class PolicyDecisionSerializationTest {
 
     @Test
     void request_serializesWithAllAttributes() throws Exception {
-        PolicyDecisionRequest request =
-                new PolicyDecisionRequest(new PolicyInput("client-1", "org-1", "/api/v1/configuration/producer", "GET"));
+        PolicyDecisionRequest request = new PolicyDecisionRequest(
+                new PolicyInput("client-1", "org-1", "/api/v1/configuration/producer", "GET"));
 
         String json = objectMapper.writeValueAsString(request);
 
@@ -36,7 +36,8 @@ class PolicyDecisionSerializationTest {
 
         assertThat(json).doesNotContain("organisation");
         assertThat(json)
-                .isEqualTo("{\"input\":{\"clientId\":\"client-1\",\"resource\":\"/api/v1/configuration/producer\",\"action\":\"GET\"}}");
+                .isEqualTo(
+                        "{\"input\":{\"clientId\":\"client-1\",\"resource\":\"/api/v1/configuration/producer\",\"action\":\"GET\"}}");
     }
 
     @Test

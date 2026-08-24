@@ -74,5 +74,4 @@ public class PolicyEnforcementInterceptor implements HandlerInterceptor {
                 response, objectMapper, HttpServletResponse.SC_FORBIDDEN, "Access denied by policy", correlationId);
         return false;
     }
-
 }

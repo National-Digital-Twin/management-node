@@ -88,7 +88,9 @@ class PolicyDecisionClientTest {
     @Test
     void serverError_returnsDeny() {
         setUp();
-        mockServer.expect(requestTo(PROPERTIES.url() + PROPERTIES.decisionPath())).andRespond(withServerError());
+        mockServer
+                .expect(requestTo(PROPERTIES.url() + PROPERTIES.decisionPath()))
+                .andRespond(withServerError());
 
         assertThat(client.evaluate(INPUT)).isEqualTo(PolicyDecision.DENY);
     }
@@ -96,9 +98,11 @@ class PolicyDecisionClientTest {
     @Test
     void connectionFailure_returnsDeny() {
         setUp();
-        mockServer.expect(requestTo(PROPERTIES.url() + PROPERTIES.decisionPath())).andRespond(request -> {
-            throw new IOException("connection refused");
-        });
+        mockServer
+                .expect(requestTo(PROPERTIES.url() + PROPERTIES.decisionPath()))
+                .andRespond(request -> {
+                    throw new IOException("connection refused");
+                });
 
         assertThat(client.evaluate(INPUT)).isEqualTo(PolicyDecision.DENY);
     }
@@ -106,9 +110,11 @@ class PolicyDecisionClientTest {
     @Test
     void timeout_returnsDeny() {
         setUp();
-        mockServer.expect(requestTo(PROPERTIES.url() + PROPERTIES.decisionPath())).andRespond(request -> {
-            throw new SocketTimeoutException("read timed out");
-        });
+        mockServer
+                .expect(requestTo(PROPERTIES.url() + PROPERTIES.decisionPath()))
+                .andRespond(request -> {
+                    throw new SocketTimeoutException("read timed out");
+                });
 
         assertThat(client.evaluate(INPUT)).isEqualTo(PolicyDecision.DENY);
     }
@@ -118,8 +124,10 @@ class PolicyDecisionClientTest {
         setUp();
         mockServer
                 .expect(requestTo(PROPERTIES.url() + PROPERTIES.decisionPath()))
-                .andExpect(org.springframework.test.web.client.match.MockRestRequestMatchers.content()
-                        .json("{\"input\":{\"clientId\":\"client-1\",\"resource\":\"/api/v1/configuration/producer\",\"action\":\"GET\"}}"))
+                .andExpect(
+                        org.springframework.test.web.client.match.MockRestRequestMatchers.content()
+                                .json(
+                                        "{\"input\":{\"clientId\":\"client-1\",\"resource\":\"/api/v1/configuration/producer\",\"action\":\"GET\"}}"))
                 .andRespond(withSuccess("{\"result\":true}", MediaType.APPLICATION_JSON));
 
         client.evaluate(INPUT);
