@@ -19,7 +19,7 @@
 
 ## 5. Integration tests
 
-- [ ] 5.1 Add `MockMvc`/`@SpringBootTest` integration tests against `/api/v1/configuration/producer` and `/api/v1/configuration/consumer` covering: authenticated request + PDP ALLOW returns normal response; authenticated request + PDP DENY returns 403; unauthenticated request is rejected before any PDP call (mock/stub the PDP client or its `RestClient` dependency); verify all new integration tests pass.
+- [x] 5.1 Add `MockMvc`/`@SpringBootTest` integration tests against `/api/v1/configuration/producer` and `/api/v1/configuration/consumer` covering: authenticated request + PDP ALLOW returns normal response; authenticated request + PDP DENY returns 403; unauthenticated request is rejected before any PDP call (mock/stub the PDP client or its `RestClient` dependency); verify all new integration tests pass.
 
 ## 6. Spec sync and full verification
 
