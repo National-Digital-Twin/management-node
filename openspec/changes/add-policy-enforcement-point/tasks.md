@@ -10,7 +10,7 @@
 
 ## 3. Policy Enforcement interceptor
 
-- [ ] 3.1 Implement `PolicyEnforcementInterceptor` (`HandlerInterceptor`) that reads `clientId`/organisation from `EnhancedPrincipal` in `SecurityContextHolder`, builds a `PolicyDecisionRequest` (resource = request URI, action = HTTP method), calls `PolicyDecisionClient`, and on ALLOW returns true / on DENY writes an `ErrorResponse` with HTTP 403 and returns false, mirroring `CertificateValidationInterceptor`'s `writeError` pattern; verify with unit tests covering: missing clientId (rejected without calling PDP), ALLOW (returns true), DENY (403 + no handler invocation).
+- [x] 3.1 Implement `PolicyEnforcementInterceptor` (`HandlerInterceptor`) that reads `clientId`/organisation from `EnhancedPrincipal` in `SecurityContextHolder`, builds a `PolicyDecisionRequest` (resource = request URI, action = HTTP method), calls `PolicyDecisionClient`, and on ALLOW returns true / on DENY writes an `ErrorResponse` with HTTP 403 and returns false, mirroring `CertificateValidationInterceptor`'s `writeError` pattern; verify with unit tests covering: missing clientId (rejected without calling PDP), ALLOW (returns true), DENY (403 + no handler invocation).
 - [ ] 3.2 Add decision audit logging (INFO on ALLOW, WARN on DENY, including clientId, resource, action, decision, correlation id) per design.md - Decision 6; verify with a unit test asserting a log line is emitted for each outcome (e.g. via a test log appender).
 
 ## 4. Wiring
