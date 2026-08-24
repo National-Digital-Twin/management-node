@@ -25,9 +25,6 @@ class OpaClientConfigTest {
                         "application.opa.decision-path=/v1/data/management_node/allow",
                         "application.opa.connect-timeout=2s",
                         "application.opa.read-timeout=3s")
-                .run(context -> {
-                    assertThat(context).hasSingleBean(RestClient.class);
-                    assertThat(context).hasSingleBean(OpaProperties.class);
-                });
+                .run(context -> assertThat(context).hasSingleBean(RestClient.class));
     }
 }

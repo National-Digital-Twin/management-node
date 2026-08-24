@@ -64,6 +64,8 @@ application:
     decision-path: ${OPA_DECISION_PATH:/v1/data/management_node/allow} # OPA decision query path
     connect-timeout: ${OPA_CONNECT_TIMEOUT:2s} # max time to establish a connection to OPA
     read-timeout: ${OPA_READ_TIMEOUT:3s} # max time to wait for an OPA decision response
+    protected-paths: # API path patterns the Policy Enforcement Point intercepts
+      - /api/v1/configuration/**
 
 # Actuator Configuration
 management:

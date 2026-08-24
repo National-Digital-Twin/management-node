@@ -15,6 +15,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.time.Duration;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -26,7 +27,11 @@ class PolicyDecisionClientTest {
 
     private static final PolicyInput INPUT = new PolicyInput("client-1", null, "/api/v1/configuration/producer", "GET");
     private static final OpaProperties PROPERTIES = new OpaProperties(
-            "https://opa.example.internal", "/v1/data/management_node/allow", Duration.ofSeconds(2), Duration.ofSeconds(3));
+            "https://opa.example.internal",
+            "/v1/data/management_node/allow",
+            Duration.ofSeconds(2),
+            Duration.ofSeconds(3),
+            List.of("/api/v1/configuration/**"));
 
     private RestClient.Builder restClientBuilder;
     private MockRestServiceServer mockServer;

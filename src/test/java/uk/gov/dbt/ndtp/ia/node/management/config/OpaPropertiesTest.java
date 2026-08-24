@@ -30,7 +30,8 @@ class OpaPropertiesTest {
                         "application.opa.url=https://opa.example.internal",
                         "application.opa.decision-path=/v1/data/management_node/allow",
                         "application.opa.connect-timeout=2s",
-                        "application.opa.read-timeout=3s")
+                        "application.opa.read-timeout=3s",
+                        "application.opa.protected-paths[0]=/api/v1/configuration/**")
                 .run(context -> {
                     assertThat(context).hasSingleBean(OpaProperties.class);
                     OpaProperties props = context.getBean(OpaProperties.class);
@@ -38,6 +39,7 @@ class OpaPropertiesTest {
                     assertThat(props.decisionPath()).isEqualTo("/v1/data/management_node/allow");
                     assertThat(props.connectTimeout()).isEqualTo(Duration.ofSeconds(2));
                     assertThat(props.readTimeout()).isEqualTo(Duration.ofSeconds(3));
+                    assertThat(props.protectedPaths()).containsExactly("/api/v1/configuration/**");
                 });
     }
 

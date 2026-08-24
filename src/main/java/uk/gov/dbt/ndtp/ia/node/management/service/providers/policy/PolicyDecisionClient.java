@@ -39,8 +39,8 @@ public class PolicyDecisionClient {
                     .retrieve()
                     .body(PolicyDecisionResponse.class);
 
-            return Boolean.TRUE.equals(response != null ? response.result() : null) ? PolicyDecision.ALLOW
-                    : PolicyDecision.DENY;
+            boolean allowed = response != null && Boolean.TRUE.equals(response.result());
+            return allowed ? PolicyDecision.ALLOW : PolicyDecision.DENY;
         } catch (Exception e) {
             log.warn("PDP invocation failed for resource {} action {}: {}", input.resource(), input.action(), e.toString());
             return PolicyDecision.DENY;

@@ -13,14 +13,9 @@ import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
-import uk.gov.dbt.ndtp.ia.node.management.exception.ErrorResponse;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.OrganisationCertificateDTO;
-import uk.gov.dbt.ndtp.ia.node.management.model.jwt.EnhancedPrincipal;
 import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.CertificateType;
 import uk.gov.dbt.ndtp.ia.node.management.service.providers.certificate.CertificateValidationProvider;
 
@@ -83,12 +78,7 @@ public class CertificateValidationInterceptor implements HandlerInterceptor {
     }
 
     private String extractClientId() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !(auth.getPrincipal() instanceof EnhancedPrincipal principal)) {
-            return null;
-        }
-        String clientId = principal.clientId();
-        return (clientId == null || clientId.isEmpty()) ? null : clientId;
+        return RequestRejectionSupport.extractClientId();
     }
 
     private String validateSerialNumber(HttpServletRequest request, OrganisationCertificateDTO cert, String clientId) {
@@ -110,10 +100,7 @@ public class CertificateValidationInterceptor implements HandlerInterceptor {
     }
 
     private void writeError(HttpServletResponse response, int status, String message) throws IOException {
-        response.setStatus(status);
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        ErrorResponse errorResponse =
-                new ErrorResponse(status, message, UUID.randomUUID().toString());
-        objectMapper.writeValue(response.getWriter(), errorResponse);
+        RequestRejectionSupport.writeError(
+                response, objectMapper, status, message, UUID.randomUUID().toString());
     }
 }

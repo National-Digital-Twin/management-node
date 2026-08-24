@@ -15,12 +15,15 @@ public class WebConfig implements WebMvcConfigurer {
 
     private final CertificateValidationInterceptor certificateValidationInterceptor;
     private final PolicyEnforcementInterceptor policyEnforcementInterceptor;
+    private final OpaProperties opaProperties;
 
     public WebConfig(
             CertificateValidationInterceptor certificateValidationInterceptor,
-            PolicyEnforcementInterceptor policyEnforcementInterceptor) {
+            PolicyEnforcementInterceptor policyEnforcementInterceptor,
+            OpaProperties opaProperties) {
         this.certificateValidationInterceptor = certificateValidationInterceptor;
         this.policyEnforcementInterceptor = policyEnforcementInterceptor;
+        this.opaProperties = opaProperties;
     }
 
     @Override
@@ -29,6 +32,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/api/**")
                 .excludePathPatterns("/api/v1/certificate/**");
 
-        registry.addInterceptor(policyEnforcementInterceptor).addPathPatterns("/api/v1/configuration/**");
+        registry.addInterceptor(policyEnforcementInterceptor)
+                .addPathPatterns(opaProperties.protectedPaths().toArray(new String[0]));
     }
 }

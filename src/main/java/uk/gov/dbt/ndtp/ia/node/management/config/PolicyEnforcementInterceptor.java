@@ -9,16 +9,11 @@ package uk.gov.dbt.ndtp.ia.node.management.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
-import uk.gov.dbt.ndtp.ia.node.management.exception.ErrorResponse;
-import uk.gov.dbt.ndtp.ia.node.management.model.jwt.EnhancedPrincipal;
 import uk.gov.dbt.ndtp.ia.node.management.service.providers.policy.PolicyDecision;
 import uk.gov.dbt.ndtp.ia.node.management.service.providers.policy.PolicyDecisionClient;
 import uk.gov.dbt.ndtp.ia.node.management.service.providers.policy.PolicyInput;
@@ -45,10 +40,11 @@ public class PolicyEnforcementInterceptor implements HandlerInterceptor {
             throws Exception {
         String correlationId = UUID.randomUUID().toString();
 
-        String clientId = extractClientId();
+        String clientId = RequestRejectionSupport.extractClientId();
         if (clientId == null) {
             log.warn("No client ID found for policy-aware request to {}", request.getRequestURI());
-            writeError(response, HttpServletResponse.SC_FORBIDDEN, "Client ID required", correlationId);
+            RequestRejectionSupport.writeError(
+                    response, objectMapper, HttpServletResponse.SC_FORBIDDEN, "Client ID required", correlationId);
             return false;
         }
 
@@ -74,24 +70,9 @@ public class PolicyEnforcementInterceptor implements HandlerInterceptor {
                 resource,
                 action,
                 correlationId);
-        writeError(response, HttpServletResponse.SC_FORBIDDEN, "Access denied by policy", correlationId);
+        RequestRejectionSupport.writeError(
+                response, objectMapper, HttpServletResponse.SC_FORBIDDEN, "Access denied by policy", correlationId);
         return false;
     }
 
-    private String extractClientId() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !(auth.getPrincipal() instanceof EnhancedPrincipal principal)) {
-            return null;
-        }
-        String clientId = principal.clientId();
-        return (clientId == null || clientId.isEmpty()) ? null : clientId;
-    }
-
-    private void writeError(HttpServletResponse response, int status, String message, String correlationId)
-            throws IOException {
-        response.setStatus(status);
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        ErrorResponse errorResponse = new ErrorResponse(status, message, correlationId);
-        objectMapper.writeValue(response.getWriter(), errorResponse);
-    }
 }

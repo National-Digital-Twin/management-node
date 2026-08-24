@@ -21,6 +21,8 @@ import java.io.StringWriter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.slf4j.LoggerFactory;
@@ -90,32 +92,23 @@ class PolicyEnforcementInterceptorTest {
         return sw;
     }
 
-    @Test
-    void noAuthentication_returns403WithoutCallingPdp() throws Exception {
-        when(securityContext.getAuthentication()).thenReturn(null);
-        when(request.getRequestURI()).thenReturn("/api/v1/configuration/consumer");
-        setupResponseWriter();
-
-        assertThat(interceptor.preHandle(request, response, handlerMethod)).isFalse();
-        verify(response).setStatus(403);
-        verifyNoInteractions(policyDecisionClient);
+    private enum MissingClientIdScenario {
+        NO_AUTHENTICATION,
+        NON_ENHANCED_PRINCIPAL,
+        EMPTY_CLIENT_ID
     }
 
-    @Test
-    void nonEnhancedPrincipal_returns403WithoutCallingPdp() throws Exception {
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn("plain-string-principal");
-        when(request.getRequestURI()).thenReturn("/api/v1/configuration/consumer");
-        setupResponseWriter();
-
-        assertThat(interceptor.preHandle(request, response, handlerMethod)).isFalse();
-        verify(response).setStatus(403);
-        verifyNoInteractions(policyDecisionClient);
-    }
-
-    @Test
-    void emptyClientId_returns403WithoutCallingPdp() throws Exception {
-        setupAuthentication("");
+    @ParameterizedTest
+    @EnumSource(MissingClientIdScenario.class)
+    void missingClientId_returns403WithoutCallingPdp(MissingClientIdScenario scenario) throws Exception {
+        switch (scenario) {
+            case NO_AUTHENTICATION -> when(securityContext.getAuthentication()).thenReturn(null);
+            case NON_ENHANCED_PRINCIPAL -> {
+                when(securityContext.getAuthentication()).thenReturn(authentication);
+                when(authentication.getPrincipal()).thenReturn("plain-string-principal");
+            }
+            case EMPTY_CLIENT_ID -> setupAuthentication("");
+        }
         when(request.getRequestURI()).thenReturn("/api/v1/configuration/consumer");
         setupResponseWriter();
 

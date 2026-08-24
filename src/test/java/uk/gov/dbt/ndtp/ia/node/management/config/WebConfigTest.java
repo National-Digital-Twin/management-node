@@ -10,6 +10,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Duration;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -32,12 +35,24 @@ class WebConfigTest {
     @Mock
     private InterceptorRegistration registration;
 
-    @Test
-    void certificateEndpoints_excludedFromCertificateValidation() {
+    private WebConfig config;
+
+    @BeforeEach
+    void setUp() {
         when(registry.addInterceptor(any())).thenReturn(registration);
         when(registration.addPathPatterns(any(String.class))).thenReturn(registration);
 
-        WebConfig config = new WebConfig(certificateValidationInterceptor, policyEnforcementInterceptor);
+        OpaProperties opaProperties = new OpaProperties(
+                "https://opa.example.internal",
+                "/v1/data/management_node/allow",
+                Duration.ofSeconds(2),
+                Duration.ofSeconds(3),
+                List.of("/api/v1/configuration/**"));
+        config = new WebConfig(certificateValidationInterceptor, policyEnforcementInterceptor, opaProperties);
+    }
+
+    @Test
+    void certificateEndpoints_excludedFromCertificateValidation() {
         config.addInterceptors(registry);
 
         verify(registry).addInterceptor(certificateValidationInterceptor);
@@ -47,10 +62,6 @@ class WebConfigTest {
 
     @Test
     void configurationEndpoints_registeredForPolicyEnforcement() {
-        when(registry.addInterceptor(any())).thenReturn(registration);
-        when(registration.addPathPatterns(any(String.class))).thenReturn(registration);
-
-        WebConfig config = new WebConfig(certificateValidationInterceptor, policyEnforcementInterceptor);
         config.addInterceptors(registry);
 
         verify(registry).addInterceptor(policyEnforcementInterceptor);
