@@ -5,7 +5,7 @@
 ## 2. PDP decision client
 
 - [x] 2.1 Add `PolicyDecisionRequest`/`PolicyDecisionResponse` DTOs (clientId, organisation, resource, action / result) under `service/providers/policy`; verify with a serialization unit test (Jackson round-trip matches OPA's `{"input": {...}}` / `{"result": ...}` shape from design.md - Decision 3).
-- [ ] 2.2 Add a `RestClient` bean configured from the properties in 1.1; verify with a context test asserting the bean is created with the configured base URL/timeouts.
+- [x] 2.2 Add a `RestClient` bean configured from the properties in 1.1; verify with a context test asserting the bean is created with the configured base URL/timeouts.
 - [ ] 2.3 Implement `PolicyDecisionClient` that POSTs a `PolicyDecisionRequest` to `{opa.url}{opa.decision-path}` and maps the response to an ALLOW/DENY enum, treating non-2xx, network errors, and timeouts as DENY (design.md - Decision 5); verify with unit tests using a mocked `RestClient` covering: allow response, deny response, malformed body, HTTP error, connection failure/timeout.
 
 ## 3. Policy Enforcement interceptor
