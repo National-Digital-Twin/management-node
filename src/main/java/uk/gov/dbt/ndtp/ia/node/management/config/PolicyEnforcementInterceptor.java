@@ -43,10 +43,12 @@ public class PolicyEnforcementInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws Exception {
+        String correlationId = UUID.randomUUID().toString();
+
         String clientId = extractClientId();
         if (clientId == null) {
             log.warn("No client ID found for policy-aware request to {}", request.getRequestURI());
-            writeError(response, HttpServletResponse.SC_FORBIDDEN, "Client ID required");
+            writeError(response, HttpServletResponse.SC_FORBIDDEN, "Client ID required", correlationId);
             return false;
         }
 
@@ -56,12 +58,24 @@ public class PolicyEnforcementInterceptor implements HandlerInterceptor {
 
         PolicyDecision decision = policyDecisionClient.evaluate(input);
 
-        if (decision == PolicyDecision.DENY) {
-            writeError(response, HttpServletResponse.SC_FORBIDDEN, "Access denied by policy");
-            return false;
+        if (decision == PolicyDecision.ALLOW) {
+            log.info(
+                    "Policy decision ALLOW clientId={} resource={} action={} correlationId={}",
+                    clientId,
+                    resource,
+                    action,
+                    correlationId);
+            return true;
         }
 
-        return true;
+        log.warn(
+                "Policy decision DENY clientId={} resource={} action={} correlationId={}",
+                clientId,
+                resource,
+                action,
+                correlationId);
+        writeError(response, HttpServletResponse.SC_FORBIDDEN, "Access denied by policy", correlationId);
+        return false;
     }
 
     private String extractClientId() {
@@ -73,11 +87,11 @@ public class PolicyEnforcementInterceptor implements HandlerInterceptor {
         return (clientId == null || clientId.isEmpty()) ? null : clientId;
     }
 
-    private void writeError(HttpServletResponse response, int status, String message) throws IOException {
+    private void writeError(HttpServletResponse response, int status, String message, String correlationId)
+            throws IOException {
         response.setStatus(status);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        ErrorResponse errorResponse =
-                new ErrorResponse(status, message, UUID.randomUUID().toString());
+        ErrorResponse errorResponse = new ErrorResponse(status, message, correlationId);
         objectMapper.writeValue(response.getWriter(), errorResponse);
     }
 }

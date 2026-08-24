@@ -9,6 +9,10 @@ package uk.gov.dbt.ndtp.ia.node.management.config;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -19,6 +23,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -50,16 +55,24 @@ class PolicyEnforcementInterceptorTest {
 
     private PolicyEnforcementInterceptor interceptor;
     private AutoCloseable closeable;
+    private Logger logger;
+    private ListAppender<ILoggingEvent> logAppender;
 
     @BeforeEach
     void setUp() {
         closeable = MockitoAnnotations.openMocks(this);
         interceptor = new PolicyEnforcementInterceptor(policyDecisionClient, new ObjectMapper());
         SecurityContextHolder.setContext(securityContext);
+
+        logger = (Logger) LoggerFactory.getLogger(PolicyEnforcementInterceptor.class);
+        logAppender = new ListAppender<>();
+        logAppender.start();
+        logger.addAppender(logAppender);
     }
 
     @AfterEach
     void tearDown() throws Exception {
+        logger.detachAppender(logAppender);
         SecurityContextHolder.clearContext();
         closeable.close();
     }
@@ -146,5 +159,47 @@ class PolicyEnforcementInterceptorTest {
 
         verify(policyDecisionClient)
                 .evaluate(new PolicyInput("client-1", null, "/api/v1/configuration/consumer", "GET"));
+    }
+
+    @Test
+    void pdpAllows_logsAllowDecisionAtInfo() throws Exception {
+        setupAuthentication("client-1");
+        when(request.getRequestURI()).thenReturn("/api/v1/configuration/producer");
+        when(request.getMethod()).thenReturn("GET");
+        when(policyDecisionClient.evaluate(any(PolicyInput.class))).thenReturn(PolicyDecision.ALLOW);
+
+        interceptor.preHandle(request, response, handlerMethod);
+
+        assertThat(logAppender.list).anySatisfy(event -> {
+            assertThat(event.getLevel()).isEqualTo(Level.INFO);
+            assertThat(event.getFormattedMessage())
+                    .contains("ALLOW")
+                    .contains("client-1")
+                    .contains("/api/v1/configuration/producer")
+                    .contains("GET")
+                    .contains("correlationId=");
+        });
+    }
+
+    @Test
+    void pdpDenies_logsDenyDecisionAtWarnWithCorrelationIdMatchingResponseBody() throws Exception {
+        setupAuthentication("client-1");
+        when(request.getRequestURI()).thenReturn("/api/v1/configuration/producer");
+        when(request.getMethod()).thenReturn("GET");
+        when(policyDecisionClient.evaluate(any(PolicyInput.class))).thenReturn(PolicyDecision.DENY);
+        StringWriter sw = setupResponseWriter();
+
+        interceptor.preHandle(request, response, handlerMethod);
+
+        ILoggingEvent denyEvent = logAppender.list.stream()
+                .filter(event -> event.getFormattedMessage().contains("DENY"))
+                .findFirst()
+                .orElseThrow();
+        assertThat(denyEvent.getLevel()).isEqualTo(Level.WARN);
+        assertThat(denyEvent.getFormattedMessage()).contains("client-1").contains("/api/v1/configuration/producer");
+
+        String correlationId =
+                denyEvent.getFormattedMessage().replaceAll(".*correlationId=(\\S+)$", "$1");
+        assertThat(sw.toString()).contains(correlationId);
     }
 }
