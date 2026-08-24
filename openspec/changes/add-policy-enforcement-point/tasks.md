@@ -23,5 +23,5 @@
 
 ## 6. Spec sync and full verification
 
-- [ ] 6.1 Run the full test suite (`mvn test` or project's configured command) and confirm all existing and new tests pass with no regressions.
-- [ ] 6.2 Run `openspec validate add-policy-enforcement-point --strict` and confirm it passes before archiving.
+- [x] 6.1 Run the full test suite (`mvn test` or project's configured command) and confirm all existing and new tests pass with no regressions.
+- [x] 6.2 Run `openspec validate add-policy-enforcement-point --strict` and confirm it passes before archiving.
