@@ -15,7 +15,7 @@
 
 ## 4. Wiring
 
-- [ ] 4.1 Register `PolicyEnforcementInterceptor` in `WebConfig` for `/api/v1/configuration/**` only, ordered after `CertificateValidationInterceptor`; verify with a `WebConfigTest`-style test asserting the interceptor is registered for the expected path pattern and not for `/api/v1/certificate/**`.
+- [x] 4.1 Register `PolicyEnforcementInterceptor` in `WebConfig` for `/api/v1/configuration/**` only, ordered after `CertificateValidationInterceptor`; verify with a `WebConfigTest`-style test asserting the interceptor is registered for the expected path pattern and not for `/api/v1/certificate/**`.
 
 ## 5. Integration tests
 

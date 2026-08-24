@@ -21,7 +21,10 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 class WebConfigTest {
 
     @Mock
-    private CertificateValidationInterceptor interceptor;
+    private CertificateValidationInterceptor certificateValidationInterceptor;
+
+    @Mock
+    private PolicyEnforcementInterceptor policyEnforcementInterceptor;
 
     @Mock
     private InterceptorRegistry registry;
@@ -34,10 +37,23 @@ class WebConfigTest {
         when(registry.addInterceptor(any())).thenReturn(registration);
         when(registration.addPathPatterns(any(String.class))).thenReturn(registration);
 
-        WebConfig config = new WebConfig(interceptor);
+        WebConfig config = new WebConfig(certificateValidationInterceptor, policyEnforcementInterceptor);
         config.addInterceptors(registry);
 
+        verify(registry).addInterceptor(certificateValidationInterceptor);
         verify(registration).addPathPatterns("/api/**");
         verify(registration).excludePathPatterns("/api/v1/certificate/**");
+    }
+
+    @Test
+    void configurationEndpoints_registeredForPolicyEnforcement() {
+        when(registry.addInterceptor(any())).thenReturn(registration);
+        when(registration.addPathPatterns(any(String.class))).thenReturn(registration);
+
+        WebConfig config = new WebConfig(certificateValidationInterceptor, policyEnforcementInterceptor);
+        config.addInterceptors(registry);
+
+        verify(registry).addInterceptor(policyEnforcementInterceptor);
+        verify(registration).addPathPatterns("/api/v1/configuration/**");
     }
 }

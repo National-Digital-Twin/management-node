@@ -14,9 +14,13 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer {
 
     private final CertificateValidationInterceptor certificateValidationInterceptor;
+    private final PolicyEnforcementInterceptor policyEnforcementInterceptor;
 
-    public WebConfig(CertificateValidationInterceptor certificateValidationInterceptor) {
+    public WebConfig(
+            CertificateValidationInterceptor certificateValidationInterceptor,
+            PolicyEnforcementInterceptor policyEnforcementInterceptor) {
         this.certificateValidationInterceptor = certificateValidationInterceptor;
+        this.policyEnforcementInterceptor = policyEnforcementInterceptor;
     }
 
     @Override
@@ -24,5 +28,7 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(certificateValidationInterceptor)
                 .addPathPatterns("/api/**")
                 .excludePathPatterns("/api/v1/certificate/**");
+
+        registry.addInterceptor(policyEnforcementInterceptor).addPathPatterns("/api/v1/configuration/**");
     }
 }
