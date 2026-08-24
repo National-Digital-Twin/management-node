@@ -59,6 +59,11 @@ application:
     key-store: keystore.jks # path to MTLS client keystore
     key-store-password: ${CERTPASSWORD:} # MTLS client keystore password
     keyStoreType: JKS
+  opa:
+    url: ${OPA_URL:http://localhost:8181} # base URL of the OPA server (PDP)
+    decision-path: ${OPA_DECISION_PATH:/v1/data/management_node/allow} # OPA decision query path
+    connect-timeout: ${OPA_CONNECT_TIMEOUT:2s} # max time to establish a connection to OPA
+    read-timeout: ${OPA_READ_TIMEOUT:3s} # max time to wait for an OPA decision response
 
 # Actuator Configuration
 management:
