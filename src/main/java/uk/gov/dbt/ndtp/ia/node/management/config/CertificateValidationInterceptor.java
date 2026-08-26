@@ -73,6 +73,7 @@ public class CertificateValidationInterceptor implements HandlerInterceptor {
             return false;
         }
 
+        RequestRejectionSupport.setOrganisationId(request, cert.getOrganisationId());
         log.debug("Certificate validation successful for client {} on {}", clientId, request.getRequestURI());
         return true;
     }

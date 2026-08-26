@@ -50,7 +50,8 @@ public class PolicyEnforcementInterceptor implements HandlerInterceptor {
 
         String resource = request.getRequestURI();
         String action = request.getMethod();
-        PolicyInput input = new PolicyInput(clientId, null, resource, action);
+        String organisation = RequestRejectionSupport.getOrganisationId(request);
+        PolicyInput input = new PolicyInput(clientId, organisation, resource, action);
 
         PolicyDecision decision = policyDecisionClient.evaluate(input);
 

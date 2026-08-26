@@ -155,6 +155,20 @@ class PolicyEnforcementInterceptorTest {
     }
 
     @Test
+    void policyInput_includesOrganisationResolvedByCertificateValidation() throws Exception {
+        setupAuthentication("client-1");
+        when(request.getRequestURI()).thenReturn("/api/v1/configuration/consumer");
+        when(request.getMethod()).thenReturn("GET");
+        when(request.getAttribute("ndtp.organisationId")).thenReturn(42L);
+        when(policyDecisionClient.evaluate(any(PolicyInput.class))).thenReturn(PolicyDecision.ALLOW);
+
+        interceptor.preHandle(request, response, handlerMethod);
+
+        verify(policyDecisionClient)
+                .evaluate(new PolicyInput("client-1", "42", "/api/v1/configuration/consumer", "GET"));
+    }
+
+    @Test
     void pdpAllows_logsAllowDecisionAtInfo() throws Exception {
         setupAuthentication("client-1");
         when(request.getRequestURI()).thenReturn("/api/v1/configuration/producer");

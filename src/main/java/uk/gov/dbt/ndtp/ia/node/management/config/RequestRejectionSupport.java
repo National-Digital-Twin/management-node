@@ -7,6 +7,7 @@
 package uk.gov.dbt.ndtp.ia.node.management.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import org.springframework.http.MediaType;
@@ -22,7 +23,18 @@ import uk.gov.dbt.ndtp.ia.node.management.model.jwt.EnhancedPrincipal;
  */
 final class RequestRejectionSupport {
 
+    private static final String ORGANISATION_ID_ATTRIBUTE = "ndtp.organisationId";
+
     private RequestRejectionSupport() {}
+
+    static void setOrganisationId(HttpServletRequest request, Long organisationId) {
+        request.setAttribute(ORGANISATION_ID_ATTRIBUTE, organisationId);
+    }
+
+    static String getOrganisationId(HttpServletRequest request) {
+        Object value = request.getAttribute(ORGANISATION_ID_ATTRIBUTE);
+        return value == null ? null : String.valueOf(value);
+    }
 
     static String extractClientId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
