@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.time.Duration;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -37,7 +38,8 @@ class PolicyDecisionClientTest {
     private MockRestServiceServer mockServer;
     private PolicyDecisionClient client;
 
-    private void setUp() {
+    @BeforeEach
+    void setUp() {
         restClientBuilder = RestClient.builder().baseUrl(PROPERTIES.url());
         mockServer = MockRestServiceServer.bindTo(restClientBuilder).build();
         client = new PolicyDecisionClient(restClientBuilder.build(), PROPERTIES);
@@ -45,7 +47,6 @@ class PolicyDecisionClientTest {
 
     @Test
     void allowResult_returnsAllow() {
-        setUp();
         mockServer
                 .expect(requestTo(PROPERTIES.url() + PROPERTIES.decisionPath()))
                 .andExpect(method(HttpMethod.POST))
@@ -56,7 +57,6 @@ class PolicyDecisionClientTest {
 
     @Test
     void denyResult_returnsDeny() {
-        setUp();
         mockServer
                 .expect(requestTo(PROPERTIES.url() + PROPERTIES.decisionPath()))
                 .andExpect(method(HttpMethod.POST))
@@ -67,7 +67,6 @@ class PolicyDecisionClientTest {
 
     @Test
     void missingResult_returnsDeny() {
-        setUp();
         mockServer
                 .expect(requestTo(PROPERTIES.url() + PROPERTIES.decisionPath()))
                 .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
@@ -77,7 +76,6 @@ class PolicyDecisionClientTest {
 
     @Test
     void malformedBody_returnsDeny() {
-        setUp();
         mockServer
                 .expect(requestTo(PROPERTIES.url() + PROPERTIES.decisionPath()))
                 .andRespond(withSuccess("not-json", MediaType.APPLICATION_JSON));
@@ -87,7 +85,6 @@ class PolicyDecisionClientTest {
 
     @Test
     void serverError_returnsDeny() {
-        setUp();
         mockServer
                 .expect(requestTo(PROPERTIES.url() + PROPERTIES.decisionPath()))
                 .andRespond(withServerError());
@@ -97,7 +94,6 @@ class PolicyDecisionClientTest {
 
     @Test
     void connectionFailure_returnsDeny() {
-        setUp();
         mockServer
                 .expect(requestTo(PROPERTIES.url() + PROPERTIES.decisionPath()))
                 .andRespond(request -> {
@@ -109,7 +105,6 @@ class PolicyDecisionClientTest {
 
     @Test
     void timeout_returnsDeny() {
-        setUp();
         mockServer
                 .expect(requestTo(PROPERTIES.url() + PROPERTIES.decisionPath()))
                 .andRespond(request -> {
@@ -121,7 +116,6 @@ class PolicyDecisionClientTest {
 
     @Test
     void requestBody_sendsInputAsExpectedByOpa() {
-        setUp();
         mockServer
                 .expect(requestTo(PROPERTIES.url() + PROPERTIES.decisionPath()))
                 .andExpect(
