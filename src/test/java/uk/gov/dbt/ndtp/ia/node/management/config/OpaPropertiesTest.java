@@ -44,7 +44,7 @@ class OpaPropertiesTest {
     }
 
     @Test
-    void bindsWithoutAnyConfiguredValues() {
-        contextRunner.run(context -> assertThat(context).hasSingleBean(OpaProperties.class));
+    void failsToBindWithoutProtectedPaths() {
+        contextRunner.run(context -> assertThat(context).hasFailed());
     }
 }
