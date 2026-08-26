@@ -6,6 +6,7 @@
 
 package uk.gov.dbt.ndtp.ia.node.management.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,10 +15,19 @@ import org.springframework.web.client.RestClient;
 
 @Configuration
 @EnableConfigurationProperties(OpaProperties.class)
+@Slf4j
 public class OpaClientConfig {
 
     @Bean
     public RestClient opaRestClient(OpaProperties properties) {
+        if (!properties.url().startsWith("https://")) {
+            log.warn(
+                    "OPA URL {} is not using TLS. This service enforces mTLS for all "
+                            + "service-to-service traffic - set OPA_URL to an https:// endpoint "
+                            + "in any non-local environment.",
+                    properties.url());
+        }
+
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout((int) properties.connectTimeout().toMillis());
         requestFactory.setReadTimeout((int) properties.readTimeout().toMillis());

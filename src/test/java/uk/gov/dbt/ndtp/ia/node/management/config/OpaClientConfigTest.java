@@ -8,7 +8,14 @@ package uk.gov.dbt.ndtp.ia.node.management.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.web.client.RestClient;
 
@@ -17,6 +24,22 @@ class OpaClientConfigTest {
     private final ApplicationContextRunner contextRunner =
             new ApplicationContextRunner().withUserConfiguration(OpaClientConfig.class);
 
+    private Logger logger;
+    private ListAppender<ILoggingEvent> logAppender;
+
+    @BeforeEach
+    void setUp() {
+        logger = (Logger) LoggerFactory.getLogger(OpaClientConfig.class);
+        logAppender = new ListAppender<>();
+        logAppender.start();
+        logger.addAppender(logAppender);
+    }
+
+    @AfterEach
+    void tearDown() {
+        logger.detachAppender(logAppender);
+    }
+
     @Test
     void createsRestClientBeanFromConfiguredProperties() {
         contextRunner
@@ -24,7 +47,35 @@ class OpaClientConfigTest {
                         "application.opa.url=https://opa.example.internal",
                         "application.opa.decision-path=/v1/data/management_node/allow",
                         "application.opa.connect-timeout=2s",
-                        "application.opa.read-timeout=3s")
+                        "application.opa.read-timeout=3s",
+                        "application.opa.protected-paths[0]=/api/v1/configuration/**")
                 .run(context -> assertThat(context).hasSingleBean(RestClient.class));
+    }
+
+    @Test
+    void nonHttpsUrl_logsWarning() {
+        contextRunner
+                .withPropertyValues(
+                        "application.opa.url=http://opa.example.internal",
+                        "application.opa.decision-path=/v1/data/management_node/allow",
+                        "application.opa.connect-timeout=2s",
+                        "application.opa.read-timeout=3s",
+                        "application.opa.protected-paths[0]=/api/v1/configuration/**")
+                .run(context -> assertThat(logAppender.list).anySatisfy(event -> {
+                    assertThat(event.getLevel()).isEqualTo(Level.WARN);
+                    assertThat(event.getFormattedMessage()).contains("http://opa.example.internal");
+                }));
+    }
+
+    @Test
+    void httpsUrl_doesNotLogWarning() {
+        contextRunner
+                .withPropertyValues(
+                        "application.opa.url=https://opa.example.internal",
+                        "application.opa.decision-path=/v1/data/management_node/allow",
+                        "application.opa.connect-timeout=2s",
+                        "application.opa.read-timeout=3s",
+                        "application.opa.protected-paths[0]=/api/v1/configuration/**")
+                .run(context -> assertThat(logAppender.list).isEmpty());
     }
 }
