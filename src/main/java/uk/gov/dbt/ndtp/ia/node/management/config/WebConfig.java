@@ -6,6 +6,7 @@
 
 package uk.gov.dbt.ndtp.ia.node.management.config;
 
+import java.util.List;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -32,7 +33,9 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/api/**")
                 .excludePathPatterns("/api/v1/certificate/**");
 
-        registry.addInterceptor(policyEnforcementInterceptor)
-                .addPathPatterns(opaProperties.protectedPaths().toArray(new String[0]));
+        List<String> protectedPaths = opaProperties.protectedPaths();
+        if (!protectedPaths.isEmpty()) {
+            registry.addInterceptor(policyEnforcementInterceptor).addPathPatterns(protectedPaths);
+        }
     }
 }
