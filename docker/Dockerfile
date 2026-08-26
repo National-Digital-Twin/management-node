@@ -38,7 +38,7 @@ COPY --from=build /build/target/${JAR_NAME}.jar /app/app.jar
 
 RUN chown app:app /app/app.jar
 
-RUN apk add --no-cache curl
+RUN apk update && apk upgrade --no-cache && apk add --no-cache curl
 
 # Use non-root user from here on
 USER app:app
