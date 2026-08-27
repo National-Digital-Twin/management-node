@@ -205,7 +205,8 @@ class PolicyEnforcementInterceptorTest {
         assertThat(denyEvent.getLevel()).isEqualTo(Level.WARN);
         assertThat(denyEvent.getFormattedMessage()).contains("client-1").contains("/api/v1/configuration/producer");
 
-        String correlationId = denyEvent.getFormattedMessage().replaceAll(".*correlationId=(\\S+)$", "$1");
+        String message = denyEvent.getFormattedMessage();
+        String correlationId = message.substring(message.indexOf("correlationId=") + "correlationId=".length());
         assertThat(sw.toString()).contains(correlationId);
     }
 }
