@@ -34,8 +34,8 @@ class PolicyDecisionSerializationTest {
 
         String json = objectMapper.writeValueAsString(request);
 
-        assertThat(json).doesNotContain("organisation");
         assertThat(json)
+                .doesNotContain("organisation")
                 .isEqualTo(
                         "{\"input\":{\"clientId\":\"client-1\",\"resource\":\"/api/v1/configuration/producer\",\"action\":\"GET\"}}");
     }
