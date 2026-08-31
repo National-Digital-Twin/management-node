@@ -58,6 +58,7 @@
     <springdoc-openapi-starter-webmvc-ui.version>2.8.13</springdoc-openapi-starter-webmvc-ui.version>
     <bouncycastle.version>1.84</bouncycastle.version>
     <spring-security.version>6.5.9</spring-security.version>
+    <httpcore5.version>5.4.3</httpcore5.version>
     <sonar.coverage.exclusions>**/config/**,
             **/dto/**,
             **/entity/**,
@@ -71,6 +72,16 @@
         <version>${spring-cloud.version}</version>
         <type>pom</type>
         <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents.core5</groupId>
+        <artifactId>httpcore5</artifactId>
+        <version>${httpcore5.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents.core5</groupId>
+        <artifactId>httpcore5-h2</artifactId>
+        <version>${httpcore5.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

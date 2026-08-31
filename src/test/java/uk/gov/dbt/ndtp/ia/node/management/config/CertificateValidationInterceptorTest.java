@@ -155,6 +155,17 @@ class CertificateValidationInterceptorTest {
     }
 
     @Test
+    void activeCert_setsOrganisationIdAttributeForDownstreamInterceptors() throws Exception {
+        setupAuthentication("client-1");
+        OrganisationCertificateDTO cert = certDto(CertificateType.AUTOMATED, null);
+        when(validationProvider.findByClientId("client-1")).thenReturn(Optional.of(cert));
+        when(validationProvider.isActive(cert)).thenReturn(true);
+
+        assertThat(interceptor.preHandle(request, response, handlerMethod)).isTrue();
+        verify(request).setAttribute("ndtp.organisationId", cert.getOrganisationId());
+    }
+
+    @Test
     void inactiveCert_returns403() throws Exception {
         setupAuthentication("client-1");
         OrganisationCertificateDTO cert = certDto(CertificateType.AUTOMATED, null);
