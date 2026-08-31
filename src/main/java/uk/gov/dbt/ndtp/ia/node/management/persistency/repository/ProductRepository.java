@@ -7,8 +7,10 @@
 package uk.gov.dbt.ndtp.ia.node.management.persistency.repository;
 
 import java.util.List;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Product;
 
@@ -41,4 +43,27 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
      */
     @Query("SELECT o FROM Product o " + "JOIN FETCH o.productType t " + " WHERE o.producer.id IN :producers")
     List<Product> findByProducerIds(List<Long> producers);
+
+    /**
+     * Discovery candidate query: products across all organisations matching the optional
+     * search filters (case-insensitive contains on name/topic, exact match on type name).
+     * A {@code null} filter matches everything for that attribute. Not organisation-scoped -
+     * policy (the PDP), not org membership, decides visibility for discovery. Uses a LEFT
+     * JOIN on productType (unlike the other queries here) since type is optional and a
+     * product without one must still be a candidate when no type filter is supplied.
+     *
+     * @param name optional case-insensitive contains filter on product name
+     * @param topic optional case-insensitive contains filter on product topic
+     * @param type optional case-insensitive exact filter on product type name
+     * @param pageable bounds the candidate set size (e.g. {@code PageRequest.of(0, maxCandidates)})
+     * @return candidate products matching the filters, bounded by {@code pageable}
+     */
+    @Query("SELECT p FROM Product p "
+            + "LEFT JOIN FETCH p.productType t "
+            + "WHERE (:name IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%'))) "
+            + "AND (:topic IS NULL OR LOWER(p.topic) LIKE LOWER(CONCAT('%', :topic, '%'))) "
+            + "AND (:type IS NULL OR LOWER(t.name) = LOWER(:type)) "
+            + "ORDER BY p.id")
+    List<Product> findDiscoveryCandidates(
+            @Param("name") String name, @Param("topic") String topic, @Param("type") String type, Pageable pageable);
 }
