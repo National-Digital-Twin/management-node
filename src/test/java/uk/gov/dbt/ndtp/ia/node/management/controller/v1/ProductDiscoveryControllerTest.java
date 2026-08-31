@@ -12,6 +12,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -123,15 +124,17 @@ class ProductDiscoveryControllerTest {
     }
 
     @Test
-    void noAuthorisedProducts_returnsEmptyListNotError() throws Exception {
+    void noAuthorisedProducts_returnsEmptyListNotErrorAndPassesCriteriaThrough() throws Exception {
         when(productDiscoveryService.discover(anyString(), any(), any(), any(), any()))
                 .thenReturn(responseWith());
 
         mockMvc.perform(post("/api/v1/product/discovery")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
+                        .content("{\"name\":\"Alpha\",\"topic\":\"topic-1\",\"type\":\"TypeA\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.products").isEmpty());
+
+        verify(productDiscoveryService).discover(eq("client-1"), any(), eq("Alpha"), eq("topic-1"), eq("TypeA"));
     }
 
     @Test
