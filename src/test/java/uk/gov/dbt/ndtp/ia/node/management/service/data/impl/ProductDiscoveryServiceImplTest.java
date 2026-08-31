@@ -8,7 +8,6 @@ package uk.gov.dbt.ndtp.ia.node.management.service.data.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -95,7 +94,7 @@ class ProductDiscoveryServiceImplTest {
 
         productDiscoveryService.filterAuthorised("client-1", "org-1", List.of(allowedProduct));
 
-        verify(policyDecisionClient).evaluate(eq(new PolicyInput("client-1", "org-1", "product:1", "discover")));
+        verify(policyDecisionClient).evaluate(new PolicyInput("client-1", "org-1", "product:1", "discover"));
     }
 
     @Test
