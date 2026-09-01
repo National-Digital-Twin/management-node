@@ -154,7 +154,7 @@ public class GlobalExceptionHandler {
         log.debug(
                 "Request validation failed, error_id={}, path={}: {}",
                 errorId,
-                request.getContextPath(),
+                request.getDescription(false),
                 ex.getMessage());
 
         ErrorResponse errorResponse =
@@ -177,7 +177,10 @@ public class GlobalExceptionHandler {
 
         String errorId = generateErrorId();
         log.debug(
-                "Malformed request body, error_id={}, path={}: {}", errorId, request.getContextPath(), ex.getMessage());
+                "Malformed request body, error_id={}, path={}: {}",
+                errorId,
+                request.getDescription(false),
+                ex.getMessage());
 
         ErrorResponse errorResponse =
                 new ErrorResponse(HttpStatus.BAD_REQUEST.value(), "Invalid request body", errorId);
