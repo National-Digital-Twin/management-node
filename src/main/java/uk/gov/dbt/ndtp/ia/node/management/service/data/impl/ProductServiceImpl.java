@@ -36,11 +36,18 @@ public class ProductServiceImpl implements ProductService {
      * @param productConverter  the converter for entity-to-DTO conversion
      * @param maxDiscoveryCandidates upper bound on candidates fetched for discovery, keeping
      *     the per-candidate PDP call loop in {@code ProductDiscoveryService} bounded
+     * @throws IllegalArgumentException if maxDiscoveryCandidates is less than 1 - fails fast
+     *     at startup rather than on every discovery request (PageRequest.of rejects a page
+     *     size below 1)
      */
     public ProductServiceImpl(
             ProductRepository productRepository,
             ProductConverter productConverter,
             @Value("${application.product-discovery.max-candidates:200}") int maxDiscoveryCandidates) {
+        if (maxDiscoveryCandidates < 1) {
+            throw new IllegalArgumentException(
+                    "application.product-discovery.max-candidates must be at least 1, got " + maxDiscoveryCandidates);
+        }
         this.productRepository = productRepository;
         this.productConverter = productConverter;
         this.maxDiscoveryCandidates = maxDiscoveryCandidates;

@@ -244,4 +244,16 @@ class ProductServiceImplTest {
         assertTrue(result.isEmpty());
         verify(productRepository).findDiscoveryCandidates(isNull(), isNull(), isNull(), any(Pageable.class));
     }
+
+    @Test
+    void constructor_rejectsZeroMaxCandidates() {
+        assertThrows(
+                IllegalArgumentException.class, () -> new ProductServiceImpl(productRepository, productConverter, 0));
+    }
+
+    @Test
+    void constructor_rejectsNegativeMaxCandidates() {
+        assertThrows(
+                IllegalArgumentException.class, () -> new ProductServiceImpl(productRepository, productConverter, -1));
+    }
 }
