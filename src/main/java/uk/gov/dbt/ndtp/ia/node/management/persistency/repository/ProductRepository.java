@@ -58,12 +58,39 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
      * @param pageable bounds the candidate set size (e.g. {@code PageRequest.of(0, maxCandidates)})
      * @return candidate products matching the filters, bounded by {@code pageable}
      */
+    default List<Product> findDiscoveryCandidates(String name, String topic, String type, Pageable pageable) {
+        return findDiscoveryCandidatesByPattern(containsPattern(name), containsPattern(topic), type, pageable);
+    }
+
+    /**
+     * Backing query for {@link #findDiscoveryCandidates}. Takes pre-built, LIKE-escaped
+     * {@code %pattern%} strings (see {@link #containsPattern}) rather than raw filter values,
+     * so the LIKE wildcards {@code %}/{@code _} in caller-supplied input are matched
+     * literally, not interpreted as wildcards.
+     */
     @Query("SELECT p FROM Product p "
             + "LEFT JOIN FETCH p.productType t "
-            + "WHERE (:name IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%'))) "
-            + "AND (:topic IS NULL OR LOWER(p.topic) LIKE LOWER(CONCAT('%', :topic, '%'))) "
+            + "WHERE (:namePattern IS NULL OR LOWER(p.name) LIKE LOWER(:namePattern) ESCAPE '\\') "
+            + "AND (:topicPattern IS NULL OR LOWER(p.topic) LIKE LOWER(:topicPattern) ESCAPE '\\') "
             + "AND (:type IS NULL OR LOWER(t.name) = LOWER(:type)) "
             + "ORDER BY p.id")
-    List<Product> findDiscoveryCandidates(
-            @Param("name") String name, @Param("topic") String topic, @Param("type") String type, Pageable pageable);
+    List<Product> findDiscoveryCandidatesByPattern(
+            @Param("namePattern") String namePattern,
+            @Param("topicPattern") String topicPattern,
+            @Param("type") String type,
+            Pageable pageable);
+
+    /**
+     * Builds a {@code %value%} LIKE pattern with the LIKE metacharacters {@code \}, {@code %}
+     * and {@code _} in {@code value} escaped (backslash-escaped, matching the query's
+     * {@code ESCAPE '\'} clause), so a search value containing them is matched literally
+     * instead of as wildcards.
+     */
+    private static String containsPattern(String value) {
+        if (value == null) {
+            return null;
+        }
+        String escaped = value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+        return "%" + escaped + "%";
+    }
 }
