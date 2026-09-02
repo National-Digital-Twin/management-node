@@ -30,9 +30,9 @@ class ProductDiscoveryDtoTest {
             Set<ConstraintViolation<ProductDiscoveryRequestDTO>> violations = validator.validate(dto);
             assertThat(violations).isEmpty();
         }
-        assertThat(dto.getName()).isNull();
-        assertThat(dto.getTopic()).isNull();
-        assertThat(dto.getType()).isNull();
+        assertThat(dto.name()).isNull();
+        assertThat(dto.topic()).isNull();
+        assertThat(dto.type()).isNull();
     }
 
     @Test
@@ -51,7 +51,7 @@ class ProductDiscoveryDtoTest {
     void responseDTO_defaultsToEmptyList_notNull() throws Exception {
         ProductDiscoveryResponseDTO dto = ProductDiscoveryResponseDTO.builder().build();
 
-        assertThat(dto.getProducts()).isNotNull().isEmpty();
+        assertThat(dto.products()).isNotNull().isEmpty();
 
         String json = objectMapper.writeValueAsString(dto);
         assertThat(json).contains("\"products\":[]");

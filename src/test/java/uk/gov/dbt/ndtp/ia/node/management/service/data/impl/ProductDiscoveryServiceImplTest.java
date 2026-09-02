@@ -107,7 +107,7 @@ class ProductDiscoveryServiceImplTest {
         ProductDiscoveryResponseDTO result =
                 productDiscoveryService.discover("client-1", "org-1", "Alpha", "topic-1", "TypeA");
 
-        assertThat(result.getProducts()).containsExactly(allowedProduct);
+        assertThat(result.products()).containsExactly(allowedProduct);
     }
 
     @Test
@@ -116,7 +116,7 @@ class ProductDiscoveryServiceImplTest {
 
         ProductDiscoveryResponseDTO result = productDiscoveryService.discover("client-1", "org-1", null, null, null);
 
-        assertThat(result.getProducts()).isEmpty();
+        assertThat(result.products()).isEmpty();
     }
 
     private PolicyInput argThatResource(String resource) {

@@ -8,11 +8,7 @@ package uk.gov.dbt.ndtp.ia.node.management.model.dto;
 
 import java.util.ArrayList;
 import java.util.List;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 /**
  * Response for {@code POST /v1/product/discovery}: the products the requester is authorised
@@ -20,12 +16,8 @@ import lombok.Setter;
  * null) when no products are authorised or none match the search criteria.
  */
 @Builder
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class ProductDiscoveryResponseDTO {
-
-    @Builder.Default
-    private List<ProductDTO> products = new ArrayList<>();
+public record ProductDiscoveryResponseDTO(List<ProductDTO> products) {
+    public ProductDiscoveryResponseDTO {
+        products = products != null ? products : new ArrayList<>();
+    }
 }

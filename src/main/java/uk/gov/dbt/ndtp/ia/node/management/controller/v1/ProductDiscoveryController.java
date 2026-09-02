@@ -74,15 +74,15 @@ public class ProductDiscoveryController {
                 "Product discovery request clientId={} organisation={} name={} topic={} type={}",
                 principal.clientId(),
                 organisation,
-                effectiveCriteria.getName(),
-                effectiveCriteria.getTopic(),
-                effectiveCriteria.getType());
+                effectiveCriteria.name(),
+                effectiveCriteria.topic(),
+                effectiveCriteria.type());
 
         return productDiscoveryService.discover(
                 principal.clientId(),
                 organisation,
-                effectiveCriteria.getName(),
-                effectiveCriteria.getTopic(),
-                effectiveCriteria.getType());
+                effectiveCriteria.name(),
+                effectiveCriteria.topic(),
+                effectiveCriteria.type());
     }
 }

@@ -7,11 +7,7 @@
 package uk.gov.dbt.ndtp.ia.node.management.model.dto;
 
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 /**
  * Search criteria for {@code POST /v1/product/discovery}. All fields are optional; an
@@ -19,18 +15,5 @@ import lombok.Setter;
  * products the requester is authorised to discover - they cannot widen it.
  */
 @Builder
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class ProductDiscoveryRequestDTO {
-
-    @Size(max = 50)
-    private String name;
-
-    @Size(max = 150)
-    private String topic;
-
-    @Size(max = 255)
-    private String type;
-}
+public record ProductDiscoveryRequestDTO(
+        @Size(max = 50) String name, @Size(max = 150) String topic, @Size(max = 255) String type) {}
