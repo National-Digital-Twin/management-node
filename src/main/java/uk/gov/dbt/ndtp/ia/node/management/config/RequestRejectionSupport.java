@@ -19,9 +19,11 @@ import uk.gov.dbt.ndtp.ia.node.management.model.jwt.EnhancedPrincipal;
 /**
  * Shared request-rejection behaviour for {@code HandlerInterceptor}s that gate access
  * on the authenticated client: resolving the client id from the security context and
- * writing a JSON {@link ErrorResponse} for a rejected request.
+ * writing a JSON {@link ErrorResponse} for a rejected request. {@link #getOrganisationId}
+ * is also read by controllers (e.g. product discovery) that need the organisation
+ * {@link CertificateValidationInterceptor} resolved for the current request.
  */
-final class RequestRejectionSupport {
+public final class RequestRejectionSupport {
 
     private static final String ORGANISATION_ID_ATTRIBUTE = "ndtp.organisationId";
 
@@ -31,7 +33,7 @@ final class RequestRejectionSupport {
         request.setAttribute(ORGANISATION_ID_ATTRIBUTE, organisationId);
     }
 
-    static String getOrganisationId(HttpServletRequest request) {
+    public static String getOrganisationId(HttpServletRequest request) {
         Object value = request.getAttribute(ORGANISATION_ID_ATTRIBUTE);
         return value == null ? null : String.valueOf(value);
     }
