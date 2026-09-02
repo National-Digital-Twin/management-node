@@ -10,12 +10,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Product;
@@ -30,7 +32,7 @@ import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Product;
 class ProductRepositoryTest {
 
     private final ProductRepository productRepository =
-            Mockito.mock(ProductRepository.class, Mockito.withSettings().defaultAnswer(Mockito.CALLS_REAL_METHODS));
+            mock(ProductRepository.class, withSettings().defaultAnswer(CALLS_REAL_METHODS));
 
     @Test
     void findDiscoveryCandidates_escapesPercentAndUnderscoreInNameAndTopic() {
@@ -40,8 +42,7 @@ class ProductRepositoryTest {
 
         productRepository.findDiscoveryCandidates("Data_Feed", "topic%1", "TypeA", pageable);
 
-        verify(productRepository)
-                .findDiscoveryCandidatesByPattern(eq("%Data\\_Feed%"), eq("%topic\\%1%"), eq("TypeA"), eq(pageable));
+        verify(productRepository).findDiscoveryCandidatesByPattern("%Data\\_Feed%", "%topic\\%1%", "TypeA", pageable);
     }
 
     @Test
