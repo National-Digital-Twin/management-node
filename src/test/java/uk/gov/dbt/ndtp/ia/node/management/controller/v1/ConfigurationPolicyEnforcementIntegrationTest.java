@@ -26,6 +26,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import uk.gov.dbt.ndtp.ia.node.management.config.PolicyEnforcementInterceptor;
+import uk.gov.dbt.ndtp.ia.node.management.filter.FilterRequestParser;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.ConsumerConfigDTO;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.ProducerConfigDTO;
 import uk.gov.dbt.ndtp.ia.node.management.model.jwt.EnhancedPrincipal;
@@ -51,7 +52,8 @@ class ConfigurationPolicyEnforcementIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        ConfigurationController controller = new ConfigurationController(configurationProvider);
+        ConfigurationController controller =
+                new ConfigurationController(configurationProvider, new FilterRequestParser(new ObjectMapper()));
         PolicyEnforcementInterceptor interceptor =
                 new PolicyEnforcementInterceptor(policyDecisionClient, new ObjectMapper());
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
@@ -77,7 +79,7 @@ class ConfigurationPolicyEnforcementIntegrationTest {
     void allowedRequest_reachesControllerAndReturnsConfig() throws Exception {
         authenticateAs("client-1");
         when(policyDecisionClient.evaluate(any())).thenReturn(PolicyDecision.ALLOW);
-        when(configurationProvider.getProducerConfigByClientId(any(), any()))
+        when(configurationProvider.getProducerConfigByClientId(any(), any(), any()))
                 .thenReturn(ProducerConfigDTO.builder()
                         .clientId("client-1")
                         .producers(Collections.emptyList())
@@ -87,7 +89,7 @@ class ConfigurationPolicyEnforcementIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.clientId").value("client-1"));
 
-        verify(configurationProvider).getProducerConfigByClientId(any(), any());
+        verify(configurationProvider).getProducerConfigByClientId(any(), any(), any());
     }
 
     @Test
@@ -114,7 +116,7 @@ class ConfigurationPolicyEnforcementIntegrationTest {
     void allowedRequest_onConsumerEndpoint_reachesControllerAndReturnsConfig() throws Exception {
         authenticateAs("client-1");
         when(policyDecisionClient.evaluate(any())).thenReturn(PolicyDecision.ALLOW);
-        when(configurationProvider.getConsumerConfigByClientId(any(), any()))
+        when(configurationProvider.getConsumerConfigByClientId(any(), any(), any()))
                 .thenReturn(ConsumerConfigDTO.builder()
                         .clientId("client-1")
                         .producers(Collections.emptyList())
@@ -124,7 +126,7 @@ class ConfigurationPolicyEnforcementIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.clientId").value("client-1"));
 
-        verify(configurationProvider).getConsumerConfigByClientId(any(), any());
+        verify(configurationProvider).getConsumerConfigByClientId(any(), any(), any());
     }
 
     @Test
