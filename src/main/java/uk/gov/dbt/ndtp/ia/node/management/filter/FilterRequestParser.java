@@ -57,7 +57,6 @@ public class FilterRequestParser {
     private static int countComparisons(FilterNode node) {
         return switch (node) {
             case FilterNode.Comparison ignored -> 1;
-            case FilterNode.Literal ignored -> 0;
             case FilterNode.Group group ->
                 group.nodes().stream()
                         .mapToInt(FilterRequestParser::countComparisons)

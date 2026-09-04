@@ -8,6 +8,7 @@ package uk.gov.dbt.ndtp.ia.node.management.filter.compiler;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
@@ -15,6 +16,7 @@ import jakarta.persistence.criteria.Subquery;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import org.hibernate.query.criteria.HibernateCriteriaBuilder;
 import org.hibernate.query.criteria.JpaExpression;
 import org.springframework.data.jpa.domain.Specification;
@@ -54,7 +56,6 @@ public class SpecificationPredicateCompiler {
         return switch (node) {
             case FilterNode.Group group -> groupPredicate(group, resourceType, root, query, cb);
             case FilterNode.Comparison comparison -> comparisonPredicate(comparison, resourceType, root, query, cb);
-            case FilterNode.Literal literal -> literal.value() ? cb.conjunction() : cb.disjunction();
         };
     }
 
@@ -131,7 +132,7 @@ public class SpecificationPredicateCompiler {
             Root<?> root,
             CriteriaBuilder cb) {
         Path<?> path = resolvePath(root, fixed.jpaPath());
-        return buildComparison(cb, path, fixed.type(), operator, values);
+        return buildComparison(cb, path, operator, values);
     }
 
     private static Path<?> resolvePath(Root<?> root, String dottedPath) {
@@ -170,7 +171,7 @@ public class SpecificationPredicateCompiler {
                 attributeValue.get("attributeDefinitionScope").get("id"), dynamic.attributeDefinitionScopeId()));
         conditions.add(cb.equal(attributeValue.get("entityId"), root.get("id")));
         conditions.add(cb.isFalse(attributeValue.get("isDeleted")));
-        conditions.add(buildComparison(cb, castExpression, dynamic.type(), operator, values));
+        conditions.add(buildComparison(cb, castExpression, operator, values));
 
         subquery.where(cb.and(conditions.toArray(new Predicate[0])));
         return cb.exists(subquery);
@@ -198,39 +199,24 @@ public class SpecificationPredicateCompiler {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static Predicate buildComparison(
-            CriteriaBuilder cb,
-            jakarta.persistence.criteria.Expression<?> expression,
-            AttributeType type,
-            ComparisonOperator operator,
-            List<Object> values) {
+            CriteriaBuilder cb, Expression<?> expression, ComparisonOperator operator, List<Object> values) {
         return switch (operator) {
             case EQ -> cb.equal(expression, values.get(0));
             case NEQ -> cb.notEqual(expression, values.get(0));
-            case IN -> ((jakarta.persistence.criteria.Expression) expression).in(values);
-            case NOT_IN -> cb.not(((jakarta.persistence.criteria.Expression) expression).in(values));
-            case LT ->
-                cb.lessThan(
-                        (jakarta.persistence.criteria.Expression<Comparable>) expression, (Comparable) values.get(0));
-            case LTE ->
-                cb.lessThanOrEqualTo(
-                        (jakarta.persistence.criteria.Expression<Comparable>) expression, (Comparable) values.get(0));
-            case GT ->
-                cb.greaterThan(
-                        (jakarta.persistence.criteria.Expression<Comparable>) expression, (Comparable) values.get(0));
-            case GTE ->
-                cb.greaterThanOrEqualTo(
-                        (jakarta.persistence.criteria.Expression<Comparable>) expression, (Comparable) values.get(0));
-            case CONTAINS ->
-                containsPredicate(
-                        cb, (jakarta.persistence.criteria.Expression<String>) expression, (String) values.get(0));
+            case IN -> ((Expression) expression).in(values);
+            case NOT_IN -> cb.not(((Expression) expression).in(values));
+            case LT -> cb.lessThan((Expression<Comparable>) expression, (Comparable) values.get(0));
+            case LTE -> cb.lessThanOrEqualTo((Expression<Comparable>) expression, (Comparable) values.get(0));
+            case GT -> cb.greaterThan((Expression<Comparable>) expression, (Comparable) values.get(0));
+            case GTE -> cb.greaterThanOrEqualTo((Expression<Comparable>) expression, (Comparable) values.get(0));
+            case CONTAINS -> containsPredicate(cb, (Expression<String>) expression, (String) values.get(0));
         };
     }
 
     private static final char LIKE_ESCAPE = '\\';
 
-    private static Predicate containsPredicate(
-            CriteriaBuilder cb, jakarta.persistence.criteria.Expression<String> expression, String needle) {
+    private static Predicate containsPredicate(CriteriaBuilder cb, Expression<String> expression, String needle) {
         String escaped = needle.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
-        return cb.like(cb.lower(expression), "%" + escaped.toLowerCase(java.util.Locale.ROOT) + "%", LIKE_ESCAPE);
+        return cb.like(cb.lower(expression), "%" + escaped.toLowerCase(Locale.ROOT) + "%", LIKE_ESCAPE);
     }
 }

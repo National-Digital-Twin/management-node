@@ -22,8 +22,7 @@ import java.util.List;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({
     @JsonSubTypes.Type(value = FilterNode.Group.class, name = "group"),
-    @JsonSubTypes.Type(value = FilterNode.Comparison.class, name = "comparison"),
-    @JsonSubTypes.Type(value = FilterNode.Literal.class, name = "literal")
+    @JsonSubTypes.Type(value = FilterNode.Comparison.class, name = "comparison")
 })
 public sealed interface FilterNode {
 
@@ -66,11 +65,5 @@ public sealed interface FilterNode {
         public static Comparison of(String attribute, ComparisonOperator operator, Object... values) {
             return new Comparison(attribute, operator, List.of(values));
         }
-    }
-
-    /** A constant predicate. Not emitted by anything in this change; kept for structural parity. */
-    record Literal(boolean value) implements FilterNode {
-        public static final Literal DENY_ALL = new Literal(false);
-        public static final Literal ALLOW_ALL = new Literal(true);
     }
 }
