@@ -136,6 +136,89 @@ class SpecificationPredicateCompilerTest extends AbstractPostgresRepositoryTest 
         assertThat(execute(spec)).extracting(Producer::getId).containsExactly(active.getId());
     }
 
+    @Test
+    void fixedAttributeNeq_matchesOnlyNonMatchingRow() {
+        Organisation org = persistOrganisation("org-neq");
+        Producer active = persistProducer(org, "active-producer-neq", true);
+        persistProducer(org, "inactive-producer-neq", false);
+        entityManager.flush();
+
+        Specification<Producer> spec = compiler()
+                .compile(ResourceType.PRODUCER, FilterNode.Comparison.of("active", ComparisonOperator.NEQ, false));
+
+        assertThat(execute(spec)).extracting(Producer::getId).containsExactly(active.getId());
+    }
+
+    @Test
+    void fixedAttributeIn_matchesAnyListedId() {
+        Organisation org = persistOrganisation("org-in");
+        Producer first = persistProducer(org, "in-producer-1", true);
+        Producer second = persistProducer(org, "in-producer-2", true);
+        persistProducer(org, "in-producer-3", true);
+        entityManager.flush();
+
+        Specification<Producer> spec = compiler()
+                .compile(
+                        ResourceType.PRODUCER,
+                        new FilterNode.Comparison("id", ComparisonOperator.IN, List.of(first.getId(), second.getId())));
+
+        assertThat(execute(spec)).extracting(Producer::getId).containsExactlyInAnyOrder(first.getId(), second.getId());
+    }
+
+    @Test
+    void fixedAttributeNotIn_excludesListedIds() {
+        Organisation org = persistOrganisation("org-not-in");
+        Producer excluded = persistProducer(org, "not-in-producer-1", true);
+        Producer kept = persistProducer(org, "not-in-producer-2", true);
+        entityManager.flush();
+
+        Specification<Producer> spec = compiler()
+                .compile(
+                        ResourceType.PRODUCER,
+                        new FilterNode.Comparison("id", ComparisonOperator.NOT_IN, List.of(excluded.getId())));
+
+        assertThat(execute(spec))
+                .extracting(Producer::getId)
+                .contains(kept.getId())
+                .doesNotContain(excluded.getId());
+    }
+
+    @Test
+    void fixedAttributeRangeOperators_compareDecimalColumn() {
+        Organisation org = persistOrganisation("org-range");
+        Producer low = persistProducer(org, "range-producer-low", true);
+        low.setPort(BigDecimal.valueOf(100));
+        Producer high = persistProducer(org, "range-producer-high", true);
+        high.setPort(BigDecimal.valueOf(900));
+        entityManager.flush();
+
+        assertThat(execute(compiler()
+                        .compile(ResourceType.PRODUCER, FilterNode.Comparison.of("port", ComparisonOperator.LT, 500))))
+                .extracting(Producer::getId)
+                .containsExactly(low.getId());
+        assertThat(execute(compiler()
+                        .compile(ResourceType.PRODUCER, FilterNode.Comparison.of("port", ComparisonOperator.LTE, 100))))
+                .extracting(Producer::getId)
+                .containsExactly(low.getId());
+        assertThat(execute(compiler()
+                        .compile(ResourceType.PRODUCER, FilterNode.Comparison.of("port", ComparisonOperator.GTE, 900))))
+                .extracting(Producer::getId)
+                .containsExactly(high.getId());
+    }
+
+    @Test
+    void fixedAttributeContains_matchesCaseInsensitiveSubstring() {
+        Organisation org = persistOrganisation("org-contains");
+        Producer matching = persistProducer(org, "alpha-producer", true);
+        persistProducer(org, "beta-producer", true);
+        entityManager.flush();
+
+        Specification<Producer> spec = compiler()
+                .compile(ResourceType.PRODUCER, FilterNode.Comparison.of("name", ComparisonOperator.CONTAINS, "ALPHA"));
+
+        assertThat(execute(spec)).extracting(Producer::getId).containsExactly(matching.getId());
+    }
+
     // 3.2 dynamic attribute EXISTS subquery
 
     @Test

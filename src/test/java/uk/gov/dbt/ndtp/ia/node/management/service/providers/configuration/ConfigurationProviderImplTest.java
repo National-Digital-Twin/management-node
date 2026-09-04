@@ -31,6 +31,7 @@ import uk.gov.dbt.ndtp.ia.node.management.filter.FilterNode;
 import uk.gov.dbt.ndtp.ia.node.management.filter.compiler.SpecificationPredicateCompiler;
 import uk.gov.dbt.ndtp.ia.node.management.filter.registry.ResourceType;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.*;
+import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Consumer;
 import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Producer;
 import uk.gov.dbt.ndtp.ia.node.management.service.data.ConsumerService;
 import uk.gov.dbt.ndtp.ia.node.management.service.data.ProducerService;
@@ -434,5 +435,20 @@ class ConfigurationProviderImplTest {
 
         verify(consumerService).findByIdpClientId(clientId);
         verify(consumerService, never()).findByIdpClientId(eq(clientId), any());
+    }
+
+    @Test
+    void getConsumerConfigByClientId_withFilter_usesSpecificationOverload_notPreExistingMethod() {
+        String clientId = "routing-client-5";
+        when(consumerService.findByIdpClientId(eq(clientId), any())).thenReturn(List.of());
+        FilterNode.Comparison filter = FilterNode.Comparison.of("name", ComparisonOperator.EQ, "c1");
+        Specification<Consumer> compiledSpec = mock(Specification.class);
+        when(specificationPredicateCompiler.<Consumer>compile(ResourceType.CONSUMER, filter))
+                .thenReturn(compiledSpec);
+
+        configurationProvider.getConsumerConfigByClientId(clientId, Optional.empty(), Optional.of(filter));
+
+        verify(consumerService).findByIdpClientId(eq(clientId), any());
+        verify(consumerService, never()).findByIdpClientId(clientId);
     }
 }
