@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.Collections;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +24,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import uk.gov.dbt.ndtp.ia.node.management.exception.handlers.GlobalExceptionHandler;
+import uk.gov.dbt.ndtp.ia.node.management.filter.FilterRequestParser;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.ConsumerConfigDTO;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.ProducerConfigDTO;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.ProducerDTO;
@@ -36,6 +39,9 @@ class ConfigurationControllerTest {
     @Mock
     private ConfigurationProvider configurationProvider;
 
+    @Mock
+    private FilterRequestParser filterRequestParser;
+
     @InjectMocks
     private ConfigurationController configurationController;
 
@@ -46,9 +52,15 @@ class ConfigurationControllerTest {
     private ProducerConfigDTO producerConfigDTO;
     private ConsumerConfigDTO consumerConfigDTO;
 
+    private MockMvc mockMvcWithRealFilterParsing;
+
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(configurationController).build();
+        mockMvcWithRealFilterParsing = MockMvcBuilders.standaloneSetup(
+                        new ConfigurationController(configurationProvider, new FilterRequestParser(new ObjectMapper())))
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
 
         // Set up producer config
         ProducerDTO producerDTO = ProducerDTO.builder()
@@ -81,7 +93,8 @@ class ConfigurationControllerTest {
     @Test
     void getProducerConfigurations_shouldReturnConfig() throws Exception {
         // Arrange
-        when(configurationProvider.getProducerConfigByClientId(any(), any())).thenReturn(producerConfigDTO);
+        when(configurationProvider.getProducerConfigByClientId(any(), any(), any()))
+                .thenReturn(producerConfigDTO);
 
         // Act & Assert
         mockMvc.perform(get("/api/v1/configuration/producer").contentType(MediaType.APPLICATION_JSON))
@@ -92,7 +105,8 @@ class ConfigurationControllerTest {
     @Test
     void getProducerConfigurations_withProducerId_shouldReturnFilteredConfig() throws Exception {
         // Arrange
-        when(configurationProvider.getProducerConfigByClientId(any(), any())).thenReturn(producerConfigDTO);
+        when(configurationProvider.getProducerConfigByClientId(any(), any(), any()))
+                .thenReturn(producerConfigDTO);
 
         // Act & Assert
         mockMvc.perform(get("/api/v1/configuration/producer")
@@ -105,7 +119,8 @@ class ConfigurationControllerTest {
     @Test
     void getConsumerConfigurations_shouldReturnConfig() throws Exception {
         // Arrange
-        when(configurationProvider.getConsumerConfigByClientId(any(), any())).thenReturn(consumerConfigDTO);
+        when(configurationProvider.getConsumerConfigByClientId(any(), any(), any()))
+                .thenReturn(consumerConfigDTO);
 
         // Act & Assert
         mockMvc.perform(get("/api/v1/configuration/consumer").contentType(MediaType.APPLICATION_JSON))
@@ -116,12 +131,57 @@ class ConfigurationControllerTest {
     @Test
     void getConsumerConfigurations_withConsumerId_shouldReturnFilteredConfig() throws Exception {
         // Arrange
-        when(configurationProvider.getConsumerConfigByClientId(any(), any())).thenReturn(consumerConfigDTO);
+        when(configurationProvider.getConsumerConfigByClientId(any(), any(), any()))
+                .thenReturn(consumerConfigDTO);
 
         // Act & Assert
         mockMvc.perform(get("/api/v1/configuration/consumer")
                         .param("consumer_id", consumerId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.clientId").value(clientId));
+    }
+
+    @Test
+    void getProducerConfigurations_withMalformedFilter_returnsBadRequest() throws Exception {
+        mockMvcWithRealFilterParsing
+                .perform(get("/api/v1/configuration/producer")
+                        .param("filter", "{ not valid json")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getProducerConfigurations_withValidFilter_reachesProviderAndReturnsConfig() throws Exception {
+        when(configurationProvider.getProducerConfigByClientId(any(), any(), any()))
+                .thenReturn(producerConfigDTO);
+
+        mockMvcWithRealFilterParsing
+                .perform(get("/api/v1/configuration/producer")
+                        .param(
+                                "filter",
+                                "{\"type\":\"comparison\",\"attribute\":\"active\",\"operator\":\"eq\",\"values\":[true]}")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.clientId").value(clientId));
+    }
+
+    @Test
+    void getConsumerConfigurations_withMalformedFilter_returnsBadRequest() throws Exception {
+        mockMvcWithRealFilterParsing
+                .perform(get("/api/v1/configuration/consumer")
+                        .param("filter", "{ not valid json")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getConsumerConfigurations_withNoFilter_behavesLikeBeforeThisChange() throws Exception {
+        when(configurationProvider.getConsumerConfigByClientId(any(), any(), any()))
+                .thenReturn(consumerConfigDTO);
+
+        mockMvcWithRealFilterParsing
+                .perform(get("/api/v1/configuration/consumer").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.clientId").value(clientId));
     }

@@ -25,6 +25,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import uk.gov.dbt.ndtp.ia.node.management.filter.compiler.SpecificationPredicateCompiler;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.*;
 import uk.gov.dbt.ndtp.ia.node.management.service.data.ConsumerService;
 import uk.gov.dbt.ndtp.ia.node.management.service.data.ProducerService;
@@ -45,6 +46,9 @@ class ConfigurationProviderImplTest {
     @Mock
     private CertificateValidationProvider certificateValidationProvider;
 
+    @Mock
+    private SpecificationPredicateCompiler specificationPredicateCompiler;
+
     @InjectMocks
     private ConfigurationProviderImpl configurationProvider;
 
@@ -52,7 +56,11 @@ class ConfigurationProviderImplTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         configurationProvider = new ConfigurationProviderImpl(
-                consumerService, productConsumerService, producerService, certificateValidationProvider);
+                consumerService,
+                productConsumerService,
+                producerService,
+                certificateValidationProvider,
+                specificationPredicateCompiler);
         // Default: treat all orgs as having active certificates, override in specific
         // tests to simulate inactive/missing certs.
         when(certificateValidationProvider.findActiveOrganisationIds(any())).thenAnswer(invocation -> {
@@ -111,7 +119,7 @@ class ConfigurationProviderImplTest {
     void getConsumerConfigByClientId_filtersInactiveProducers_andProductsByValidIds_andSetsConfigs() {
         String clientId = "clientA";
         ConsumerDTO c1 = consumer(1L, clientId, "c1", "CRON", "@hourly");
-        when(consumerService.findByIdpClientId(clientId)).thenReturn(List.of(c1));
+        when(consumerService.findByIdpClientId(eq(clientId), any())).thenReturn(List.of(c1));
 
         // Valid configs for product 100 only (null validity treated as valid)
         ProductConsumerDTO pc1 = productConsumer(100L, 1L, null, null);
@@ -141,7 +149,7 @@ class ConfigurationProviderImplTest {
     void getConsumerConfigByClientId_whenNoValidProducts_clearsAllProducerProducts() {
         String clientId = "clientB";
         ConsumerDTO c1 = consumer(2L, clientId, "c2", "FIXED", "PT10M");
-        when(consumerService.findByIdpClientId(clientId)).thenReturn(List.of(c1));
+        when(consumerService.findByIdpClientId(eq(clientId), any())).thenReturn(List.of(c1));
 
         // No valid product-consumers returned
         when(productConsumerService.findByConsumerId(2L)).thenReturn(List.of());
@@ -159,8 +167,10 @@ class ConfigurationProviderImplTest {
     void getConsumerConfigByClientId_withConsumerIdFilter_appliesFilter_andRemovesNullProductIds() {
         String clientId = "clientC";
         ConsumerDTO c1 = consumer(3L, clientId, "c3", "CRON", "@daily");
-        ConsumerDTO cOther = consumer(99L, clientId, "other", "CRON", "@minutely");
-        when(consumerService.findByIdpClientId(clientId)).thenReturn(List.of(c1, cOther));
+        // The consumer_id narrowing now happens inside the Specification passed to
+        // consumerService, so this mock simulates what the database-level id predicate would
+        // return (only c1) rather than an unfiltered list a mock can't itself filter.
+        when(consumerService.findByIdpClientId(eq(clientId), any())).thenReturn(List.of(c1));
 
         ProductConsumerDTO pc = productConsumer(300L, 3L, null, null);
         when(productConsumerService.findByConsumerId(3L)).thenReturn(List.of(pc));
@@ -189,7 +199,7 @@ class ConfigurationProviderImplTest {
         ProducerDTO active = producer(91L, true, pr1, pr2);
         ProducerDTO inactive = producer(92L, false, product(902L, "prov3"));
 
-        when(producerService.getProducersByClientId(clientId)).thenReturn(List.of(active, inactive));
+        when(producerService.getProducersByClientId(eq(clientId), any())).thenReturn(List.of(active, inactive));
 
         // product ids should be collected and passed to consumerService.getConsumersOfProviders
         when(consumerService.getConsumersOfProviders(any())).thenReturn(Map.of());
@@ -225,7 +235,7 @@ class ConfigurationProviderImplTest {
     @Test
     void getProducerConfigByClientId_whenNoProducersFound_returnsEmptyConfig() {
         String clientId = "nonExistentClient";
-        when(producerService.getProducersByClientId(clientId)).thenReturn(List.of());
+        when(producerService.getProducersByClientId(eq(clientId), any())).thenReturn(List.of());
 
         ProducerConfigDTO cfg = configurationProvider.getProducerConfigByClientId(clientId, Optional.empty());
 
@@ -237,7 +247,7 @@ class ConfigurationProviderImplTest {
     @Test
     void getConsumerConfigByClientId_whenNoConsumersFound_returnsEmptyConfig() {
         String clientId = "nonExistentClient";
-        when(consumerService.findByIdpClientId(clientId)).thenReturn(List.of());
+        when(consumerService.findByIdpClientId(eq(clientId), any())).thenReturn(List.of());
 
         ConsumerConfigDTO cfg = configurationProvider.getConsumerConfigByClientId(clientId, Optional.empty());
 
@@ -254,7 +264,7 @@ class ConfigurationProviderImplTest {
         String clientId = "producerClient";
         ProductDTO p1 = product(100L, "p1");
         ProducerDTO pr1 = producer(1L, true, p1);
-        when(producerService.getProducersByClientId(clientId)).thenReturn(List.of(pr1));
+        when(producerService.getProducersByClientId(eq(clientId), any())).thenReturn(List.of(pr1));
 
         // Consumer with valid validity
         ProductConsumerDTO pc1 =
@@ -272,8 +282,12 @@ class ConfigurationProviderImplTest {
     void getConsumerConfigByClientId_withConsumerId_filtersByConsumerId() {
         String clientId = "clientA";
         ConsumerDTO c1 = consumer(1L, clientId, "c1", "CRON", "@hourly");
-        ConsumerDTO c2 = consumer(2L, clientId, "c2", "CRON", "@daily");
-        when(consumerService.findByIdpClientId(clientId)).thenReturn(List.of(c1, c2));
+
+        // The consumer_id narrowing now happens inside the Specification passed to
+        // consumerService, not as a Java-side filter here - so this mock simulates what the
+        // database-level id predicate would return; the predicate itself is covered by
+        // SpecificationPredicateCompilerTest and ProducerConsumerSpecificationRepositoryTest.
+        when(consumerService.findByIdpClientId(eq(clientId), any())).thenReturn(List.of(c1));
 
         ConsumerConfigDTO cfg = configurationProvider.getConsumerConfigByClientId(clientId, Optional.of(1L));
 
@@ -284,11 +298,13 @@ class ConfigurationProviderImplTest {
     void getProducerConfigByClientId_withProducerId_filtersByProducerId() {
         String clientId = "producerClient";
         ProductDTO p1 = product(100L, "p1");
-        ProductDTO p2 = product(101L, "p2");
         ProducerDTO pr1 = producer(1L, true, p1);
-        ProducerDTO pr2 = producer(2L, true, p2);
 
-        when(producerService.getProducersByClientId(clientId)).thenReturn(List.of(pr1, pr2));
+        // The producer_id narrowing now happens inside the Specification passed to
+        // producerService, not as a Java-side filter here - so this mock simulates what the
+        // database-level id predicate would return; the predicate itself is covered by
+        // SpecificationPredicateCompilerTest and ProducerConsumerSpecificationRepositoryTest.
+        when(producerService.getProducersByClientId(eq(clientId), any())).thenReturn(List.of(pr1));
 
         ProducerConfigDTO cfg = configurationProvider.getProducerConfigByClientId(clientId, Optional.of(1L));
 
@@ -301,7 +317,7 @@ class ConfigurationProviderImplTest {
         String clientId = "producerClient";
         ProductDTO p1 = product(100L, "p1");
         ProducerDTO pr1 = producer(1L, true, p1);
-        when(producerService.getProducersByClientId(clientId)).thenReturn(List.of(pr1));
+        when(producerService.getProducersByClientId(eq(clientId), any())).thenReturn(List.of(pr1));
 
         // Consumer with expired validity
         ProductConsumerDTO pc1 =
@@ -318,7 +334,7 @@ class ConfigurationProviderImplTest {
     void getConsumerConfig_filtersOutProducersWithInactiveCerts() {
         String clientId = "clientA";
         ConsumerDTO c1 = consumer(1L, clientId, "c1", "CRON", "@hourly");
-        when(consumerService.findByIdpClientId(clientId)).thenReturn(List.of(c1));
+        when(consumerService.findByIdpClientId(eq(clientId), any())).thenReturn(List.of(c1));
 
         ProductConsumerDTO pc = productConsumer(100L, 1L, null, null);
         when(productConsumerService.findByConsumerId(1L)).thenReturn(List.of(pc));
@@ -345,7 +361,7 @@ class ConfigurationProviderImplTest {
         String clientId = "clientP";
         ProductDTO p1 = product(900L, "prov1");
         ProducerDTO pr1 = producer(91L, true, p1);
-        when(producerService.getProducersByClientId(clientId)).thenReturn(List.of(pr1));
+        when(producerService.getProducersByClientId(eq(clientId), any())).thenReturn(List.of(pr1));
         when(consumerService.getConsumersOfProviders(any())).thenReturn(Map.of());
 
         ProductConsumerDTO cp1 = productConsumer(900L, 501L, null, null);
