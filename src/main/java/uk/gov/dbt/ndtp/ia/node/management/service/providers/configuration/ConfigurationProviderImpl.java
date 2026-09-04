@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uk.gov.dbt.ndtp.ia.node.management.filter.FilterNode;
+import uk.gov.dbt.ndtp.ia.node.management.filter.Specifications;
 import uk.gov.dbt.ndtp.ia.node.management.filter.compiler.SpecificationPredicateCompiler;
 import uk.gov.dbt.ndtp.ia.node.management.filter.registry.ResourceType;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.*;
@@ -182,9 +183,14 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
     }
 
     /**
-     * Filters consumers by client ID, optional consumer ID, and an optional caller filter -
-     * both narrowing conditions are pushed to the database as a single {@link Specification}
-     * rather than fetched then narrowed in Java.
+     * Filters consumers by client ID, optional consumer ID, and an optional caller filter.
+     *
+     * <p>When no caller {@code filter} is supplied, this deliberately keeps calling the
+     * pre-existing unfiltered {@code consumerService.findByIdpClientId(clientId)} path (with
+     * {@code consumerId} narrowed in Java, exactly as before this change) rather than the new
+     * {@link Specification}-based overload - see {@link #getFilteredActiveProducers} for why
+     * this matters: the two paths are not equivalent once a fetch-joined to-many association is
+     * involved, and the "no filter" case must stay byte-identical to pre-existing behaviour.
      *
      * @param clientId the client ID
      * @param consumerId the optional consumer ID
@@ -193,14 +199,34 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
      */
     private List<ConsumerDTO> getFilteredConsumers(
             String clientId, Optional<Long> consumerId, Optional<FilterNode> filter) {
+        if (filter.isEmpty()) {
+            List<ConsumerDTO> consumers = consumerService.findByIdpClientId(clientId);
+            if (consumerId.isPresent()) {
+                consumers = consumers.stream()
+                        .filter(consumer -> consumer.getId().equals(consumerId.get()))
+                        .toList();
+            }
+            return consumers;
+        }
         Specification<Consumer> idAndFilterSpec = idAndFilterSpecification(consumerId, filter, ResourceType.CONSUMER);
         return consumerService.findByIdpClientId(clientId, idAndFilterSpec);
     }
 
     /**
-     * Filters active producers by client ID, optional producer ID, and an optional caller
-     * filter - id/filter narrowing is pushed to the database as a single {@link Specification};
-     * the {@code active} business rule stays a post-fetch Java filter, unchanged from before.
+     * Filters active producers by client ID, optional producer ID, and an optional caller filter.
+     *
+     * <p>When no caller {@code filter} is supplied, this deliberately keeps calling the
+     * pre-existing unfiltered {@code producerService.getProducersByClientId(clientId)} path
+     * (with {@code producerId} narrowed in Java, exactly as before this change) rather than the
+     * new {@link Specification}-based overload. The two are NOT equivalent: the pre-existing
+     * repository query fetch-joins {@code products}/{@code productType} with {@code JOIN FETCH}
+     * (an implicit inner join, silently excluding a producer with zero products or a product
+     * with no {@code productType}), while the new {@code @EntityGraph}-based overload fetches
+     * the same associations via an outer join and would start including those producers - a
+     * real behaviour change for every caller, not just ones using the new filter. Routing
+     * through the pre-existing path whenever {@code filter} is absent keeps that case
+     * byte-identical to before this change, confining the new join semantics to genuinely new
+     * filter usage.
      *
      * @param clientId the client ID
      * @param producerId the optional producer ID
@@ -209,6 +235,17 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
      */
     private List<ProducerDTO> getFilteredActiveProducers(
             String clientId, Optional<Long> producerId, Optional<FilterNode> filter) {
+        if (filter.isEmpty()) {
+            List<ProducerDTO> producers = producerService.getProducersByClientId(clientId).stream()
+                    .filter(ProducerDTO::getActive)
+                    .toList();
+            if (producerId.isPresent()) {
+                producers = producers.stream()
+                        .filter(producer -> producerId.get().equals(producer.getId()))
+                        .toList();
+            }
+            return producers;
+        }
         Specification<Producer> idAndFilterSpec = idAndFilterSpecification(producerId, filter, ResourceType.PRODUCER);
         return producerService.getProducersByClientId(clientId, idAndFilterSpec).stream()
                 .filter(ProducerDTO::getActive)
@@ -217,14 +254,14 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
 
     /**
      * Builds the id-equality predicate and/or the compiled caller-filter predicate, AND-ed
-     * together. Returns {@code null} (no additional restriction beyond client scoping, applied
-     * by the service layer) when neither is present - preserving pre-existing unfiltered
-     * behaviour.
+     * together. Only called once {@code filter} is known to be present (see the two callers
+     * above); returns just the id predicate, or {@code null}, if {@code id} is absent too - the
+     * service layer still applies client scoping in that case.
      */
     private <T> Specification<T> idAndFilterSpecification(
             Optional<Long> id, Optional<FilterNode> filter, ResourceType resourceType) {
-        Specification<T> spec = id.map(value -> (Specification<T>) (root, query, cb) -> cb.equal(root.get("id"), value))
-                .orElse(null);
+        Specification<T> spec =
+                id.map(value -> Specifications.<T>fieldEquals("id", value)).orElse(null);
         if (filter.isPresent()) {
             Specification<T> filterSpec = specificationPredicateCompiler.compile(resourceType, filter.get());
             spec = spec == null ? filterSpec : spec.and(filterSpec);

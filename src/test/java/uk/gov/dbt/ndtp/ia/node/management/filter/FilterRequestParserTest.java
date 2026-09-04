@@ -76,4 +76,71 @@ class FilterRequestParserTest {
 
         assertThat(parser.parse(json)).isPresent();
     }
+
+    // Regression tests for the null-validation gap fixed after code review: since this project
+    // has no Bean Validation provider on the classpath, readValue() never enforces the
+    // @NotNull/@NotBlank on the FilterNode records - a syntactically valid but semantically
+    // incomplete filter must be rejected with a proper 400-mapped FilterCompilationException,
+    // not left to throw an unhandled NullPointerException deeper in resolution/compilation.
+
+    @Test
+    void parse_rejectsBareJsonNullLiteral() {
+        assertThatThrownBy(() -> parser.parse("null"))
+                .isInstanceOf(FilterCompilationException.class)
+                .extracting(e -> ((FilterCompilationException) e).origin())
+                .isEqualTo(Origin.REQUEST);
+    }
+
+    @Test
+    void parse_rejectsComparisonMissingAttribute() {
+        String json =
+                """
+                { "type": "comparison", "operator": "eq", "values": [true] }
+                """;
+
+        assertThatThrownBy(() -> parser.parse(json))
+                .isInstanceOf(FilterCompilationException.class)
+                .extracting(e -> ((FilterCompilationException) e).origin())
+                .isEqualTo(Origin.REQUEST);
+    }
+
+    @Test
+    void parse_rejectsComparisonMissingOperator() {
+        String json =
+                """
+                { "type": "comparison", "attribute": "active", "values": [true] }
+                """;
+
+        assertThatThrownBy(() -> parser.parse(json))
+                .isInstanceOf(FilterCompilationException.class)
+                .extracting(e -> ((FilterCompilationException) e).origin())
+                .isEqualTo(Origin.REQUEST);
+    }
+
+    @Test
+    void parse_rejectsGroupMissingCombinator() {
+        String json =
+                """
+                { "type": "group", "nodes": [
+                    { "type": "comparison", "attribute": "active", "operator": "eq", "values": [true] }
+                ] }
+                """;
+
+        assertThatThrownBy(() -> parser.parse(json))
+                .isInstanceOf(FilterCompilationException.class)
+                .extracting(e -> ((FilterCompilationException) e).origin())
+                .isEqualTo(Origin.REQUEST);
+    }
+
+    @Test
+    void parse_rejectsGroupWithNullElementInNodes() {
+        String json = """
+                { "type": "group", "combinator": "and", "nodes": [null] }
+                """;
+
+        assertThatThrownBy(() -> parser.parse(json))
+                .isInstanceOf(FilterCompilationException.class)
+                .extracting(e -> ((FilterCompilationException) e).origin())
+                .isEqualTo(Origin.REQUEST);
+    }
 }

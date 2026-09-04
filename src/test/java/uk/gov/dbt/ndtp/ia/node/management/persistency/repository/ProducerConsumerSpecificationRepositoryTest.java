@@ -90,6 +90,39 @@ class ProducerConsumerSpecificationRepositoryTest extends AbstractPostgresReposi
     }
 
     @Test
+    void producerFindAllBySpecification_includesProducerWithZeroProducts_unlikeTheOldJoinFetchQuery() {
+        // Documents a deliberate difference from ProducerRepository.findByIdpClientId: that
+        // method's JOIN FETCH is an implicit inner join and silently excludes a producer with no
+        // products. @EntityGraph fetches via an outer join and does not exclude it. Callers that
+        // need the old exclude-if-empty behaviour must go through findByIdpClientId, not this
+        // method - see ConfigurationProviderImpl.getFilteredActiveProducers, which only uses
+        // this Specification-based path once a caller filter is actually present.
+        Organisation org = new Organisation();
+        org.setName("zero-product-org");
+        entityManager.persist(org);
+
+        Producer producer = new Producer();
+        producer.setName("zero-product-producer");
+        producer.setDescription("test");
+        producer.setOrg(org);
+        producer.setActive(true);
+        producer.setHost("host.example");
+        producer.setPort(java.math.BigDecimal.valueOf(443));
+        producer.setTls(true);
+        producer.setIdpClientId("zero-product-client");
+        entityManager.persist(producer);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        Specification<Producer> byClientId =
+                (root, query, cb) -> cb.equal(root.get("idpClientId"), "zero-product-client");
+
+        assertThat(producerRepository.findAll(byClientId)).hasSize(1);
+        assertThat(producerRepository.findByIdpClientId("zero-product-client")).isEmpty();
+    }
+
+    @Test
     void consumerFindAllBySpecification_returnsMatchingRowOnly() {
         Organisation org = new Organisation();
         org.setName("spec-consumer-org");

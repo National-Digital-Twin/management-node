@@ -10,6 +10,7 @@ import java.util.List;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uk.gov.dbt.ndtp.ia.node.management.converter.impl.OrganisationProducerConverter;
+import uk.gov.dbt.ndtp.ia.node.management.filter.Specifications;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.ProducerDTO;
 import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Producer;
 import uk.gov.dbt.ndtp.ia.node.management.persistency.repository.ProducerRepository;
@@ -55,7 +56,7 @@ public class ProducerServiceImpl implements ProducerService {
 
     @Override
     public List<ProducerDTO> getProducersByClientId(String clientId, Specification<Producer> filter) {
-        Specification<Producer> clientScoped = (root, query, cb) -> cb.equal(root.get("idpClientId"), clientId);
+        Specification<Producer> clientScoped = Specifications.fieldEquals("idpClientId", clientId);
         Specification<Producer> combined = filter == null ? clientScoped : clientScoped.and(filter);
         List<Producer> producers = producerRepository.findAll(combined);
         return organisationProducerConverter.toDtoList(producers);

@@ -45,6 +45,13 @@ public class FilterRequestParser {
         } catch (JsonProcessingException e) {
             throw new FilterCompilationException(Origin.REQUEST, "Malformed filter: could not parse JSON");
         }
+        // @NotNull/@NotBlank on the FilterNode records are structural documentation only - this
+        // project has no Bean Validation provider on the classpath, and readValue never enforces
+        // them - so a syntactically valid but semantically incomplete filter (e.g. a comparison
+        // with no "attribute", a group with no "combinator", or a bare JSON `null`) must be
+        // rejected explicitly here, before it can reach a `switch` on a null enum/record deeper
+        // in resolution or compilation and surface as an unhandled 500.
+        validate(node);
         int comparisons = countComparisons(node);
         if (comparisons > MAX_COMPARISONS) {
             throw new FilterCompilationException(
@@ -52,6 +59,30 @@ public class FilterRequestParser {
                     "A filter may combine at most " + MAX_COMPARISONS + " comparisons, found " + comparisons);
         }
         return Optional.of(node);
+    }
+
+    private static void validate(FilterNode node) {
+        if (node == null) {
+            throw new FilterCompilationException(Origin.REQUEST, "Filter must not be null");
+        }
+        switch (node) {
+            case FilterNode.Comparison comparison -> {
+                if (comparison.attribute() == null || comparison.attribute().isBlank()) {
+                    throw new FilterCompilationException(Origin.REQUEST, "A comparison must name an attribute");
+                }
+                if (comparison.operator() == null) {
+                    throw new FilterCompilationException(
+                            Origin.REQUEST,
+                            "Comparison on attribute '" + comparison.attribute() + "' must name an operator");
+                }
+            }
+            case FilterNode.Group group -> {
+                if (group.combinator() == null) {
+                    throw new FilterCompilationException(Origin.REQUEST, "A filter group must name a combinator");
+                }
+                group.nodes().forEach(FilterRequestParser::validate);
+            }
+        }
     }
 
     private static int countComparisons(FilterNode node) {

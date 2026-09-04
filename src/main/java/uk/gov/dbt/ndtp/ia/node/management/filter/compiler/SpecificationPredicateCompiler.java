@@ -100,11 +100,14 @@ public class SpecificationPredicateCompiler {
                     Origin.REQUEST,
                     "Operator '" + operator.wireName() + "' is not supported for attribute '" + name + "'");
         }
-        boolean isEqualityFamily = operator == ComparisonOperator.EQ
-                || operator == ComparisonOperator.NEQ
-                || operator == ComparisonOperator.IN
-                || operator == ComparisonOperator.NOT_IN;
-        if (attribute instanceof ResourceAttribute.Dynamic dynamic && dynamic.multiValued() && !isEqualityFamily) {
+        // A multi-valued attribute compiles to one EXISTS subquery per Comparison (see
+        // dynamicPredicate), so only "has a matching value" operators (EQ/IN) have unambiguous
+        // EXISTS semantics. NEQ/NOT_IN would mean "EXISTS a value that doesn't match", which is
+        // true as soon as ANY other value is present - not "does not have this value" as a
+        // caller would reasonably expect - so they're rejected here rather than silently
+        // compiled to the wrong predicate.
+        boolean isExistsSafe = operator == ComparisonOperator.EQ || operator == ComparisonOperator.IN;
+        if (attribute instanceof ResourceAttribute.Dynamic dynamic && dynamic.multiValued() && !isExistsSafe) {
             throw new FilterCompilationException(
                     Origin.REQUEST,
                     "Operator '" + operator.wireName() + "' is not supported for multi-valued attribute '" + name

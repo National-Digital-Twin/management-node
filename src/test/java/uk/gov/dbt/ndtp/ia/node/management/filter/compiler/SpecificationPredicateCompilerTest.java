@@ -337,4 +337,57 @@ class SpecificationPredicateCompilerTest extends AbstractPostgresRepositoryTest 
                 .extracting(e -> ((FilterCompilationException) e).origin())
                 .isEqualTo(Origin.REQUEST);
     }
+
+    // Regression tests for the multi-valued NEQ/NOT_IN semantics bug fixed after code review:
+    // each Comparison against a dynamic attribute compiles to one EXISTS subquery, so NEQ/NOT_IN
+    // on a multi-valued attribute would mean "EXISTS a value that doesn't match" (true as soon
+    // as any other value is present) rather than the "does not have this value" a caller would
+    // expect - so those operators are rejected outright for multi-valued attributes, while
+    // EQ/IN ("has a matching value") keep their unambiguous EXISTS semantics.
+
+    @Test
+    void multiValuedAttribute_rejectsNeq() {
+        AttributeDefinitionScope binding = persistProducerScopedDefinition("tags", "STRING", true);
+
+        assertThatThrownBy(() -> execute(compiler()
+                        .compile(
+                                ResourceType.PRODUCER,
+                                FilterNode.Comparison.of("policy.tags", ComparisonOperator.NEQ, "red"))))
+                .isInstanceOf(FilterCompilationException.class)
+                .extracting(e -> ((FilterCompilationException) e).origin())
+                .isEqualTo(Origin.REQUEST);
+    }
+
+    @Test
+    void multiValuedAttribute_rejectsNotIn() {
+        persistProducerScopedDefinition("tags-not-in", "STRING", true);
+
+        assertThatThrownBy(() -> execute(compiler()
+                        .compile(
+                                ResourceType.PRODUCER,
+                                new FilterNode.Comparison(
+                                        "policy.tags-not-in", ComparisonOperator.NOT_IN, List.of("red")))))
+                .isInstanceOf(FilterCompilationException.class)
+                .extracting(e -> ((FilterCompilationException) e).origin())
+                .isEqualTo(Origin.REQUEST);
+    }
+
+    @Test
+    void multiValuedAttribute_allowsEq_matchingProducerWithThatValueAmongOthers() {
+        Organisation org = persistOrganisation("org-multi-eq");
+        Producer producer = persistProducer(org, "multi-valued-producer", true);
+        entityManager.flush();
+
+        AttributeDefinitionScope binding = persistProducerScopedDefinition("multi-tags", "STRING", true);
+        persistValue(binding, producer.getId(), "\"red\"");
+        persistValue(binding, producer.getId(), "\"blue\"");
+        entityManager.flush();
+
+        Specification<Producer> spec = compiler()
+                .compile(
+                        ResourceType.PRODUCER,
+                        FilterNode.Comparison.of("policy.multi-tags", ComparisonOperator.EQ, "red"));
+
+        assertThat(execute(spec)).extracting(Producer::getId).containsExactly(producer.getId());
+    }
 }

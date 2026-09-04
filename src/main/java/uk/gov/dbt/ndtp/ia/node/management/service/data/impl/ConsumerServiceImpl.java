@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uk.gov.dbt.ndtp.ia.node.management.converter.impl.ConsumerConverter;
+import uk.gov.dbt.ndtp.ia.node.management.filter.Specifications;
 import uk.gov.dbt.ndtp.ia.node.management.model.dto.ConsumerDTO;
 import uk.gov.dbt.ndtp.ia.node.management.persistency.entity.Consumer;
 import uk.gov.dbt.ndtp.ia.node.management.persistency.repository.ConsumerRepository;
@@ -55,7 +56,7 @@ public class ConsumerServiceImpl implements ConsumerService {
 
     @Override
     public List<ConsumerDTO> findByIdpClientId(String idpClientId, Specification<Consumer> filter) {
-        Specification<Consumer> clientScoped = (root, query, cb) -> cb.equal(root.get("idpClientId"), idpClientId);
+        Specification<Consumer> clientScoped = Specifications.fieldEquals("idpClientId", idpClientId);
         Specification<Consumer> combined = filter == null ? clientScoped : clientScoped.and(filter);
         List<Consumer> consumers = consumerRepository.findAll(combined);
         return consumerIdConverter.toDtoList(consumers);
