@@ -415,8 +415,9 @@ class ConfigurationProviderImplTest {
         String clientId = "routing-client-3";
         when(producerService.getProducersByClientId(eq(clientId), any())).thenReturn(List.of());
         FilterNode.Comparison filter = FilterNode.Comparison.of("active", ComparisonOperator.EQ, true);
-        when(specificationPredicateCompiler.<Producer>compile(eq(ResourceType.PRODUCER), eq(filter)))
-                .thenReturn(mock(Specification.class));
+        Specification<Producer> compiledSpec = mock(Specification.class);
+        when(specificationPredicateCompiler.<Producer>compile(ResourceType.PRODUCER, filter))
+                .thenReturn(compiledSpec);
 
         configurationProvider.getProducerConfigByClientId(clientId, Optional.empty(), Optional.of(filter));
 

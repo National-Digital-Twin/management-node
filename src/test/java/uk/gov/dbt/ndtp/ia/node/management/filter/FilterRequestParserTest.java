@@ -13,7 +13,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import uk.gov.dbt.ndtp.ia.node.management.filter.FilterCompilationException.Origin;
 
 class FilterRequestParserTest {
@@ -91,53 +95,35 @@ class FilterRequestParserTest {
                 .isEqualTo(Origin.REQUEST);
     }
 
-    @Test
-    void parse_rejectsComparisonMissingAttribute() {
-        String json =
-                """
-                { "type": "comparison", "operator": "eq", "values": [true] }
-                """;
-
-        assertThatThrownBy(() -> parser.parse(json))
-                .isInstanceOf(FilterCompilationException.class)
-                .extracting(e -> ((FilterCompilationException) e).origin())
-                .isEqualTo(Origin.REQUEST);
+    static Stream<Arguments> incompleteFilters() {
+        return Stream.of(
+                Arguments.of(
+                        "comparison missing attribute",
+                        """
+                        { "type": "comparison", "operator": "eq", "values": [true] }
+                        """),
+                Arguments.of(
+                        "comparison missing operator",
+                        """
+                        { "type": "comparison", "attribute": "active", "values": [true] }
+                        """),
+                Arguments.of(
+                        "group missing combinator",
+                        """
+                        { "type": "group", "nodes": [
+                            { "type": "comparison", "attribute": "active", "operator": "eq", "values": [true] }
+                        ] }
+                        """),
+                Arguments.of(
+                        "group with null element in nodes",
+                        """
+                        { "type": "group", "combinator": "and", "nodes": [null] }
+                        """));
     }
 
-    @Test
-    void parse_rejectsComparisonMissingOperator() {
-        String json =
-                """
-                { "type": "comparison", "attribute": "active", "values": [true] }
-                """;
-
-        assertThatThrownBy(() -> parser.parse(json))
-                .isInstanceOf(FilterCompilationException.class)
-                .extracting(e -> ((FilterCompilationException) e).origin())
-                .isEqualTo(Origin.REQUEST);
-    }
-
-    @Test
-    void parse_rejectsGroupMissingCombinator() {
-        String json =
-                """
-                { "type": "group", "nodes": [
-                    { "type": "comparison", "attribute": "active", "operator": "eq", "values": [true] }
-                ] }
-                """;
-
-        assertThatThrownBy(() -> parser.parse(json))
-                .isInstanceOf(FilterCompilationException.class)
-                .extracting(e -> ((FilterCompilationException) e).origin())
-                .isEqualTo(Origin.REQUEST);
-    }
-
-    @Test
-    void parse_rejectsGroupWithNullElementInNodes() {
-        String json = """
-                { "type": "group", "combinator": "and", "nodes": [null] }
-                """;
-
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("incompleteFilters")
+    void parse_rejectsSemanticallyIncompleteFilter(String description, String json) {
         assertThatThrownBy(() -> parser.parse(json))
                 .isInstanceOf(FilterCompilationException.class)
                 .extracting(e -> ((FilterCompilationException) e).origin())

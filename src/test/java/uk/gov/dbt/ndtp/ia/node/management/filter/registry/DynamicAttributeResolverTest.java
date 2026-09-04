@@ -103,8 +103,9 @@ class DynamicAttributeResolverTest extends AbstractPostgresRepositoryTest {
     void resolve_throwsPolicyOriginForUnrecognisedDataType() {
         AttributeDefinition definition = persistDefinition("policy", "bad-type", "XML", false);
         bindToScope(definition, "PRODUCER");
+        DynamicAttributeResolver resolver = resolver();
 
-        assertThatThrownBy(() -> resolver().resolve(ResourceType.PRODUCER, "policy.bad-type"))
+        assertThatThrownBy(() -> resolver.resolve(ResourceType.PRODUCER, "policy.bad-type"))
                 .isInstanceOf(FilterCompilationException.class)
                 .extracting(e -> ((FilterCompilationException) e).origin())
                 .isEqualTo(Origin.POLICY);

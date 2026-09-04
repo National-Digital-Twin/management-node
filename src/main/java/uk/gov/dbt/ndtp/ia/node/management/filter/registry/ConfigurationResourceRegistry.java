@@ -56,28 +56,31 @@ public class ConfigurationResourceRegistry {
     private static ResourceDefinition producerDefinition() {
         return new ResourceDefinition(
                 ResourceType.PRODUCER,
-                Map.of(
-                        "id", new ResourceAttribute.Fixed("id", "id", AttributeType.LONG),
-                        "name", new ResourceAttribute.Fixed("name", "name", AttributeType.STRING),
-                        "description", new ResourceAttribute.Fixed("description", "description", AttributeType.STRING),
-                        "active", new ResourceAttribute.Fixed("active", "active", AttributeType.BOOLEAN),
-                        "host", new ResourceAttribute.Fixed("host", "host", AttributeType.STRING),
-                        "port", new ResourceAttribute.Fixed("port", "port", AttributeType.DECIMAL),
-                        "tls", new ResourceAttribute.Fixed("tls", "tls", AttributeType.BOOLEAN),
-                        "orgId", new ResourceAttribute.Fixed("orgId", "org.id", AttributeType.LONG)));
+                Map.ofEntries(
+                        fixed("id", "id", AttributeType.LONG),
+                        fixed("name", "name", AttributeType.STRING),
+                        fixed("description", "description", AttributeType.STRING),
+                        fixed("active", "active", AttributeType.BOOLEAN),
+                        fixed("host", "host", AttributeType.STRING),
+                        fixed("port", "port", AttributeType.DECIMAL),
+                        fixed("tls", "tls", AttributeType.BOOLEAN),
+                        fixed("orgId", "org.id", AttributeType.LONG)));
     }
 
     private static ResourceDefinition consumerDefinition() {
         return new ResourceDefinition(
                 ResourceType.CONSUMER,
-                Map.of(
-                        "id", new ResourceAttribute.Fixed("id", "id", AttributeType.LONG),
-                        "name", new ResourceAttribute.Fixed("name", "name", AttributeType.STRING),
-                        "scheduleType",
-                                new ResourceAttribute.Fixed("scheduleType", "scheduleType", AttributeType.STRING),
-                        "scheduleExpression",
-                                new ResourceAttribute.Fixed(
-                                        "scheduleExpression", "scheduleExpression", AttributeType.STRING),
-                        "orgId", new ResourceAttribute.Fixed("orgId", "org.id", AttributeType.LONG)));
+                Map.ofEntries(
+                        fixed("id", "id", AttributeType.LONG),
+                        fixed("name", "name", AttributeType.STRING),
+                        fixed("scheduleType", "scheduleType", AttributeType.STRING),
+                        fixed("scheduleExpression", "scheduleExpression", AttributeType.STRING),
+                        fixed("orgId", "org.id", AttributeType.LONG)));
+    }
+
+    /** A fixed-column map entry, keyed by the same logical name the {@link ResourceAttribute.Fixed} carries. */
+    private static Map.Entry<String, ResourceAttribute.Fixed> fixed(
+            String logicalName, String jpaPath, AttributeType type) {
+        return Map.entry(logicalName, new ResourceAttribute.Fixed(logicalName, jpaPath, type));
     }
 }

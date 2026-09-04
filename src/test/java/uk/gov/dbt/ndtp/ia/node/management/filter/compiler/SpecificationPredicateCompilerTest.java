@@ -292,8 +292,10 @@ class SpecificationPredicateCompilerTest extends AbstractPostgresRepositoryTest 
     @Test
     void unknownAttribute_rejectedWithRequestOriginAndNoInternalLeak() {
         // compile() only returns a lazy Specification; resolution happens when the predicate is built.
-        assertThatThrownBy(() -> execute(compiler()
-                        .compile(ResourceType.PRODUCER, FilterNode.Comparison.of("nope", ComparisonOperator.EQ, "x"))))
+        Specification<Producer> spec =
+                compiler().compile(ResourceType.PRODUCER, FilterNode.Comparison.of("nope", ComparisonOperator.EQ, "x"));
+
+        assertThatThrownBy(() -> execute(spec))
                 .isInstanceOf(FilterCompilationException.class)
                 .satisfies(e -> {
                     FilterCompilationException fce = (FilterCompilationException) e;
@@ -307,10 +309,10 @@ class SpecificationPredicateCompilerTest extends AbstractPostgresRepositoryTest 
 
     @Test
     void operatorUnsupportedForType_rejected() {
-        assertThatThrownBy(() -> execute(compiler()
-                        .compile(
-                                ResourceType.PRODUCER,
-                                FilterNode.Comparison.of("active", ComparisonOperator.CONTAINS, "x"))))
+        Specification<Producer> spec = compiler()
+                .compile(ResourceType.PRODUCER, FilterNode.Comparison.of("active", ComparisonOperator.CONTAINS, "x"));
+
+        assertThatThrownBy(() -> execute(spec))
                 .isInstanceOf(FilterCompilationException.class)
                 .extracting(e -> ((FilterCompilationException) e).origin())
                 .isEqualTo(Origin.REQUEST);
@@ -318,10 +320,12 @@ class SpecificationPredicateCompilerTest extends AbstractPostgresRepositoryTest 
 
     @Test
     void wrongArity_rejectedForSingleValueOperator() {
-        assertThatThrownBy(() -> execute(compiler()
-                        .compile(
-                                ResourceType.PRODUCER,
-                                new FilterNode.Comparison("active", ComparisonOperator.EQ, List.of(true, false)))))
+        Specification<Producer> spec = compiler()
+                .compile(
+                        ResourceType.PRODUCER,
+                        new FilterNode.Comparison("active", ComparisonOperator.EQ, List.of(true, false)));
+
+        assertThatThrownBy(() -> execute(spec))
                 .isInstanceOf(FilterCompilationException.class)
                 .extracting(e -> ((FilterCompilationException) e).origin())
                 .isEqualTo(Origin.REQUEST);
@@ -329,10 +333,11 @@ class SpecificationPredicateCompilerTest extends AbstractPostgresRepositoryTest 
 
     @Test
     void wrongOperandType_rejected() {
-        assertThatThrownBy(() -> execute(compiler()
-                        .compile(
-                                ResourceType.PRODUCER,
-                                FilterNode.Comparison.of("port", ComparisonOperator.GT, "not-a-number"))))
+        Specification<Producer> spec = compiler()
+                .compile(
+                        ResourceType.PRODUCER, FilterNode.Comparison.of("port", ComparisonOperator.GT, "not-a-number"));
+
+        assertThatThrownBy(() -> execute(spec))
                 .isInstanceOf(FilterCompilationException.class)
                 .extracting(e -> ((FilterCompilationException) e).origin())
                 .isEqualTo(Origin.REQUEST);
@@ -347,12 +352,11 @@ class SpecificationPredicateCompilerTest extends AbstractPostgresRepositoryTest 
 
     @Test
     void multiValuedAttribute_rejectsNeq() {
-        AttributeDefinitionScope binding = persistProducerScopedDefinition("tags", "STRING", true);
+        persistProducerScopedDefinition("tags", "STRING", true);
+        Specification<Producer> spec = compiler()
+                .compile(ResourceType.PRODUCER, FilterNode.Comparison.of("policy.tags", ComparisonOperator.NEQ, "red"));
 
-        assertThatThrownBy(() -> execute(compiler()
-                        .compile(
-                                ResourceType.PRODUCER,
-                                FilterNode.Comparison.of("policy.tags", ComparisonOperator.NEQ, "red"))))
+        assertThatThrownBy(() -> execute(spec))
                 .isInstanceOf(FilterCompilationException.class)
                 .extracting(e -> ((FilterCompilationException) e).origin())
                 .isEqualTo(Origin.REQUEST);
@@ -361,12 +365,12 @@ class SpecificationPredicateCompilerTest extends AbstractPostgresRepositoryTest 
     @Test
     void multiValuedAttribute_rejectsNotIn() {
         persistProducerScopedDefinition("tags-not-in", "STRING", true);
+        Specification<Producer> spec = compiler()
+                .compile(
+                        ResourceType.PRODUCER,
+                        new FilterNode.Comparison("policy.tags-not-in", ComparisonOperator.NOT_IN, List.of("red")));
 
-        assertThatThrownBy(() -> execute(compiler()
-                        .compile(
-                                ResourceType.PRODUCER,
-                                new FilterNode.Comparison(
-                                        "policy.tags-not-in", ComparisonOperator.NOT_IN, List.of("red")))))
+        assertThatThrownBy(() -> execute(spec))
                 .isInstanceOf(FilterCompilationException.class)
                 .extracting(e -> ((FilterCompilationException) e).origin())
                 .isEqualTo(Origin.REQUEST);

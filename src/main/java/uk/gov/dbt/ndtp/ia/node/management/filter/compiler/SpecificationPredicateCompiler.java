@@ -200,14 +200,14 @@ public class SpecificationPredicateCompiler {
     // Shared comparison building
     // -----------------------------------------------------------------------------------
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings("unchecked")
     private static Predicate buildComparison(
             CriteriaBuilder cb, Expression<?> expression, ComparisonOperator operator, List<Object> values) {
         return switch (operator) {
             case EQ -> cb.equal(expression, values.get(0));
             case NEQ -> cb.notEqual(expression, values.get(0));
-            case IN -> ((Expression) expression).in(values);
-            case NOT_IN -> cb.not(((Expression) expression).in(values));
+            case IN -> expression.in(values);
+            case NOT_IN -> cb.not(expression.in(values));
             case LT -> cb.lessThan((Expression<Comparable>) expression, (Comparable) values.get(0));
             case LTE -> cb.lessThanOrEqualTo((Expression<Comparable>) expression, (Comparable) values.get(0));
             case GT -> cb.greaterThan((Expression<Comparable>) expression, (Comparable) values.get(0));

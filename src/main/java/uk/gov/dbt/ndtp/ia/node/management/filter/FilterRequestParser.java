@@ -8,6 +8,7 @@ package uk.gov.dbt.ndtp.ia.node.management.filter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
 import uk.gov.dbt.ndtp.ia.node.management.filter.FilterCompilationException.Origin;
@@ -66,21 +67,20 @@ public class FilterRequestParser {
             throw new FilterCompilationException(Origin.REQUEST, "Filter must not be null");
         }
         switch (node) {
-            case FilterNode.Comparison comparison -> {
-                if (comparison.attribute() == null || comparison.attribute().isBlank()) {
+            case FilterNode.Comparison(String attribute, ComparisonOperator operator, List<Object> values) -> {
+                if (attribute == null || attribute.isBlank()) {
                     throw new FilterCompilationException(Origin.REQUEST, "A comparison must name an attribute");
                 }
-                if (comparison.operator() == null) {
+                if (operator == null) {
                     throw new FilterCompilationException(
-                            Origin.REQUEST,
-                            "Comparison on attribute '" + comparison.attribute() + "' must name an operator");
+                            Origin.REQUEST, "Comparison on attribute '" + attribute + "' must name an operator");
                 }
             }
-            case FilterNode.Group group -> {
-                if (group.combinator() == null) {
+            case FilterNode.Group(Combinator combinator, List<FilterNode> nodes) -> {
+                if (combinator == null) {
                     throw new FilterCompilationException(Origin.REQUEST, "A filter group must name a combinator");
                 }
-                group.nodes().forEach(FilterRequestParser::validate);
+                nodes.forEach(FilterRequestParser::validate);
             }
         }
     }
