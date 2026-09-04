@@ -8,8 +8,6 @@ package uk.gov.dbt.ndtp.ia.node.management.persistency.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import java.sql.Timestamp;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -19,7 +17,7 @@ import org.hibernate.type.SqlTypes;
 @Setter
 @Entity
 @Table(name = "attribute_value")
-public class AttributeValue {
+public class AttributeValue extends AttributeAuditFields {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -44,24 +42,4 @@ public class AttributeValue {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "value", nullable = false)
     private String value;
-
-    @NotNull
-    @Column(name = "is_deleted", nullable = false)
-    private Boolean isDeleted = false;
-
-    @NotNull
-    @Column(name = "created_at", nullable = false)
-    private Timestamp createdAt;
-
-    @Size(max = 255)
-    @NotNull
-    @Column(name = "created_by", nullable = false, length = 255)
-    private String createdBy;
-
-    @Column(name = "updated_at")
-    private Timestamp updatedAt;
-
-    @Size(max = 255)
-    @Column(name = "updated_by", length = 255)
-    private String updatedBy;
 }
