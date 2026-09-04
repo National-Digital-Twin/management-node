@@ -336,7 +336,7 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
      */
     private boolean isValidProvider(ProductConsumerDTO provider) {
 
-        if (provider.getValidity() == null || provider.getValidity().equals(BigDecimal.ZERO)) return true;
+        if (provider.getValidity() == null || provider.getValidity().compareTo(BigDecimal.ZERO) == 0) return true;
 
         return isValidGrantedTs(provider.getGrantedTs(), provider.getValidity());
     }
